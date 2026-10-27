@@ -2,25 +2,36 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-const VOICES = [
-  { id: 'ru-RU-SvetlanaNeural', name: 'Светлана', desc: 'Женский · тёплый, естественный' },
-  { id: 'ru-RU-DariyaNeural', name: 'Дарья', desc: 'Женский · мягкий, дружелюбный' },
-  { id: 'ru-RU-DmitryNeural', name: 'Дмитрий', desc: 'Мужской · уверенный, чёткий' },
-];
+window.__errors = [];
+window.addEventListener('error', (e) => window.__errors.push(String(e.message)));
+window.addEventListener('unhandledrejection', (e) => window.__errors.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
+
+/* ---------- настройки и голоса ---------- */
+const BUILTIN = [
+  { id: 'b-svetlana', name: 'Светлана', desc: 'Женский · тёплый, естественный', voice: 'ru-RU-SvetlanaNeural' },
+  { id: 'b-dariya', name: 'Дарья', desc: 'Женский · мягкий, дружелюбный', voice: 'ru-RU-DariyaNeural' },
+  { id: 'b-dmitry', name: 'Дмитрий', desc: 'Мужской · уверенный, чёткий', voice: 'ru-RU-DmitryNeural' },
+].map((v) => ({ ...v, provider: 'edge', rate: 0, pitch: 0, pool: true, builtin: true }));
 
 const DEFAULTS = {
-  voice: VOICES[0].id, vol: 80, rate: 0, pitch: 0, maxLen: 140, nick: '',
+  selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', elKey: '', perViewer: false,
+  presets: [],
   chat: true, readName: true, gifts: true, follows: true, subsOnly: false,
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
-try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat') || '{}') }; } catch (_) {}
-const save = () => { try { localStorage.setItem('echochat', JSON.stringify(S)); } catch (_) {} };
+try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
+// встроенные голоса всегда на месте, свои — добавляются после них
+const customs = (S.presets || []).filter((p) => p && !p.builtin);
+S.presets = [...BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true })), ...customs];
+if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
+const save = () => { try { localStorage.setItem('echochat2', JSON.stringify(S)); } catch (_) {} };
+const selectedPreset = () => S.presets.find((p) => p.id === S.selected) || S.presets[0];
 
 /* ---------- вкладки ---------- */
 const TITLES = {
   live: ['Эфир', 'Подключись к TikTok LIVE и слушай чат вслух'],
-  voice: ['Голос', 'Живые нейро-голоса и события для озвучки'],
+  voice: ['Голос', 'Живые голоса, свои пресеты и события для озвучки'],
   filters: ['Фильтры', 'Чистый чат без команд, спама и мата'],
 };
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
@@ -30,46 +41,136 @@ $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $('#subtitle').textContent = TITLES[b.dataset.tab][1];
 }));
 
-/* ---------- настройки ---------- */
 $$('input[data-k]').forEach((el) => {
   el.checked = !!S[el.dataset.k];
   el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); });
 });
-const bindRange = (id, key, label, fmt) => {
-  const el = $('#' + id); el.value = S[key]; $('#' + label).textContent = fmt(S[key]);
-  el.addEventListener('input', () => { S[key] = +el.value; $('#' + label).textContent = fmt(S[key]); save(); if (id === 'vol' && cur) cur.volume = S.vol / 100; });
-};
-bindRange('vol', 'vol', 'volVal', (v) => v + '%');
-bindRange('rate', 'rate', 'rateVal', (v) => (v > 0 ? '+' : '') + v + '%');
-bindRange('pitch', 'pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц');
-bindRange('maxLen', 'maxLen', 'lenVal', (v) => v);
 
+function bindRange(id, label, fmt, get, set) {
+  const el = $('#' + id), lb = $('#' + label);
+  const refresh = () => { const v = get(); el.value = v; lb.textContent = fmt(v); };
+  el.addEventListener('input', () => { set(+el.value); lb.textContent = fmt(+el.value); save(); });
+  return refresh;
+}
+const refreshVol = bindRange('vol', 'volVal', (v) => v + '%', () => S.vol, (v) => { S.vol = v; if (cur) cur.volume = v / 100; });
+const refreshRate = bindRange('rate', 'rateVal', (v) => (v > 0 ? '+' : '') + v + '%', () => selectedPreset().rate, (v) => { selectedPreset().rate = v; });
+const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
+const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
+$('#nick').value = S.nick;
+
+/* ---------- карточки голосов ---------- */
 const voicesBox = $('#voices');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
 function renderVoices() {
   voicesBox.innerHTML = '';
-  VOICES.forEach((v) => {
+  S.presets.forEach((p) => {
     const d = document.createElement('div');
-    d.className = 'voice' + (v.id === S.voice ? ' sel' : '');
-    d.innerHTML = `<div class="av">${v.name[0]}</div><div><b>${v.name}</b><small>${v.desc}</small></div>`;
-    d.onclick = () => { S.voice = v.id; save(); renderVoices(); };
+    d.className = 'voice' + (p.id === S.selected ? ' sel' : '');
+    d.dataset.id = p.id;
+    d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
+      <div class="vi"><b>${esc(p.name)}${p.provider === 'eleven' ? '<em>свой</em>' : ''}</b><small>${esc(p.desc || p.voice || '')}</small></div>
+      <label class="rot" title="Участвует в ротации «разные голоса для зрителей»"><input type="checkbox" ${p.pool ? 'checked' : ''}/><span>ротация</span></label>
+      <button class="mini play" title="Прослушать">▶</button>
+      ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
+    d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); };
+    $('.rot', d).onclick = (e) => e.stopPropagation();
+    $('.rot input', d).onchange = (e) => { p.pool = e.target.checked; save(); };
+    $('.play', d).onclick = (e) => { e.stopPropagation(); previewPreset(p); };
+    const del = $('.del', d);
+    if (del) del.onclick = (e) => {
+      e.stopPropagation();
+      S.presets = S.presets.filter((x) => x.id !== p.id);
+      if (S.selected === p.id) S.selected = BUILTIN[0].id;
+      save(); renderVoices(); refreshRate(); refreshPitch();
+    };
     voicesBox.appendChild(d);
   });
 }
-renderVoices();
-$('#nick').value = S.nick;
+
+function previewPreset(p) {
+  queue.length = 0; stopCurrent();
+  enqueue({ el: null, say: `Привет! Меня зовут ${p.name}. Я буду читать чат твоего эфира.`, preset: p }, true);
+}
+$('#btnTest').onclick = () => previewPreset(selectedPreset());
+
+// выбор голоса для конкретного зрителя: один и тот же ник — всегда один голос
+function hashStr(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function pickPreset(name) {
+  if (!S.perViewer) return selectedPreset();
+  const pool = S.presets.filter((p) => p.pool);
+  if (!pool.length) return selectedPreset();
+  return pool[hashStr(name) % pool.length];
+}
+
+/* ---------- добавление своего голоса ---------- */
+let catalog = [];
+const newProv = $('#newProv'), newVoice = $('#newVoice'), voiceSearch = $('#voiceSearch'), voiceMsg = $('#voiceMsg');
+const LOC_ORDER = ['ru-RU', 'kk-KZ', 'uk-UA', 'en-US'];
+
+function renderCatalog() {
+  const q = voiceSearch.value.trim().toLowerCase();
+  const list = catalog
+    .filter((v) => !q || (v.name + ' ' + v.id + ' ' + v.locale + ' ' + v.gender).toLowerCase().includes(q))
+    .sort((a, b) => {
+      const ia = LOC_ORDER.indexOf(a.locale), ib = LOC_ORDER.indexOf(b.locale);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name);
+    });
+  newVoice.innerHTML = '';
+  list.slice(0, 400).forEach((v) => {
+    const o = document.createElement('option');
+    o.value = v.id;
+    o.textContent = `${v.name} · ${v.gender === 'Male' ? 'муж.' : v.gender === 'Female' ? 'жен.' : v.gender}`;
+    newVoice.appendChild(o);
+  });
+  if (newVoice.options.length) newVoice.selectedIndex = 0;
+}
+async function loadCatalog() {
+  try { const r = await window.echo.voices(); catalog = r.voices || []; } catch (_) { catalog = []; }
+  renderCatalog();
+}
+voiceSearch.addEventListener('input', renderCatalog);
+newProv.addEventListener('change', () => {
+  const eleven = newProv.value === 'eleven';
+  $('#msBox').hidden = eleven; $('#elBox').hidden = !eleven;
+});
+$('#elKey').value = S.elKey || '';
+const say = (t, bad) => { voiceMsg.textContent = t; voiceMsg.className = 'vmsg' + (bad ? ' bad' : ''); };
+
+$('#btnAddVoice').onclick = () => {
+  let name = $('#newName').value.trim();
+  let p;
+  if (newProv.value === 'eleven') {
+    const key = $('#elKey').value.trim(), vid = $('#elVoiceId').value.trim();
+    if (!key || !vid) return say('Укажите API-ключ и Voice ID из ElevenLabs.', true);
+    if (!name) name = 'Мой голос';
+    S.elKey = key;
+    p = { provider: 'eleven', elVoice: vid, desc: 'ElevenLabs · свой голос' };
+  } else {
+    const id = newVoice.value;
+    if (!id) return say('Выберите голос из списка.', true);
+    const meta = catalog.find((v) => v.id === id) || {};
+    if (!name) name = (meta.name || id).split(' · ')[0].replace(/\s*\(.*\)/, '');
+    p = { provider: 'edge', voice: id, desc: `${meta.name || id}` };
+  }
+  const preset = { id: 'c-' + Date.now().toString(36), name, rate: 0, pitch: 0, pool: true, builtin: false, ...p };
+  S.presets.push(preset);
+  S.selected = preset.id;
+  save(); renderVoices(); refreshRate(); refreshPitch();
+  $('#newName').value = '';
+  say(`Голос «${name}» добавлен и выбран. Подстрой скорость и тон слева и нажми ▶.`);
+};
 
 /* ---------- лента ---------- */
 const feed = $('#feed');
 const colors = ['#8b5cf6', '#ec4899', '#22d3ee', '#f59e0b', '#10b981', '#6366f1', '#ef4444'];
 const colorOf = (s) => colors[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length];
-const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const now = () => new Date().toLocaleTimeString('ru-RU');
 
 function addMsg({ name, text, kind = '', sub = false, color }) {
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
-  el.innerHTML = `<div class="av" style="background:${color || colorOf(name)}">${esc(name[0] || '?').toUpperCase()}</div>
+  el.innerHTML = `<div class="av" style="background:${color || colorOf(name)}">${esc((name[0] || '?').toUpperCase())}</div>
     <div class="b"><div class="n">${esc(name)}${sub ? '<em>SUB</em>' : ''}</div><div class="t">${esc(text)}</div></div>`;
   feed.appendChild(el);
   while (feed.children.length > 150) feed.firstChild.remove();
@@ -105,19 +206,24 @@ function clean(raw) {
   if (t.length > S.maxLen) t = t.slice(0, S.maxLen).replace(/\s\S*$/, '') + '…';
   return t;
 }
+// ник для озвучки: без эмодзи и мусора, чтобы голос не спотыкался
+function speakName(n) {
+  const t = String(n || '').replace(EMOJI, '').replace(/[_.]+/g, ' ').replace(/[^\p{L}\p{N} -]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 24);
+  return t || 'Гость';
+}
 
 /* ---------- очередь озвучки ---------- */
 const queue = [];
-let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null;
+let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null, lastWarn = 0;
 
 function enqueue(item, force = false) {
   if ($('#paused').checked && !force) return;
   if (queue.length >= 12) queue.shift(); // не копим отставание от эфира
+  item.preset = item.preset || selectedPreset();
   queue.push(item);
   pump();
 }
 
-// Останавливает текущую фразу; цикл очереди сам перейдёт к следующей
 function stopCurrent() {
   if (cur) { cur.onended = cur.onerror = null; cur.pause(); cur = null; }
   if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
@@ -144,7 +250,7 @@ function fallbackSpeak(text) {
       const u = new SpeechSynthesisUtterance(text);
       const ru = speechSynthesis.getVoices().find((v) => v.lang.startsWith('ru'));
       if (ru) u.voice = ru;
-      u.lang = 'ru-RU'; u.volume = S.vol / 100; u.rate = Math.max(0.5, 1 + S.rate / 100);
+      u.lang = 'ru-RU'; u.volume = S.vol / 100;
       curResolve = resolve;
       u.onend = u.onerror = () => { curResolve = null; resolve(); };
       speechSynthesis.speak(u);
@@ -152,15 +258,37 @@ function fallbackSpeak(text) {
   });
 }
 
-async function speak(text) {
-  const rate = Math.max(0.5, 1 + S.rate / 100);
-  const pitch = (S.pitch >= 0 ? '+' : '') + S.pitch + 'Hz';
-  const r = await window.echo.synth({ text, voice: S.voice, rate, pitch });
+function synthFor(text, p) {
+  return window.echo.synth({
+    text, provider: p.provider, voice: p.voice, elVoice: p.elVoice, elKey: S.elKey,
+    rate: Math.max(0.5, 1 + (p.rate || 0) / 100),
+    pitch: ((p.pitch || 0) >= 0 ? '+' : '') + (p.pitch || 0) + 'Hz',
+  }).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
+}
+
+// синтез стартует заранее, пока играет предыдущая фраза — без пауз между сообщениями
+function ensureSynth(item) {
+  if (!item.p) item.p = synthFor(item.say, item.preset);
+  return item.p;
+}
+
+function setVoiceState(ok) {
+  const p = $('#voiceState');
+  p.lastChild.textContent = ok ? 'Голос готов' : 'Нет сети · запасной голос';
+  p.firstChild.style.background = ok ? 'var(--ok)' : 'var(--bad)';
+}
+
+async function speakItem(item) {
+  let r = await ensureSynth(item);
+  if (!(r && r.ok) && item.preset.provider === 'eleven') {
+    if (Date.now() - lastWarn > 30000) { lastWarn = Date.now(); sys('Голос «' + item.preset.name + '»: ' + (r && r.error)); }
+    r = await synthFor(item.say, BUILTIN[0]); // запасной — встроенная Светлана
+  }
   if (r && r.ok) {
     try { setVoiceState(true); await playBlob(r.audio); return; } catch (_) {}
   }
   setVoiceState(false);
-  await fallbackSpeak(text);
+  await fallbackSpeak(item.say);
 }
 
 async function pump() {
@@ -170,7 +298,8 @@ async function pump() {
     while (queue.length) {
       const it = queue.shift();
       curEl = it.el; curEl?.classList.add('speaking');
-      try { await speak(it.say); } catch (_) {}
+      if (queue[0]) ensureSynth(queue[0]);
+      try { await speakItem(it); } catch (_) {}
       curEl?.classList.remove('speaking'); curEl = null;
       stopCurrent();
     }
@@ -180,39 +309,26 @@ async function pump() {
 $('#btnSkip').onclick = () => stopCurrent();
 $('#paused').addEventListener('change', (e) => { if (e.target.checked) { queue.length = 0; stopCurrent(); } });
 
-function setVoiceState(ok) {
-  const p = $('#voiceState');
-  p.lastChild.textContent = ok ? 'Голос готов' : 'Нет сети · запасной голос';
-  p.firstChild.style.background = ok ? 'var(--ok)' : 'var(--bad)';
-}
-
-$('#btnTest').onclick = () => {
-  queue.length = 0; stopCurrent();
-  const name = VOICES.find((v) => v.id === S.voice)?.name || '';
-  enqueue({ el: null, say: `Привет! Меня зовут ${name}. Я буду читать чат твоего эфира.` }, true);
-};
-
 /* ---------- события TikTok ---------- */
 const counters = { likes: 0, gifts: 0, follows: 0 };
 const bump = (id, v) => { $(id).textContent = v.toLocaleString('ru-RU'); };
 
 window.echo.onChat((m) => {
-  addMsg({ name: m.name, text: m.text, sub: m.isSub });
-  const last = feed.lastChild;
+  const el = addMsg({ name: m.name, text: m.text, sub: m.isSub });
   if (!S.chat || (S.subsOnly && !m.isSub)) return;
   const t = clean(m.text);
   if (!t) return;
-  enqueue({ el: last, say: S.readName ? `${m.name}: ${t}` : t });
+  enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: pickPreset(m.id || m.name) });
 });
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
   const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift' });
-  if (S.gifts) enqueue({ el, say: `${g.name} отправил ${g.gift}${g.count > 1 ? ', ' + g.count + ' раз' : ''}. Спасибо!` });
+  if (S.gifts) enqueue({ el, say: `${speakName(g.name)} отправил ${g.gift}${g.count > 1 ? ', ' + g.count + ' раз' : ''}. Спасибо!` });
 });
 window.echo.onFollow((f) => {
   counters.follows++; bump('#sFollows', counters.follows);
   const el = addMsg({ name: f.name, text: '➕ подписался(ась) на канал', kind: 'follow' });
-  if (S.follows) enqueue({ el, say: `${f.name} подписался на канал. Добро пожаловать!` });
+  if (S.follows) enqueue({ el, say: `${speakName(f.name)} подписался на канал. Добро пожаловать!` });
 });
 window.echo.onLike((l) => { counters.likes = l.total || counters.likes + l.count; bump('#sLikes', counters.likes); });
 window.echo.onViewers((v) => { $('#sViewers').textContent = (v.count ?? 0).toLocaleString('ru-RU'); });
@@ -254,7 +370,7 @@ btn.onclick = async () => {
     btn.textContent = 'Подключаюсь…';
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
     counters.likes = counters.gifts = counters.follows = 0;
-    ['#sLikes','#sGifts','#sFollows'].forEach((i) => bump(i, 0));
+    ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
     $('#sViewers').textContent = '—';
     resetEmpty();
     sys(`Ищем активный эфир @${nick}…`);
@@ -319,3 +435,8 @@ btnUpd.onclick = async () => {
     btnUpd.textContent = 'Перезапуск…';
   }
 };
+
+/* ---------- старт ---------- */
+renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen();
+loadCatalog();
+window.__echo = { S, clean, pickPreset, speakName, renderVoices, get presets() { return S.presets; } };

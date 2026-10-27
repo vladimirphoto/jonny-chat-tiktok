@@ -78,28 +78,55 @@
       <section class="tab" id="tab-voice">
         <div class="cols">
           <div class="card">
-            <h2>Голос и звук</h2>
-            <label>Нейро-голос</label>
+            <h2>Мои голоса</h2>
+            <p class="muted">Нажми на карточку, чтобы выбрать голос. ▶ — прослушать.</p>
             <div class="voices" id="voices"></div>
+            <label class="sw"><input type="checkbox" data-k="perViewer" /><i></i><span>Разные голоса для зрителей <small class="hint">(у каждого ника свой голос из «ротации»)</small></span></label>
             <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
             <input type="range" id="vol" min="0" max="100" value="80" />
-            <div class="row"><label>Скорость речи</label><b id="rateVal">0%</b></div>
+            <div class="row"><label>Скорость выбранного голоса</label><b id="rateVal">0%</b></div>
             <input type="range" id="rate" min="-30" max="40" value="0" />
-            <div class="row"><label>Тон голоса</label><b id="pitchVal">0 Гц</b></div>
+            <div class="row"><label>Тон выбранного голоса</label><b id="pitchVal">0 Гц</b></div>
             <input type="range" id="pitch" min="-30" max="30" value="0" />
             <button class="btn primary" id="btnTest">▶ Проверить голос</button>
           </div>
-          <div class="card">
-            <h2>Что озвучивать</h2>
-            <p class="muted">Включи только то, что важно для эфира</p>
-            <div class="toggles">
-              <label class="sw"><input type="checkbox" data-k="chat" checked /><i></i><span>Сообщения чата</span></label>
-              <label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник</span></label>
-              <label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label>
-              <label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label>
-              <label class="sw"><input type="checkbox" data-k="subsOnly" /><i></i><span>Только подписчики</span></label>
+          <div class="col-right">
+            <div class="card" id="addCard">
+              <h2>Добавить свой голос</h2>
+              <label>Источник</label>
+              <select id="newProv">
+                <option value="edge">Microsoft — сотни нейро-голосов (бесплатно)</option>
+                <option value="eleven">ElevenLabs — свой или клонированный голос</option>
+              </select>
+              <div id="msBox">
+                <label>Поиск голоса</label>
+                <input id="voiceSearch" placeholder="Например: ru, kk, Ava, Multilingual…" spellcheck="false" />
+                <select id="newVoice" size="6"></select>
+              </div>
+              <div id="elBox" hidden>
+                <label>API-ключ ElevenLabs</label>
+                <input id="elKey" type="password" placeholder="sk_…" spellcheck="false" />
+                <label>Voice ID</label>
+                <input id="elVoiceId" placeholder="ID голоса из вашей библиотеки ElevenLabs" spellcheck="false" />
+                <div class="note">Ключ хранится только на вашем компьютере. Нужен аккаунт ElevenLabs; запросы идут напрямую с вашего ПК.</div>
+              </div>
+              <label>Название голоса</label>
+              <input id="newName" placeholder="Например: Бодрая Света" />
+              <button class="btn primary" id="btnAddVoice">+ Добавить голос</button>
+              <div class="vmsg" id="voiceMsg"></div>
             </div>
-            <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Для нейро-голосов нужен интернет.</div>
+            <div class="card">
+              <h2>Что озвучивать</h2>
+              <p class="muted">Включи только то, что важно для эфира</p>
+              <div class="toggles">
+                <label class="sw"><input type="checkbox" data-k="chat" checked /><i></i><span>Сообщения чата</span></label>
+                <label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник</span></label>
+                <label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label>
+                <label class="sw"><input type="checkbox" data-k="subsOnly" /><i></i><span>Только подписчики</span></label>
+              </div>
+              <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Нейро-голоса требуют интернет.</div>
+            </div>
           </div>
         </div>
       </section>

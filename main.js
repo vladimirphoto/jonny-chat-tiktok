@@ -9,6 +9,7 @@ const load = async (name) => {
 
 let win = null;
 let conn = null;
+const SELFTEST = process.argv.includes('--selftest');
 
 function createWindow() {
   win = new BrowserWindow({
@@ -16,6 +17,7 @@ function createWindow() {
     height: 780,
     minWidth: 980,
     minHeight: 660,
+    show: !SELFTEST,
     backgroundColor: '#0b0b12',
     title: 'ЭхоЧат LIVE',
     icon: path.join(__dirname, 'src', 'icon.png'),
@@ -63,13 +65,13 @@ function explain(err) {
   const raw = String((err && (err.message || err.info)) || err || '');
   const name = String((err && (err.name || (err.constructor && err.constructor.name))) || '');
   const all = `${name} ${raw}`.toLowerCase();
-  if (/useroffline|offline|not live|isn.t live|not currently live|ended|room_id|room id|roomid|not found|404/.test(all)) {
+  if (/useroffline|offline|not live|isn.t live|not currently live|has ended|room_id|room id|roomid|not found|404/.test(all)) {
     return { code: 'offline', error: 'Вы не в эфире. Запустите трансляцию в TikTok LIVE, подключитесь и попробуйте снова. Также проверьте, что ник введён правильно.' };
   }
   if (/timeout|timed out|превышено/.test(all)) {
     return { code: 'timeout', error: 'Нет ответа от TikTok. Проверьте интернет и попробуйте снова.' };
   }
-  if (/rate|429|too many|limit/.test(all)) {
+  if (/rate.?limit|429|too many|limit exceeded/.test(all)) {
     return { code: 'rate', error: 'TikTok временно ограничил запросы. Подождите минуту и попробуйте снова.' };
   }
   if (/enotfound|econn|network|fetch failed|getaddrinfo|socket/.test(all)) {
@@ -133,34 +135,111 @@ ipcMain.handle('tt:disconnect', async () => {
   return { ok: true };
 });
 
-// Нейро-голоса Microsoft Edge: естественная интонация, не «робот»
-ipcMain.handle('tts:synth', async (_e, { text, voice, rate, pitch }) => {
+// ---------- Голоса ----------
+const FALLBACK_VOICES = [
+  ['ru-RU-SvetlanaNeural', 'Светлана · ru-RU', 'ru-RU', 'Female'],
+  ['ru-RU-DariyaNeural', 'Дарья · ru-RU', 'ru-RU', 'Female'],
+  ['ru-RU-DmitryNeural', 'Дмитрий · ru-RU', 'ru-RU', 'Male'],
+  ['kk-KZ-AigulNeural', 'Айгуль · kk-KZ', 'kk-KZ', 'Female'],
+  ['kk-KZ-DauletNeural', 'Даулет · kk-KZ', 'kk-KZ', 'Male'],
+  ['uk-UA-PolinaNeural', 'Поліна · uk-UA', 'uk-UA', 'Female'],
+  ['uk-UA-OstapNeural', 'Остап · uk-UA', 'uk-UA', 'Male'],
+  ['en-US-AvaMultilingualNeural', 'Ava (мультиязычный) · en-US', 'en-US', 'Female'],
+  ['en-US-EmmaMultilingualNeural', 'Emma (мультиязычный) · en-US', 'en-US', 'Female'],
+  ['en-US-AndrewMultilingualNeural', 'Andrew (мультиязычный) · en-US', 'en-US', 'Male'],
+  ['en-US-BrianMultilingualNeural', 'Brian (мультиязычный) · en-US', 'en-US', 'Male'],
+  ['fr-FR-VivienneMultilingualNeural', 'Vivienne (мультиязычный) · fr-FR', 'fr-FR', 'Female'],
+  ['fr-FR-RemyMultilingualNeural', 'Remy (мультиязычный) · fr-FR', 'fr-FR', 'Male'],
+  ['de-DE-SeraphinaMultilingualNeural', 'Seraphina (мультиязычный) · de-DE', 'de-DE', 'Female'],
+  ['de-DE-FlorianMultilingualNeural', 'Florian (мультиязычный) · de-DE', 'de-DE', 'Male'],
+].map(([id, name, locale, gender]) => ({ id, name, locale, gender }));
+
+let voicesCache = null;
+ipcMain.handle('tts:voices', async () => {
+  if (voicesCache) return voicesCache;
+  let tts = null;
+  try {
+    const { MsEdgeTTS } = await load('msedge-tts');
+    tts = new MsEdgeTTS();
+    const list = await Promise.race([
+      tts.getVoices(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000)),
+    ]);
+    const voices = (list || []).filter((v) => v && v.ShortName).map((v) => ({
+      id: v.ShortName,
+      name: String(v.FriendlyName || v.ShortName).replace(/^Microsoft\s+/, '').replace(/\s*Online \(Natural\)\s*-?\s*/, ' · '),
+      locale: v.Locale || '',
+      gender: v.Gender || '',
+    }));
+    if (voices.length > 10) return (voicesCache = { ok: true, voices });
+  } catch (_) { /* берём встроенный список */ } finally {
+    try { tts && tts.close && tts.close(); } catch (_) {}
+  }
+  return { ok: false, voices: FALLBACK_VOICES };
+});
+
+async function edgeSynth(text, voice, rate, pitch) {
   let tts = null;
   try {
     const { MsEdgeTTS, OUTPUT_FORMAT } = await load('msedge-tts');
     tts = new MsEdgeTTS();
     const fmt = OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3 || OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3;
     await tts.setMetadata(voice || 'ru-RU-SvetlanaNeural', fmt);
-    const safe = String(text).slice(0, 400);
-    const res = await tts.toStream(safe, { rate: Number(rate) || 1, pitch: pitch || '+0Hz' });
-    const audioStream = res.audioStream;
+    const res = await tts.toStream(text, { rate: Number(rate) || 1, pitch: pitch || '+0Hz' });
     const chunks = [];
     await Promise.race([
       new Promise((resolve, reject) => {
-        audioStream.on('data', (ch) => chunks.push(ch));
-        audioStream.on('end', resolve);
-        audioStream.on('close', resolve);
-        audioStream.on('error', reject);
+        res.audioStream.on('data', (ch) => chunks.push(ch));
+        res.audioStream.on('end', resolve);
+        res.audioStream.on('close', resolve);
+        res.audioStream.on('error', reject);
       }),
       new Promise((_, rej) => setTimeout(() => rej(new Error('tts timeout')), 15000)),
     ]);
     const buf = Buffer.concat(chunks);
-    if (!buf.length) return { ok: false, error: 'empty' };
+    if (!buf.length) throw new Error('empty audio');
+    return buf;
+  } finally {
+    try { tts && tts.close && tts.close(); } catch (_) {}
+  }
+}
+
+// Свой или клонированный голос ElevenLabs (нужен ключ и Voice ID)
+async function elevenSynth(text, voiceId, key) {
+  if (!key || !voiceId) throw new Error('Укажите API-ключ и Voice ID ElevenLabs');
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
+      method: 'POST',
+      signal: ctl.signal,
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true },
+      }),
+    });
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Неверный API-ключ ElevenLabs');
+      if (res.status === 404) throw new Error('Голос с таким Voice ID не найден в ElevenLabs');
+      if (res.status === 402 || res.status === 429) throw new Error('Лимит ElevenLabs исчерпан или тариф не позволяет этот голос');
+      throw new Error('ElevenLabs ответил ' + res.status);
+    }
+    return Buffer.from(await res.arrayBuffer());
+  } finally { clearTimeout(timer); }
+}
+
+ipcMain.handle('tts:synth', async (_e, o) => {
+  try {
+    const text = String(o.text || '').slice(0, 400);
+    if (!text.trim()) return { ok: false, error: 'empty text' };
+    const buf = o.provider === 'eleven'
+      ? await elevenSynth(text, o.elVoice, o.elKey)
+      : await edgeSynth(text, o.voice, o.rate, o.pitch);
     return { ok: true, audio: buf.toString('base64') };
   } catch (err) {
     return { ok: false, error: String((err && err.message) || err) };
-  } finally {
-    try { tts && tts.close && tts.close(); } catch (_) {}
   }
 });
 
@@ -173,7 +252,10 @@ ipcMain.handle('upd:install', async () => {
   try { return await updater.install((p) => send('upd:progress', p)); } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  if (SELFTEST) require('./selftest').run(win, app);
+});
 app.on('window-all-closed', async () => {
   await disconnect();
   app.quit();

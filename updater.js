@@ -61,6 +61,7 @@ async function install(onProgress) {
   const bat = path.join(os.tmpdir(), 'echochat-update.bat');
   fs.writeFileSync(bat, [
     '@echo off',
+    'chcp 65001 >nul',
     'setlocal',
     'set /a n=0',
     'timeout /t 2 /nobreak >nul',
