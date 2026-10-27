@@ -155,7 +155,6 @@ ipcMain.handle('tt:disconnect', async () => {
 // ---------- Голоса ----------
 const FALLBACK_VOICES = [
   ['ru-RU-SvetlanaNeural', 'Светлана · русский', 'ru-RU', 'Female'],
-  ['ru-RU-DariyaNeural', 'Дарья · русский', 'ru-RU', 'Female'],
   ['ru-RU-DmitryNeural', 'Дмитрий · русский', 'ru-RU', 'Male'],
 ].map(([id, name, locale, gender]) => ({ id, name, locale, gender }));
 
@@ -170,13 +169,13 @@ ipcMain.handle('tts:voices', async () => {
       tts.getVoices(),
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000)),
     ]);
-    const voices = (list || []).filter((v) => v && v.ShortName && /^ru-/i.test(v.Locale || v.ShortName)).map((v) => ({
+    const voices = (list || []).filter((v) => v && v.ShortName && /^ru-/i.test(v.Locale || v.ShortName) && !/Dariya/i.test(v.ShortName)).map((v) => ({
       id: v.ShortName,
       name: String(v.FriendlyName || v.ShortName).replace(/^Microsoft\s+/, '').replace(/\s*Online \(Natural\)\s*-?\s*/, ' · '),
       locale: v.Locale || '',
       gender: v.Gender || '',
     }));
-    if (voices.length >= 3) return (voicesCache = { ok: true, voices });
+    if (voices.length >= 2) return (voicesCache = { ok: true, voices });
   } catch (_) { /* берём встроенный список */ } finally {
     try { tts && tts.close && tts.close(); } catch (_) {}
   }

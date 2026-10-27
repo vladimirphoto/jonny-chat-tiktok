@@ -9,9 +9,12 @@ window.addEventListener('unhandledrejection', (e) => window.__errors.push('promi
 /* ---------- настройки и голоса ---------- */
 const BUILTIN = [
   { id: 'b-svetlana', name: 'Светлана', desc: 'Женский · тёплый, естественный', voice: 'ru-RU-SvetlanaNeural' },
-  { id: 'b-dariya', name: 'Дарья', desc: 'Женский · мягкий, дружелюбный', voice: 'ru-RU-DariyaNeural' },
+  { id: 'b-svetlana-live', name: 'Светлана · бодрая', desc: 'Женский · живая, энергичная подача', voice: 'ru-RU-SvetlanaNeural', rate: 10, pitch: 4 },
+  { id: 'b-svetlana-soft', name: 'Светлана · мягкая', desc: 'Женский · спокойная, уютная', voice: 'ru-RU-SvetlanaNeural', rate: -8, pitch: -3 },
   { id: 'b-dmitry', name: 'Дмитрий', desc: 'Мужской · уверенный, чёткий', voice: 'ru-RU-DmitryNeural' },
-].map((v) => ({ ...v, provider: 'edge', rate: 0, pitch: 0, pool: true, builtin: true }));
+  { id: 'b-dmitry-live', name: 'Дмитрий · энергичный', desc: 'Мужской · быстрый, заряженный', voice: 'ru-RU-DmitryNeural', rate: 12, pitch: 3 },
+  { id: 'b-dmitry-anchor', name: 'Дмитрий · диктор', desc: 'Мужской · низкий, весомый', voice: 'ru-RU-DmitryNeural', rate: -5, pitch: -6 },
+].map((v) => ({ rate: 0, pitch: 0, ...v, provider: 'edge', pool: true, builtin: true }));
 
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', elKey: '',

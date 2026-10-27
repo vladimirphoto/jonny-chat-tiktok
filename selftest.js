@@ -18,7 +18,7 @@ const PAGE_TEST = `(async () => {
     }
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 3);
-    add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 3, document.querySelectorAll('#voices .voice').length);
+    add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 6, document.querySelectorAll('#voices .voice').length);
     add('ui', 'версия в сайдбаре', /\\d+\\.\\d+/.test($('#verLine').textContent), $('#verLine').textContent);
 
     // --- фильтры (критично) ---
@@ -35,7 +35,7 @@ const PAGE_TEST = `(async () => {
     $('.nav[data-tab=voice]').click();
     const before = document.querySelectorAll('#voices .voice').length;
     await sleep(1500);
-    add('ui', 'каталог голосов загружен', $('#newVoice').options.length >= 3, $('#newVoice').options.length);
+    add('ui', 'каталог голосов загружен', $('#newVoice').options.length >= 2, $('#newVoice').options.length);
     $('#newName').value = 'Тестовый голос';
     $('#btnAddVoice').click();
     await sleep(200);
@@ -54,14 +54,14 @@ const PAGE_TEST = `(async () => {
     $('#newProv').value = 'edge'; $('#newProv').dispatchEvent(new Event('change'));
 
     // --- сеть: голоса Microsoft ---
-    for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DariyaNeural', 'ru-RU-DmitryNeural']) {
+    for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural']) {
       const r = await window.echo.synth({ text: 'Привет, это проверка голоса.', voice: id, rate: 1, pitch: '+0Hz' });
       add('net', 'голос ' + id, r.ok && r.audio.length > 3000, r.ok ? ('base64 ' + r.audio.length) : r.error);
     }
     const slow = await window.echo.synth({ text: 'Скорость и тон.', voice: 'ru-RU-SvetlanaNeural', rate: 1.3, pitch: '+10Hz' });
     add('net', 'скорость и тон принимаются', slow.ok, slow.ok ? slow.audio.length : slow.error);
     const cat = await window.echo.voices();
-    add('net', 'каталог Microsoft (только русские)', cat.voices.length >= 3 && cat.voices.every((v) => /^ru-/i.test(v.id)), cat.ok + ' / ' + cat.voices.map((v) => v.id).join(','));
+    add('net', 'каталог Microsoft (только русские)', cat.voices.length >= 2 && cat.voices.every((v) => /^ru-/i.test(v.id)), cat.ok + ' / ' + cat.voices.map((v) => v.id).join(','));
     const el = await window.echo.synth({ text: 'тест', provider: 'eleven', elVoice: 'x', elKey: '' });
     add('logic', 'ElevenLabs без ключа возвращает ошибку', !el.ok && /ключ/i.test(el.error), el.error);
 
