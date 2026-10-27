@@ -37,6 +37,9 @@ jobs:
               Write-Host ("[{0}] [{1}] {2} :: {3}" -f $mark, $t.group, $t.name, $t.detail)
             }
             Write-Host "critical failed: $($r.criticalFailed)"
+            $md = @("### Автотест сборки v$($r.version) (Electron $($r.electron))", "", "| Результат | Группа | Проверка | Детали |", "|---|---|---|---|")
+            foreach ($t in $r.results) { $d = ("$($t.detail)" -replace '\|','/' -replace "`r|`n",' '); if ($d.Length -gt 140) { $d = $d.Substring(0,140) }; $md += ("| {0} | {1} | {2} | {3} |" -f $(if ($t.ok) {'PASS'} else {'FAIL'}), $t.group, $t.name, $d) }
+            Set-Content -Path selftest.md -Value ($md -join "`n") -Encoding UTF8
             if ($r.criticalFailed -gt 0) { exit 1 }
           } else {
             Write-Host 'no result file - app failed to start'
@@ -57,4 +60,5 @@ jobs:
           tag_name: v${{ steps.ver.outputs.v }}
           name: ЭхоЧат LIVE ${{ steps.ver.outputs.v }}
           target_commitish: ${{ github.sha }}
+          body_path: selftest.md
           files: dist/*.exe
