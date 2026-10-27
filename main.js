@@ -1,7 +1,11 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
-const { TikTokLiveConnection, WebcastEvent } = require('tiktok-live-connector');
-const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+
+// Пакеты могут быть ESM-only — подключаем через динамический import()
+const load = async (name) => {
+  const m = await import(name);
+  return { ...(m.default && typeof m.default === 'object' ? m.default : {}), ...m };
+};
 
 let win = null;
 let conn = null;
@@ -14,6 +18,7 @@ function createWindow() {
     minHeight: 660,
     backgroundColor: '#0b0b12',
     title: 'ЭхоЧат LIVE',
+    icon: path.join(__dirname, 'src', 'icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -56,6 +61,12 @@ ipcMain.handle('tt:connect', async (_e, rawName) => {
   const username = String(rawName || '').trim().replace(/^@/, '');
   if (!username) return { ok: false, error: 'Введи ник автора.' };
   await disconnect();
+  let TikTokLiveConnection, WebcastEvent;
+  try {
+    ({ TikTokLiveConnection, WebcastEvent } = await load('tiktok-live-connector'));
+  } catch (err) {
+    return { ok: false, error: 'Не удалось загрузить модуль TikTok: ' + String((err && err.message) || err) };
+  }
   conn = new TikTokLiveConnection(username);
 
   conn.on(WebcastEvent.CHAT, (d) => send('tt:chat', { ...userOf(d), text: d.comment || '' }));
@@ -94,6 +105,7 @@ ipcMain.handle('tt:disconnect', async () => {
 // Нейро-голоса Microsoft Edge: естественная интонация, не «робот»
 ipcMain.handle('tts:synth', async (_e, { text, voice, rate, pitch }) => {
   try {
+    const { MsEdgeTTS, OUTPUT_FORMAT } = await load('msedge-tts');
     const tts = new MsEdgeTTS();
     await tts.setMetadata(voice || 'ru-RU-SvetlanaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(String(text).slice(0, 400), {
