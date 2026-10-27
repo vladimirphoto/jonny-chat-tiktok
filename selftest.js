@@ -31,18 +31,11 @@ const PAGE_TEST = `(async () => {
     add('logic', 'нерусский пропускается', f('hello world') === null);
     add('logic', 'упоминания вырезаются', f('@vasya привет') === 'привет', f('@vasya привет'));
     add('logic', 'озвучка ника', E.speakName('Вася_Pro😎') === 'Вася Pro', E.speakName('Вася_Pro😎'));
-    E.S.perViewer = true;
-    const a1 = E.pickPreset('vasya').id, a2 = E.pickPreset('vasya').id;
-    add('logic', 'голос зрителя стабилен', a1 === a2, a1);
-    const ids = new Set(['a','bb','ccc','dddd','eeeee','ffffff','ggggggg','hhhhhhhh'].map((n) => E.pickPreset(n).id));
-    add('logic', 'ротация голосов даёт разные голоса', ids.size >= 2, [...ids].join(','));
-    E.S.perViewer = false;
-
     // --- свой голос через интерфейс (критично) ---
     $('.nav[data-tab=voice]').click();
     const before = document.querySelectorAll('#voices .voice').length;
     await sleep(1500);
-    add('ui', 'каталог голосов загружен', $('#newVoice').options.length >= 5, $('#newVoice').options.length);
+    add('ui', 'каталог голосов загружен', $('#newVoice').options.length >= 3, $('#newVoice').options.length);
     $('#newName').value = 'Тестовый голос';
     $('#btnAddVoice').click();
     await sleep(200);
@@ -61,14 +54,14 @@ const PAGE_TEST = `(async () => {
     $('#newProv').value = 'edge'; $('#newProv').dispatchEvent(new Event('change'));
 
     // --- сеть: голоса Microsoft ---
-    for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DariyaNeural', 'ru-RU-DmitryNeural', 'en-US-AvaMultilingualNeural', 'kk-KZ-AigulNeural']) {
+    for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DariyaNeural', 'ru-RU-DmitryNeural']) {
       const r = await window.echo.synth({ text: 'Привет, это проверка голоса.', voice: id, rate: 1, pitch: '+0Hz' });
       add('net', 'голос ' + id, r.ok && r.audio.length > 3000, r.ok ? ('base64 ' + r.audio.length) : r.error);
     }
     const slow = await window.echo.synth({ text: 'Скорость и тон.', voice: 'ru-RU-SvetlanaNeural', rate: 1.3, pitch: '+10Hz' });
     add('net', 'скорость и тон принимаются', slow.ok, slow.ok ? slow.audio.length : slow.error);
     const cat = await window.echo.voices();
-    add('net', 'каталог Microsoft (полный)', cat.ok && cat.voices.length > 100, cat.ok + ' / ' + cat.voices.length);
+    add('net', 'каталог Microsoft (только русские)', cat.voices.length >= 3 && cat.voices.every((v) => /^ru-/i.test(v.id)), cat.ok + ' / ' + cat.voices.map((v) => v.id).join(','));
     const el = await window.echo.synth({ text: 'тест', provider: 'eleven', elVoice: 'x', elKey: '' });
     add('logic', 'ElevenLabs без ключа возвращает ошибку', !el.ok && /ключ/i.test(el.error), el.error);
 
@@ -80,7 +73,11 @@ const PAGE_TEST = `(async () => {
     while (Date.now() - t0 < 50000 && $('#alert').hidden) await sleep(500);
     add('ui', 'при отсутствии эфира показана ошибка', !$('#alert').hidden, $('#alert').textContent);
     add('ui', 'кнопка вернулась в исходное состояние', $('#btnConnect').textContent === 'Подключиться', $('#btnConnect').textContent);
-    add('net', 'текст «Вы не в эфире…»', /не в эфире/i.test($('#alert').textContent), $('#alert').textContent);
+    const alertText = $('#alert').textContent;
+    add('ui', 'ошибка подключения без технического мусора', !/TypeError|invoking remote|undefined|Cannot read/i.test(alertText), alertText);
+    add('net', 'текст «Вы не в эфире…»', /не в эфире/i.test(alertText), alertText);
+    add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
+    add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));
 
     // --- проверка обновлений ---
     const up = await window.echo.checkUpdate();

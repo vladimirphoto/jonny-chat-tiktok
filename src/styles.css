@@ -106,3 +106,15 @@ select[size]{margin-top:8px;padding:6px}
 #elBox[hidden],#msBox[hidden]{display:none}
 .voices{margin-bottom:10px}
 @media(max-width:1060px){#tab-voice .cols{grid-template-columns:1fr}}
+
+textarea{width:100%;resize:none;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);font:inherit;font-size:14px;outline:none;user-select:text;margin-top:10px}
+textarea:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{all:unset;cursor:pointer;padding:7px 12px;border-radius:999px;font-size:12px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);transition:.2s}
+.chip:hover{background:var(--grad);border-color:transparent}
+.btn.wide{display:block;width:100%}
+.eq{display:flex;align-items:center;justify-content:center;gap:5px;height:54px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid var(--line)}
+.eq span{width:5px;height:8px;border-radius:3px;background:var(--grad);opacity:.45;transition:opacity .3s}
+body.talking .eq span{opacity:1;animation:bar 0.9s ease-in-out infinite}
+.eq span:nth-child(3n){animation-delay:.15s!important}.eq span:nth-child(3n+1){animation-delay:.3s!important}.eq span:nth-child(4n){animation-delay:.45s!important}
+@keyframes bar{0%,100%{height:8px}50%{height:38px}}

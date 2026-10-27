@@ -80,7 +80,7 @@ function explain(err) {
   return { code: 'other', error: 'Не удалось подключиться: ' + (raw || name || 'неизвестная ошибка') };
 }
 
-ipcMain.handle('tt:connect', async (_e, rawName) => {
+async function doConnect(rawName) {
   const username = String(rawName || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?tiktok\.com\/@/i, '').replace(/\/live.*$/i, '');
   if (!username) return { ok: false, code: 'empty', error: 'Введите ник автора.' };
   await disconnect();
@@ -90,7 +90,20 @@ ipcMain.handle('tt:connect', async (_e, rawName) => {
   } catch (err) {
     return { ok: false, code: 'module', error: 'Не удалось загрузить модуль TikTok: ' + String((err && err.message) || err) };
   }
-  const c = new TikTokLiveConnection(username);
+  let c;
+  try {
+    c = new TikTokLiveConnection(username, {
+      processInitialData: true,
+      fetchRoomInfoOnConnect: true,
+      enableExtendedGiftInfo: false,
+      authenticateWs: false,
+      useMobile: false,
+      webClientOptions: {},
+      wsClientOptions: {},
+    });
+  } catch (err) {
+    return { ok: false, code: 'init', error: 'Не удалось запустить подключение к TikTok: ' + String((err && err.message) || err) };
+  }
   conn = c;
   const alive = () => conn === c;
   const EV = ControlEvent || {};
@@ -127,6 +140,10 @@ ipcMain.handle('tt:connect', async (_e, rawName) => {
     try { c.removeAllListeners(); c.disconnect().catch(() => {}); } catch (_) {}
     return { ok: false, ...explain(err) };
   }
+}
+
+ipcMain.handle('tt:connect', async (_e, rawName) => {
+  try { return await doConnect(rawName); } catch (err) { return { ok: false, ...explain(err) }; }
 });
 
 ipcMain.handle('tt:disconnect', async () => {
@@ -137,21 +154,9 @@ ipcMain.handle('tt:disconnect', async () => {
 
 // ---------- Голоса ----------
 const FALLBACK_VOICES = [
-  ['ru-RU-SvetlanaNeural', 'Светлана · ru-RU', 'ru-RU', 'Female'],
-  ['ru-RU-DariyaNeural', 'Дарья · ru-RU', 'ru-RU', 'Female'],
-  ['ru-RU-DmitryNeural', 'Дмитрий · ru-RU', 'ru-RU', 'Male'],
-  ['kk-KZ-AigulNeural', 'Айгуль · kk-KZ', 'kk-KZ', 'Female'],
-  ['kk-KZ-DauletNeural', 'Даулет · kk-KZ', 'kk-KZ', 'Male'],
-  ['uk-UA-PolinaNeural', 'Поліна · uk-UA', 'uk-UA', 'Female'],
-  ['uk-UA-OstapNeural', 'Остап · uk-UA', 'uk-UA', 'Male'],
-  ['en-US-AvaMultilingualNeural', 'Ava (мультиязычный) · en-US', 'en-US', 'Female'],
-  ['en-US-EmmaMultilingualNeural', 'Emma (мультиязычный) · en-US', 'en-US', 'Female'],
-  ['en-US-AndrewMultilingualNeural', 'Andrew (мультиязычный) · en-US', 'en-US', 'Male'],
-  ['en-US-BrianMultilingualNeural', 'Brian (мультиязычный) · en-US', 'en-US', 'Male'],
-  ['fr-FR-VivienneMultilingualNeural', 'Vivienne (мультиязычный) · fr-FR', 'fr-FR', 'Female'],
-  ['fr-FR-RemyMultilingualNeural', 'Remy (мультиязычный) · fr-FR', 'fr-FR', 'Male'],
-  ['de-DE-SeraphinaMultilingualNeural', 'Seraphina (мультиязычный) · de-DE', 'de-DE', 'Female'],
-  ['de-DE-FlorianMultilingualNeural', 'Florian (мультиязычный) · de-DE', 'de-DE', 'Male'],
+  ['ru-RU-SvetlanaNeural', 'Светлана · русский', 'ru-RU', 'Female'],
+  ['ru-RU-DariyaNeural', 'Дарья · русский', 'ru-RU', 'Female'],
+  ['ru-RU-DmitryNeural', 'Дмитрий · русский', 'ru-RU', 'Male'],
 ].map(([id, name, locale, gender]) => ({ id, name, locale, gender }));
 
 let voicesCache = null;
@@ -165,13 +170,13 @@ ipcMain.handle('tts:voices', async () => {
       tts.getVoices(),
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000)),
     ]);
-    const voices = (list || []).filter((v) => v && v.ShortName).map((v) => ({
+    const voices = (list || []).filter((v) => v && v.ShortName && /^ru-/i.test(v.Locale || v.ShortName)).map((v) => ({
       id: v.ShortName,
       name: String(v.FriendlyName || v.ShortName).replace(/^Microsoft\s+/, '').replace(/\s*Online \(Natural\)\s*-?\s*/, ' · '),
       locale: v.Locale || '',
       gender: v.Gender || '',
     }));
-    if (voices.length > 10) return (voicesCache = { ok: true, voices });
+    if (voices.length >= 3) return (voicesCache = { ok: true, voices });
   } catch (_) { /* берём встроенный список */ } finally {
     try { tts && tts.close && tts.close(); } catch (_) {}
   }

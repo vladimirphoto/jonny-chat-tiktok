@@ -77,11 +77,11 @@
       <!-- ГОЛОС -->
       <section class="tab" id="tab-voice">
         <div class="cols">
+          <div class="col-left">
           <div class="card">
             <h2>Мои голоса</h2>
-            <p class="muted">Нажми на карточку, чтобы выбрать голос. ▶ — прослушать.</p>
+            <p class="muted">Нажми на карточку, чтобы выбрать русский голос. ▶ — прослушать.</p>
             <div class="voices" id="voices"></div>
-            <label class="sw"><input type="checkbox" data-k="perViewer" /><i></i><span>Разные голоса для зрителей <small class="hint">(у каждого ника свой голос из «ротации»)</small></span></label>
             <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
             <input type="range" id="vol" min="0" max="100" value="80" />
             <div class="row"><label>Скорость выбранного голоса</label><b id="rateVal">0%</b></div>
@@ -90,17 +90,31 @@
             <input type="range" id="pitch" min="-30" max="30" value="0" />
             <button class="btn primary" id="btnTest">▶ Проверить голос</button>
           </div>
+            <div class="card studio" id="studio">
+              <h2>Студия озвучки</h2>
+              <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
+              <div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <textarea id="studioText" rows="3" maxlength="200" placeholder="Например: Всем привет! Спасибо, что вы с нами в эфире!"></textarea>
+              <div class="chips" id="chips">
+                <button class="chip">Всем привет в эфире!</button>
+                <button class="chip">Спасибо за подарок!</button>
+                <button class="chip">Не забудьте подписаться</button>
+                <button class="chip">Отличный вопрос!</button>
+              </div>
+              <button class="btn ghost wide" id="btnStudio">▶ Озвучить фразу</button>
+            </div>
+          </div>
           <div class="col-right">
             <div class="card" id="addCard">
               <h2>Добавить свой голос</h2>
               <label>Источник</label>
               <select id="newProv">
-                <option value="edge">Microsoft — сотни нейро-голосов (бесплатно)</option>
+                <option value="edge">Microsoft — русские нейро-голоса (бесплатно)</option>
                 <option value="eleven">ElevenLabs — свой или клонированный голос</option>
               </select>
               <div id="msBox">
                 <label>Поиск голоса</label>
-                <input id="voiceSearch" placeholder="Например: ru, kk, Ava, Multilingual…" spellcheck="false" />
+                <input id="voiceSearch" placeholder="Например: Светлана, Дмитрий…" spellcheck="false" />
                 <select id="newVoice" size="6"></select>
               </div>
               <div id="elBox" hidden>

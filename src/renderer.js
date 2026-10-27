@@ -14,7 +14,7 @@ const BUILTIN = [
 ].map((v) => ({ ...v, provider: 'edge', rate: 0, pitch: 0, pool: true, builtin: true }));
 
 const DEFAULTS = {
-  selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', elKey: '', perViewer: false,
+  selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', elKey: '',
   presets: [],
   chat: true, readName: true, gifts: true, follows: true, subsOnly: false,
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
@@ -70,12 +70,9 @@ function renderVoices() {
     d.dataset.id = p.id;
     d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
       <div class="vi"><b>${esc(p.name)}${p.provider === 'eleven' ? '<em>свой</em>' : ''}</b><small>${esc(p.desc || p.voice || '')}</small></div>
-      <label class="rot" title="Участвует в ротации «разные голоса для зрителей»"><input type="checkbox" ${p.pool ? 'checked' : ''}/><span>ротация</span></label>
       <button class="mini play" title="Прослушать">▶</button>
       ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
     d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); };
-    $('.rot', d).onclick = (e) => e.stopPropagation();
-    $('.rot input', d).onchange = (e) => { p.pool = e.target.checked; save(); };
     $('.play', d).onclick = (e) => { e.stopPropagation(); previewPreset(p); };
     const del = $('.del', d);
     if (del) del.onclick = (e) => {
@@ -94,28 +91,15 @@ function previewPreset(p) {
 }
 $('#btnTest').onclick = () => previewPreset(selectedPreset());
 
-// выбор голоса для конкретного зрителя: один и тот же ник — всегда один голос
-function hashStr(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
-function pickPreset(name) {
-  if (!S.perViewer) return selectedPreset();
-  const pool = S.presets.filter((p) => p.pool);
-  if (!pool.length) return selectedPreset();
-  return pool[hashStr(name) % pool.length];
-}
-
 /* ---------- добавление своего голоса ---------- */
 let catalog = [];
 const newProv = $('#newProv'), newVoice = $('#newVoice'), voiceSearch = $('#voiceSearch'), voiceMsg = $('#voiceMsg');
-const LOC_ORDER = ['ru-RU', 'kk-KZ', 'uk-UA', 'en-US'];
 
 function renderCatalog() {
   const q = voiceSearch.value.trim().toLowerCase();
   const list = catalog
     .filter((v) => !q || (v.name + ' ' + v.id + ' ' + v.locale + ' ' + v.gender).toLowerCase().includes(q))
-    .sort((a, b) => {
-      const ia = LOC_ORDER.indexOf(a.locale), ib = LOC_ORDER.indexOf(b.locale);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name);
-    });
+    .sort((a, b) => a.name.localeCompare(b.name));
   newVoice.innerHTML = '';
   list.slice(0, 400).forEach((v) => {
     const o = document.createElement('option');
@@ -151,7 +135,7 @@ $('#btnAddVoice').onclick = () => {
     if (!id) return say('Выберите голос из списка.', true);
     const meta = catalog.find((v) => v.id === id) || {};
     if (!name) name = (meta.name || id).split(' · ')[0].replace(/\s*\(.*\)/, '');
-    p = { provider: 'edge', voice: id, desc: `${meta.name || id}` };
+    p = { provider: 'edge', voice: id, desc: 'Microsoft · русский нейро-голос' };
   }
   const preset = { id: 'c-' + Date.now().toString(36), name, rate: 0, pitch: 0, pool: true, builtin: false, ...p };
   S.presets.push(preset);
@@ -297,13 +281,14 @@ async function pump() {
   try {
     while (queue.length) {
       const it = queue.shift();
-      curEl = it.el; curEl?.classList.add('speaking');
+      curEl = it.el; curEl?.classList.add('speaking'); document.body.classList.add('talking');
       if (queue[0]) ensureSynth(queue[0]);
       try { await speakItem(it); } catch (_) {}
       curEl?.classList.remove('speaking'); curEl = null;
       stopCurrent();
+      if (!queue.length) document.body.classList.remove('talking');
     }
-  } finally { busy = false; }
+  } finally { busy = false; document.body.classList.remove('talking'); }
 }
 
 $('#btnSkip').onclick = () => stopCurrent();
@@ -318,7 +303,7 @@ window.echo.onChat((m) => {
   if (!S.chat || (S.subsOnly && !m.isSub)) return;
   const t = clean(m.text);
   if (!t) return;
-  enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: pickPreset(m.id || m.name) });
+  enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: selectedPreset() });
 });
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
@@ -436,7 +421,18 @@ btnUpd.onclick = async () => {
   }
 };
 
+/* ---------- студия озвучки ---------- */
+const studioText = $('#studioText');
+function speakStudio() {
+  const t = studioText.value.trim();
+  if (!t) { studioText.focus(); return; }
+  queue.length = 0; stopCurrent();
+  enqueue({ el: null, say: t.slice(0, 200), preset: selectedPreset() }, true);
+}
+$('#btnStudio').onclick = speakStudio;
+$$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
+
 /* ---------- старт ---------- */
 renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen();
 loadCatalog();
-window.__echo = { S, clean, pickPreset, speakName, renderVoices, get presets() { return S.presets; } };
+window.__echo = { S, clean, speakName, renderVoices, get presets() { return S.presets; } };
