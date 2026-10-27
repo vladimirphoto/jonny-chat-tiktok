@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:; img-src 'self' data:" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ЭхоЧат LIVE</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <div class="logo"><span></span><span></span><span></span><span></span><span></span></div>
+        <div><b>ЭхоЧат</b><small>LIVE · озвучка стрима</small></div>
+      </div>
+      <nav>
+        <button class="nav active" data-tab="live"><i>●</i>Эфир</button>
+        <button class="nav" data-tab="voice"><i>♪</i>Голос</button>
+        <button class="nav" data-tab="filters"><i>⚑</i>Фильтры</button>
+      </nav>
+      <div class="side-foot">
+        <div class="pill" id="voiceState"><s></s>Голос готов</div>
+        <small>Нейро-голоса Microsoft · живая интонация</small>
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <div><h1 id="title">Эфир</h1><p id="subtitle">Подключись к TikTok LIVE и слушай чат вслух</p></div>
+        <div class="pill status" id="status"><s></s><span>Не в эфире</span></div>
+      </header>
+
+      <section class="stats">
+        <div class="stat"><span>Зрители</span><b id="sViewers">—</b></div>
+        <div class="stat"><span>Лайки</span><b id="sLikes">0</b></div>
+        <div class="stat"><span>Подарки</span><b id="sGifts">0</b></div>
+        <div class="stat"><span>Подписки</span><b id="sFollows">0</b></div>
+      </section>
+
+      <!-- ЭФИР -->
+      <section class="tab show" id="tab-live">
+        <div class="cols">
+          <div class="col-left">
+            <div class="card">
+              <h2>Подключение</h2>
+              <label>Ник автора (без @)</label>
+              <input id="nick" placeholder="например, yanejonny" spellcheck="false" />
+              <button class="btn primary" id="btnConnect">Подключиться</button>
+            </div>
+            <div class="card tips">
+              <h2>Перед эфиром</h2>
+              <ol>
+                <li>Запусти TikTok LIVE</li>
+                <li>Введи ник и подключись</li>
+                <li>Включи захват звука ПК в OBS</li>
+              </ol>
+            </div>
+          </div>
+          <div class="card feed-card">
+            <div class="feed-head">
+              <div><h2>Лента чата</h2><small id="feedSub">Ожидание подключения</small></div>
+              <div class="feed-actions">
+                <label class="sw"><input type="checkbox" id="paused" /><i></i><span>Пауза</span></label>
+                <button class="btn ghost" id="btnSkip">Пропустить</button>
+                <button class="btn ghost" id="btnClear">Очистить</button>
+              </div>
+            </div>
+            <div class="feed" id="feed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ГОЛОС -->
+      <section class="tab" id="tab-voice">
+        <div class="cols">
+          <div class="card">
+            <h2>Голос и звук</h2>
+            <label>Нейро-голос</label>
+            <div class="voices" id="voices"></div>
+            <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
+            <input type="range" id="vol" min="0" max="100" value="80" />
+            <div class="row"><label>Скорость речи</label><b id="rateVal">0%</b></div>
+            <input type="range" id="rate" min="-30" max="40" value="0" />
+            <div class="row"><label>Тон голоса</label><b id="pitchVal">0 Гц</b></div>
+            <input type="range" id="pitch" min="-30" max="30" value="0" />
+            <button class="btn primary" id="btnTest">▶ Проверить голос</button>
+          </div>
+          <div class="card">
+            <h2>Что озвучивать</h2>
+            <p class="muted">Включи только то, что важно для эфира</p>
+            <div class="toggles">
+              <label class="sw"><input type="checkbox" data-k="chat" checked /><i></i><span>Сообщения чата</span></label>
+              <label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник</span></label>
+              <label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label>
+              <label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label>
+              <label class="sw"><input type="checkbox" data-k="subsOnly" /><i></i><span>Только подписчики</span></label>
+            </div>
+            <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Для нейро-голосов нужен интернет.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ФИЛЬТРЫ -->
+      <section class="tab" id="tab-filters">
+        <div class="card">
+          <h2>Фильтры чата</h2>
+          <p class="muted">Убери команды, повторы и неподходящий текст</p>
+          <div class="toggles two">
+            <label class="sw"><input type="checkbox" data-k="skipCmd" checked /><i></i><span>Пропускать команды</span></label>
+            <label class="sw"><input type="checkbox" data-k="skipLinks" checked /><i></i><span>Пропускать ссылки</span></label>
+            <label class="sw"><input type="checkbox" data-k="onlyRu" checked /><i></i><span>Только русский язык</span></label>
+            <label class="sw"><input type="checkbox" data-k="noRepeat" checked /><i></i><span>Не читать повторы</span></label>
+            <label class="sw"><input type="checkbox" data-k="profanity" checked /><i></i><span>Фильтр мата</span></label>
+            <label class="sw"><input type="checkbox" data-k="skipMentions" checked /><i></i><span>Пропускать упоминания</span></label>
+            <label class="sw"><input type="checkbox" data-k="noEmoji" checked /><i></i><span>Убирать эмодзи</span></label>
+          </div>
+          <label style="margin-top:18px">Максимальная длина сообщения: <b id="lenVal">140</b></label>
+          <input type="range" id="maxLen" min="30" max="300" value="140" />
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
