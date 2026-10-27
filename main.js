@@ -116,6 +116,15 @@ ipcMain.handle('tts:synth', async (_e, { text, voice, rate, pitch }) => {
   }
 });
 
+const updater = require('./updater');
+ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('upd:check', async () => {
+  try { return await updater.check(); } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
+});
+ipcMain.handle('upd:install', async () => {
+  try { return await updater.install((p) => send('upd:progress', p)); } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
+});
+
 app.whenReady().then(createWindow);
 app.on('window-all-closed', async () => {
   await disconnect();

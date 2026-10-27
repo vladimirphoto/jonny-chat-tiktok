@@ -1,6 +1,6 @@
 {
   "name": "echochat-live",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми нейро-голосами",
   "main": "main.js",
   "author": "EchoChat",
@@ -20,11 +20,26 @@
   "build": {
     "appId": "live.echochat.app",
     "productName": "EchoChat LIVE",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "preload.js", "src/**/*", "package.json"],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "updater.js",
+      "src/**/*",
+      "package.json"
+    ],
     "compression": "maximum",
     "win": {
-      "target": [{ "target": "portable", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "artifactName": "EchoChat-LIVE-${version}.${ext}"
     }
   }

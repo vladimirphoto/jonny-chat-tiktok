@@ -246,3 +246,42 @@ btn.onclick = async () => {
 };
 $('#nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
 speechSynthesis.getVoices();
+
+/* ---------- обновление по кнопке ---------- */
+const btnUpd = $('#btnUpdate');
+let updReady = false;
+window.echo.version().then((v) => { $('#verLine').textContent = 'Версия ' + v; });
+window.echo.onUpdateProgress((p) => { btnUpd.textContent = `Скачиваю… ${p}%`; });
+
+btnUpd.onclick = async () => {
+  if (btnUpd.classList.contains('busy')) return;
+  btnUpd.classList.add('busy');
+  if (!updReady) {
+    btnUpd.textContent = 'Проверяю…';
+    const r = await window.echo.checkUpdate();
+    btnUpd.classList.remove('busy');
+    if (!r.ok) { btnUpd.textContent = '⟳ Проверить обновления'; sys('Не удалось проверить обновления: ' + r.error); return; }
+    if (r.available) {
+      updReady = true;
+      btnUpd.classList.add('new');
+      btnUpd.textContent = `⬇ Обновить до ${r.version}`;
+      sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
+    } else {
+      btnUpd.textContent = '✓ Установлена последняя версия';
+      setTimeout(() => { btnUpd.textContent = '⟳ Проверить обновления'; }, 3000);
+    }
+    return;
+  }
+  btnUpd.textContent = 'Скачиваю… 0%';
+  const r = await window.echo.installUpdate();
+  if (!r.ok) {
+    btnUpd.classList.remove('busy');
+    btnUpd.textContent = '⬇ Повторить обновление';
+    sys('Ошибка обновления: ' + r.error);
+  } else if (r.manual) {
+    btnUpd.classList.remove('busy');
+    btnUpd.textContent = '⬇ Открыта страница загрузки';
+  } else {
+    btnUpd.textContent = 'Перезапуск…';
+  }
+};

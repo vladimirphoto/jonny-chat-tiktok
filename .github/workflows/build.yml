@@ -3,7 +3,6 @@ name: Build Windows exe
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -23,8 +22,16 @@ jobs:
         with:
           name: EchoChat-LIVE-exe
           path: dist/*.exe
+      - name: Read version
+        id: ver
+        shell: bash
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      # Релиз с exe создаётся автоматически для версии из package.json —
+      # именно его скачивает кнопка «Проверить обновления» в приложении.
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: ЭхоЧат LIVE ${{ steps.ver.outputs.v }}
+          target_commitish: ${{ github.sha }}
           files: dist/*.exe
