@@ -183,7 +183,7 @@ ipcMain.handle('tts:voices', async () => {
   return { ok: false, voices: FALLBACK_VOICES };
 });
 
-async function edgeSynth(text, voice, rate, pitch) {
+async function edgeSynthOnce(text, voice, rate, pitch) {
   let tts = null;
   try {
     const { MsEdgeTTS, OUTPUT_FORMAT } = await load('msedge-tts');
@@ -207,6 +207,18 @@ async function edgeSynth(text, voice, rate, pitch) {
   } finally {
     try { tts && tts.close && tts.close(); } catch (_) {}
   }
+}
+
+// Сервер Microsoft иногда обрывает поток — повторяем до 3 раз
+async function edgeSynth(text, voice, rate, pitch) {
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try { return await edgeSynthOnce(text, voice, rate, pitch); } catch (err) {
+      last = err;
+      await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+    }
+  }
+  throw last;
 }
 
 // Свой или клонированный голос ElevenLabs (нужен ключ и Voice ID)
