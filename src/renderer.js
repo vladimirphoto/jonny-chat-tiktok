@@ -108,19 +108,21 @@ function clean(raw) {
 
 /* ---------- очередь озвучки ---------- */
 const queue = [];
-let busy = false, cur = null, curUrl = null, curEl = null;
+let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null;
 
-function enqueue(item) {
-  if ($('#paused').checked) return;
+function enqueue(item, force = false) {
+  if ($('#paused').checked && !force) return;
   if (queue.length >= 12) queue.shift(); // не копим отставание от эфира
   queue.push(item);
   pump();
 }
 
+// Останавливает текущую фразу; цикл очереди сам перейдёт к следующей
 function stopCurrent() {
   if (cur) { cur.onended = cur.onerror = null; cur.pause(); cur = null; }
   if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
-  speechSynthesis.cancel();
+  try { speechSynthesis.cancel(); } catch (_) {}
+  if (curResolve) { const r = curResolve; curResolve = null; r(); }
 }
 
 function playBlob(b64) {
@@ -129,28 +131,34 @@ function playBlob(b64) {
     curUrl = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
     cur = new Audio(curUrl);
     cur.volume = S.vol / 100;
-    cur.onended = () => resolve();
-    cur.onerror = () => reject(new Error('audio'));
-    cur.play().catch(reject);
+    curResolve = resolve;
+    cur.onended = () => { curResolve = null; resolve(); };
+    cur.onerror = () => { curResolve = null; reject(new Error('audio')); };
+    cur.play().catch((e) => { curResolve = null; reject(e); });
   });
 }
 
 function fallbackSpeak(text) {
   return new Promise((resolve) => {
-    const u = new SpeechSynthesisUtterance(text);
-    const ru = speechSynthesis.getVoices().find((v) => v.lang.startsWith('ru'));
-    if (ru) u.voice = ru;
-    u.lang = 'ru-RU'; u.volume = S.vol / 100; u.rate = 1 + S.rate / 100;
-    u.onend = u.onerror = () => resolve();
-    speechSynthesis.speak(u);
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      const ru = speechSynthesis.getVoices().find((v) => v.lang.startsWith('ru'));
+      if (ru) u.voice = ru;
+      u.lang = 'ru-RU'; u.volume = S.vol / 100; u.rate = Math.max(0.5, 1 + S.rate / 100);
+      curResolve = resolve;
+      u.onend = u.onerror = () => { curResolve = null; resolve(); };
+      speechSynthesis.speak(u);
+    } catch (_) { resolve(); }
   });
 }
 
 async function speak(text) {
-  const rate = (S.rate >= 0 ? '+' : '') + S.rate + '%';
+  const rate = Math.max(0.5, 1 + S.rate / 100);
   const pitch = (S.pitch >= 0 ? '+' : '') + S.pitch + 'Hz';
   const r = await window.echo.synth({ text, voice: S.voice, rate, pitch });
-  if (r.ok) { try { await playBlob(r.audio); return; } catch (_) {} }
+  if (r && r.ok) {
+    try { setVoiceState(true); await playBlob(r.audio); return; } catch (_) {}
+  }
   setVoiceState(false);
   await fallbackSpeak(text);
 }
@@ -158,18 +166,19 @@ async function speak(text) {
 async function pump() {
   if (busy) return;
   busy = true;
-  while (queue.length) {
-    const it = queue.shift();
-    curEl = it.el; curEl?.classList.add('speaking');
-    try { await speak(it.say); } catch (_) {}
-    curEl?.classList.remove('speaking'); curEl = null;
-    stopCurrent();
-  }
-  busy = false;
+  try {
+    while (queue.length) {
+      const it = queue.shift();
+      curEl = it.el; curEl?.classList.add('speaking');
+      try { await speak(it.say); } catch (_) {}
+      curEl?.classList.remove('speaking'); curEl = null;
+      stopCurrent();
+    }
+  } finally { busy = false; }
 }
 
-$('#btnSkip').onclick = () => { stopCurrent(); curEl?.classList.remove('speaking'); busy = false; pump(); };
-$('#paused').addEventListener('change', (e) => { if (e.target.checked) { queue.length = 0; stopCurrent(); busy = false; } });
+$('#btnSkip').onclick = () => stopCurrent();
+$('#paused').addEventListener('change', (e) => { if (e.target.checked) { queue.length = 0; stopCurrent(); } });
 
 function setVoiceState(ok) {
   const p = $('#voiceState');
@@ -177,11 +186,10 @@ function setVoiceState(ok) {
   p.firstChild.style.background = ok ? 'var(--ok)' : 'var(--bad)';
 }
 
-$('#btnTest').onclick = async () => {
-  stopCurrent(); queue.length = 0; busy = false;
+$('#btnTest').onclick = () => {
+  queue.length = 0; stopCurrent();
   const name = VOICES.find((v) => v.id === S.voice)?.name || '';
-  setVoiceState(true);
-  await speak(`Привет! Меня зовут ${name}. Я буду читать чат твоего эфира.`);
+  enqueue({ el: null, say: `Привет! Меня зовут ${name}. Я буду читать чат твоего эфира.` }, true);
 };
 
 /* ---------- события TikTok ---------- */
@@ -211,8 +219,13 @@ window.echo.onViewers((v) => { $('#sViewers').textContent = (v.count ?? 0).toLoc
 window.echo.onError((e) => sys('Ошибка: ' + e.message));
 
 /* ---------- подключение ---------- */
-const btn = $('#btnConnect'), status = $('#status');
-let connected = false;
+const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
+let connected = false, connecting = false;
+function showAlert(text, warn) {
+  alertBox.textContent = text;
+  alertBox.classList.toggle('warn', !!warn);
+  alertBox.hidden = !text;
+}
 function setStatus(live, text) {
   status.classList.toggle('on', live);
   status.lastElementChild.textContent = text;
@@ -222,30 +235,51 @@ function setStatus(live, text) {
 }
 window.echo.onStatus((s) => {
   if (s.state === 'live') { setStatus(true, 'В эфире @' + s.username); $('#feedSub').textContent = 'Эфир @' + s.username; }
-  else { setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире'); $('#feedSub').textContent = 'Отключено'; }
+  else {
+    setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире');
+    $('#feedSub').textContent = s.state === 'ended' ? 'Трансляция завершена' : 'Отключено';
+    if (s.state === 'ended') sys('Трансляция завершена.');
+  }
 });
 
 btn.onclick = async () => {
-  if (connected) { await window.echo.disconnect(); return; }
-  const nick = $('#nick').value.trim().replace(/^@/, '');
-  if (!nick) { $('#nick').focus(); return; }
-  S.nick = nick; save();
-  btn.textContent = 'Подключаюсь…';
-  $('#feedSub').textContent = 'Ищем эфир @' + nick;
-  resetEmpty();
-  sys(`Ищем активный эфир @${nick}…`);
-  const r = await window.echo.connect(nick);
-  if (!r.ok) {
+  if (connecting) return;
+  connecting = true;
+  try {
+    if (connected) { await window.echo.disconnect(); return; }
+    const nick = $('#nick').value.trim().replace(/^@/, '');
+    if (!nick) { showAlert('Введите ник автора TikTok LIVE (без @).', true); $('#nick').focus(); return; }
+    S.nick = nick; save();
+    showAlert('');
+    btn.textContent = 'Подключаюсь…';
+    $('#feedSub').textContent = 'Ищем эфир @' + nick;
+    counters.likes = counters.gifts = counters.follows = 0;
+    ['#sLikes','#sGifts','#sFollows'].forEach((i) => bump(i, 0));
+    $('#sViewers').textContent = '—';
+    resetEmpty();
+    sys(`Ищем активный эфир @${nick}…`);
+    const r = await window.echo.connect(nick);
+    if (!r || !r.ok) {
+      setStatus(false, 'Не в эфире');
+      $('#feedSub').textContent = 'Не удалось подключиться';
+      const msg = (r && r.error) || 'Не удалось подключиться.';
+      showAlert(msg, r && (r.code === 'offline' || r.code === 'empty'));
+      sys(msg);
+    } else {
+      showAlert('');
+      sys('Подключено! Чат будет озвучен.');
+      enqueue({ el: null, say: 'Подключено к эфиру. Озвучка включена.' });
+    }
+  } catch (e) {
     setStatus(false, 'Не в эфире');
-    $('#feedSub').textContent = 'Не удалось подключиться';
-    sys('Эфир не найден. Проверь ник и убедись, что автор уже начал трансляцию. (' + r.error + ')');
-  } else {
-    sys('Подключено! Чат будет озвучен.');
-    enqueue({ el: null, say: 'Подключено к эфиру. Озвучка включена.' });
+    const msg = 'Ошибка подключения: ' + (e && e.message ? e.message : e);
+    showAlert(msg); sys(msg);
+  } finally {
+    connecting = false;
   }
 };
 $('#nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
-speechSynthesis.getVoices();
+try { speechSynthesis.getVoices(); } catch (_) {}
 
 /* ---------- обновление по кнопке ---------- */
 const btnUpd = $('#btnUpdate');

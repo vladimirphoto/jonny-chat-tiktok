@@ -51,48 +51,79 @@ function userOf(d) {
 
 async function disconnect() {
   if (conn) {
-    try { conn.removeAllListeners(); } catch (_) {}
-    try { await conn.disconnect(); } catch (_) {}
+    const c = conn;
     conn = null;
+    try { c.removeAllListeners(); } catch (_) {}
+    try { await Promise.race([c.disconnect(), new Promise((r) => setTimeout(r, 3000))]); } catch (_) {}
   }
 }
 
-ipcMain.handle('tt:connect', async (_e, rawName) => {
-  const username = String(rawName || '').trim().replace(/^@/, '');
-  if (!username) return { ok: false, error: 'Введи ник автора.' };
-  await disconnect();
-  let TikTokLiveConnection, WebcastEvent;
-  try {
-    ({ TikTokLiveConnection, WebcastEvent } = await load('tiktok-live-connector'));
-  } catch (err) {
-    return { ok: false, error: 'Не удалось загрузить модуль TikTok: ' + String((err && err.message) || err) };
+// Понятные тексты для типичных ошибок подключения
+function explain(err) {
+  const raw = String((err && (err.message || err.info)) || err || '');
+  const name = String((err && (err.name || (err.constructor && err.constructor.name))) || '');
+  const all = `${name} ${raw}`.toLowerCase();
+  if (/useroffline|offline|not live|isn.t live|not currently live|ended|room_id|room id|roomid|not found|404/.test(all)) {
+    return { code: 'offline', error: 'Вы не в эфире. Запустите трансляцию в TikTok LIVE, подключитесь и попробуйте снова. Также проверьте, что ник введён правильно.' };
   }
-  conn = new TikTokLiveConnection(username);
+  if (/timeout|timed out|превышено/.test(all)) {
+    return { code: 'timeout', error: 'Нет ответа от TikTok. Проверьте интернет и попробуйте снова.' };
+  }
+  if (/rate|429|too many|limit/.test(all)) {
+    return { code: 'rate', error: 'TikTok временно ограничил запросы. Подождите минуту и попробуйте снова.' };
+  }
+  if (/enotfound|econn|network|fetch failed|getaddrinfo|socket/.test(all)) {
+    return { code: 'network', error: 'Нет соединения с интернетом или TikTok недоступен. Проверьте сеть и попробуйте снова.' };
+  }
+  return { code: 'other', error: 'Не удалось подключиться: ' + (raw || name || 'неизвестная ошибка') };
+}
 
-  conn.on(WebcastEvent.CHAT, (d) => send('tt:chat', { ...userOf(d), text: d.comment || '' }));
-  conn.on(WebcastEvent.GIFT, (d) => {
-    // серия подарков считается один раз — когда она закончилась
-    if (d.giftType === 1 && !d.repeatEnd) return;
-    send('tt:gift', {
-      ...userOf(d),
-      gift: d.giftName || (d.giftDetails && d.giftDetails.giftName) || 'подарок',
-      count: d.repeatCount || 1,
-    });
+ipcMain.handle('tt:connect', async (_e, rawName) => {
+  const username = String(rawName || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?tiktok\.com\/@/i, '').replace(/\/live.*$/i, '');
+  if (!username) return { ok: false, code: 'empty', error: 'Введите ник автора.' };
+  await disconnect();
+  let TikTokLiveConnection, WebcastEvent, ControlEvent;
+  try {
+    ({ TikTokLiveConnection, WebcastEvent, ControlEvent } = await load('tiktok-live-connector'));
+  } catch (err) {
+    return { ok: false, code: 'module', error: 'Не удалось загрузить модуль TikTok: ' + String((err && err.message) || err) };
+  }
+  const c = new TikTokLiveConnection(username);
+  conn = c;
+  const alive = () => conn === c;
+  const EV = ControlEvent || {};
+
+  c.on(WebcastEvent.CHAT, (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || '' }));
+  c.on(WebcastEvent.GIFT, (d) => {
+    if (!alive()) return;
+    const det = d.giftDetails || {};
+    // серия подарков (giftType 1) считается один раз — когда она закончилась
+    if (det.giftType === 1 && !d.repeatEnd) return;
+    send('tt:gift', { ...userOf(d), gift: det.giftName || d.giftName || 'подарок', count: d.repeatCount || 1 });
   });
-  conn.on(WebcastEvent.FOLLOW, (d) => send('tt:follow', userOf(d)));
-  conn.on(WebcastEvent.LIKE, (d) => send('tt:like', { total: d.totalLikeCount, count: d.likeCount || 1 }));
-  conn.on(WebcastEvent.ROOM_USER, (d) => send('tt:viewers', { count: d.viewerCount }));
-  conn.on(WebcastEvent.STREAM_END, () => send('tt:status', { state: 'ended' }));
-  conn.on('disconnected', () => send('tt:status', { state: 'offline' }));
-  conn.on('error', (err) => send('tt:error', { message: String((err && err.message) || err) }));
+  c.on(WebcastEvent.FOLLOW, (d) => alive() && send('tt:follow', userOf(d)));
+  c.on(WebcastEvent.LIKE, (d) => alive() && send('tt:like', { total: d.totalLikeCount, count: d.likeCount || 1 }));
+  c.on(WebcastEvent.ROOM_USER, (d) => alive() && send('tt:viewers', { count: d.viewerCount }));
+  c.on(WebcastEvent.STREAM_END, () => alive() && send('tt:status', { state: 'ended' }));
+  c.on(EV.DISCONNECTED || 'disconnected', () => alive() && send('tt:status', { state: 'offline' }));
+  c.on(EV.ERROR || 'error', (e) => {
+    if (!alive()) return;
+    const ex = (e && e.exception) || e;
+    send('tt:error', { message: String((ex && ex.message) || (e && e.info) || ex) });
+  });
 
   try {
-    const state = await conn.connect();
+    const state = await Promise.race([
+      c.connect(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000)),
+    ]);
+    if (!alive()) return { ok: false, code: 'cancelled', error: 'Подключение отменено.' };
     send('tt:status', { state: 'live', username, roomId: state && state.roomId });
     return { ok: true, username };
   } catch (err) {
-    conn = null;
-    return { ok: false, error: String((err && err.message) || err) };
+    if (conn === c) conn = null;
+    try { c.removeAllListeners(); c.disconnect().catch(() => {}); } catch (_) {}
+    return { ok: false, ...explain(err) };
   }
 });
 
@@ -104,27 +135,32 @@ ipcMain.handle('tt:disconnect', async () => {
 
 // Нейро-голоса Microsoft Edge: естественная интонация, не «робот»
 ipcMain.handle('tts:synth', async (_e, { text, voice, rate, pitch }) => {
+  let tts = null;
   try {
     const { MsEdgeTTS, OUTPUT_FORMAT } = await load('msedge-tts');
-    const tts = new MsEdgeTTS();
-    await tts.setMetadata(voice || 'ru-RU-SvetlanaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
-    const { audioStream } = tts.toStream(String(text).slice(0, 400), {
-      rate: rate || 'default',
-      pitch: pitch || 'default',
-    });
+    tts = new MsEdgeTTS();
+    const fmt = OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3 || OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3;
+    await tts.setMetadata(voice || 'ru-RU-SvetlanaNeural', fmt);
+    const safe = String(text).slice(0, 400);
+    const res = await tts.toStream(safe, { rate: Number(rate) || 1, pitch: pitch || '+0Hz' });
+    const audioStream = res.audioStream;
     const chunks = [];
-    await new Promise((resolve, reject) => {
-      audioStream.on('data', (c) => chunks.push(c));
-      audioStream.on('end', resolve);
-      audioStream.on('close', resolve);
-      audioStream.on('error', reject);
-    });
-    try { tts.close(); } catch (_) {}
+    await Promise.race([
+      new Promise((resolve, reject) => {
+        audioStream.on('data', (ch) => chunks.push(ch));
+        audioStream.on('end', resolve);
+        audioStream.on('close', resolve);
+        audioStream.on('error', reject);
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('tts timeout')), 15000)),
+    ]);
     const buf = Buffer.concat(chunks);
     if (!buf.length) return { ok: false, error: 'empty' };
     return { ok: true, audio: buf.toString('base64') };
   } catch (err) {
     return { ok: false, error: String((err && err.message) || err) };
+  } finally {
+    try { tts && tts.close && tts.close(); } catch (_) {}
   }
 });
 
