@@ -127,3 +127,21 @@ body.talking .eq span{opacity:1;animation:bar 0.9s ease-in-out infinite}
 .guide a{color:var(--a3)}
 .usage{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
 #gVoice{margin-top:10px}
+
+label.strong{color:var(--text);font-weight:600;font-size:13px;margin-top:6px}
+.at-input{display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);transition:.2s}
+.at-input:focus-within{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.at-input span{color:var(--muted);font-size:15px}
+.at-input input:not([type]){border:0;background:transparent;box-shadow:none;padding:12px 0;outline:none}
+.info{margin-top:16px;padding-top:6px;border-top:1px solid var(--line)}
+.irow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;margin:0;color:var(--muted);font-size:13px}
+.irow b{color:var(--text);font-weight:600}
+label.sw.irow{color:var(--muted);cursor:pointer;font-size:13px}
+label.sw.irow span{flex:1}
+.pill.air{width:100%;justify-content:flex-start}
+.pill.air b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
+.pill s{background:var(--bad)!important}
+.pill.on s{background:var(--ok)!important}
+.pill.wait s{background:#fbbf24!important}
+.pill.status s{background:var(--muted)!important}
+.pill.status.on s{background:var(--ok)!important}

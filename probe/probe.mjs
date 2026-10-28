@@ -1,87 +1,45 @@
-import fs from 'fs';
-import path from 'path';
-import { TikTokLiveConnection, WebcastEvent, ControlEvent } from 'tiktok-live-connector';
+import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector';
 
-process.on('uncaughtException', (e) => { console.log('::notice title=probe-uncaught::' + String(e && e.stack || e).replace(/\n/g, '%0A').slice(0, 3000)); });
-process.on('unhandledRejection', (e) => { console.log('::notice title=probe-unhandled::' + String(e && e.stack || e).replace(/\n/g, '%0A').slice(0, 3000)); });
-const lines = [];
-const log = (s) => { lines.push(String(s)); };
-const emit = (title) => {
-  const msg = lines.join('\n').slice(0, 30000).replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A');
-  console.log(`::notice title=${title}::${msg}`);
-  lines.length = 0;
-};
+const emit = (title, msg) => console.log(`::notice title=${title}::` + String(msg).slice(0, 3600).replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A'));
+process.on('uncaughtException', (e) => emit('probe-uncaught', e && e.stack || e));
+process.on('unhandledRejection', (e) => emit('probe-unhandled', e && e.stack || e));
 
-const root = 'node_modules/tiktok-live-connector';
-const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-log('tiktok-live-connector ' + pkg.version);
-log('events: ' + Object.entries(WebcastEvent).filter(([k]) => /CHAT|EMOTE|COMMENT|MESSAGE/i.test(k)).map(([k, v]) => k + '=' + v).join(', '));
-
-// схема чат-сообщения: ищем во всех файлах пакета
-function walk(d, out = []) { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name !== 'node_modules') walk(p, out); } else if (/\.(d\.ts|js|mjs|cjs|proto)$/.test(f.name)) out.push(p); } return out; }
-const files = walk(root);
-log('files: ' + files.length);
-let found = 0;
-for (const f of files) {
-  const src = fs.readFileSync(f, 'utf8');
-  const idx = src.search(/(interface|message|type)\s+WebcastChatMessage\b/);
-  if (idx >= 0 && found < 2) { log('--- ' + f + '\n' + src.slice(idx, idx + 1800)); found++; }
-}
-{
-  const dts = fs.readFileSync(path.join(root, 'dist', 'index-DcaLUrMQ.d.ts'), 'utf8');
-  let n = 0, from = 0;
-  while (n < 4) { const i = dts.indexOf('WebcastChatMessage', from); if (i < 0) break; log('d.ts@' + i + ': ' + dts.slice(Math.max(0, i - 150), i + 350).replace(/\s+/g, ' ')); from = i + 400; n++; }
-  const j = dts.search(/interface WebcastChatMessage|type WebcastChatMessage\b|class WebcastChatMessage/);
-  if (j >= 0) log('DEF: ' + dts.slice(j, j + 1500).replace(/\s+/g, ' '));
-  const js = fs.readFileSync(path.join(root, 'dist', 'lib-DWhiWLli.js'), 'utf8');
-  const k = js.search(/WebcastChatMessage\s*=|function\s+WebcastChatMessage|WebcastChatMessage\s*\{/);
-  log('js def idx ' + k + (k >= 0 ? ': ' + js.slice(k, k + 900).replace(/\s+/g, ' ') : ''));
-}
-if (!found) {
-  for (const f of files) {
-    const src = fs.readFileSync(f, 'utf8');
-    if (/WebcastChatMessage/.test(src)) log('mentions WebcastChatMessage: ' + f);
-  }
-}
-emit('probe-schema');
-
-const shape = (v, d = 0) => {
+// компактное описание: числа и булевы — значения, строки — длина, объекты — только ключи верхнего уровня
+const brief = (v, d = 0) => {
   if (v === null || v === undefined) return 'null';
-  if (typeof v === 'string') return `str(${v.length})`;
-  if (typeof v === 'number' || typeof v === 'bigint') return 'num';
-  if (typeof v === 'boolean') return 'bool';
-  if (Array.isArray(v)) return `[${v.length}]` + (v.length && d < 3 ? shape(v[0], d + 1) : '');
-  if (typeof v === 'object') return d > 3 ? '{…}' : '{' + Object.keys(v).map((k) => k + ':' + shape(v[k], d + 1)).join(',') + '}';
+  if (typeof v === 'string') return `s${v.length}`;
+  if (typeof v === 'bigint') return 'big:' + String(v);
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return `[${v.length}]`;
+  if (typeof v === 'object') return d >= 1 ? '{…}' : '{' + Object.keys(v).map((k) => k + ':' + brief(v[k], d + 1)).join(' ') + '}';
   return typeof v;
 };
+const top = (d) => Object.keys(d).filter((k) => k !== 'common' && k !== 'user').map((k) => k + '=' + brief(d[k], 0)).join(' ');
+const userKeys = (u) => u ? Object.keys(u).filter((k) => ['string', 'number', 'boolean'].includes(typeof u[k]) || typeof u[k] === 'bigint').join(',') : 'none';
 
-const cands = (process.env.CANDS || 'alishpro0').split(',');
-for (const name of cands) {
-  let c;
-  try { c = new TikTokLiveConnection(name, { processInitialData: true, fetchRoomInfoOnConnect: true, enableExtendedGiftInfo: false, authenticateWs: false, useMobile: false, webClientOptions: {}, wsClientOptions: {} }); } catch (e) { log('ctor failed: ' + e); emit('probe-ctor'); continue; }
-  c.on('error', (e) => log('error event: ' + String((e && (e.info || e.message)) || e).slice(0, 200)));
-  let total = 0, withComment = 0, withEmotes = 0, samples = 0;
-  const events = {};
-  c.on(WebcastEvent.CHAT, (d) => {
-    total++;
-    if (d.comment && String(d.comment).length) withComment++;
-    if (d.emotes && d.emotes.length) withEmotes++;
-    if (samples < 4) { samples++; log('CHAT shape: ' + shape(d)); }
+const name = process.env.CANDS || 'alishpro0';
+const c = new TikTokLiveConnection(name, { processInitialData: true, fetchRoomInfoOnConnect: true, enableExtendedGiftInfo: false, authenticateWs: false, useMobile: false, webClientOptions: {}, wsClientOptions: {} });
+const seen = {}, counts = {};
+const interesting = ['chat', 'gift', 'follow', 'like', 'roomUser', 'member', 'social', 'share', 'emote', 'subscribe'];
+for (const ev of Object.values(WebcastEvent)) {
+  c.on(ev, (d) => {
+    counts[ev] = (counts[ev] || 0) + 1;
+    if (!interesting.includes(ev)) return;
+    seen[ev] = seen[ev] || [];
+    if (seen[ev].length < 2 && d && typeof d === 'object') seen[ev].push({ top: top(d), user: userKeys(d.user), ident: d.userIdentity ? brief(d.userIdentity, 0) : '' });
   });
-  for (const ev of Object.values(WebcastEvent)) {
-    if (ev === WebcastEvent.CHAT) continue;
-    c.on(ev, () => { events[ev] = (events[ev] || 0) + 1; });
-  }
-  try {
-    const st = await c.connect();
-    log(`connected to ${name}: room ${st.roomId}`);
-    await new Promise((r) => setTimeout(r, 45000));
-    log(`chats=${total} withComment=${withComment} withEmotes=${withEmotes}`);
-    log('other events: ' + JSON.stringify(events));
-    await c.disconnect();
-  } catch (e) {
-    log(`connect ${name} failed: ${e && e.name} :: ${String(e && e.message).slice(0, 300)}`);
-  }
-  emit('probe-live-' + name);
+}
+try {
+  const st = await c.connect();
+  emit('probe-0-conn', `connected room=${st.roomId}`);
+  await new Promise((r) => setTimeout(r, 70000));
+  await c.disconnect();
+} catch (e) {
+  emit('probe-0-conn', `connect failed: ${e && e.name} :: ${String(e && e.message).slice(0, 300)}`);
+}
+emit('probe-1-counts', JSON.stringify(counts));
+for (const ev of interesting) {
+  if (!seen[ev]) continue;
+  emit('probe-ev-' + ev, seen[ev].map((s) => `TOP: ${s.top}\nUSERKEYS: ${s.user}\nIDENT: ${s.ident}`).join('\n--\n'));
 }
 process.exit(0);

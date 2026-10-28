@@ -179,11 +179,12 @@ const colors = ['#8b5cf6', '#ec4899', '#22d3ee', '#f59e0b', '#10b981', '#6366f1'
 const colorOf = (s) => colors[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length];
 
 function addMsg({ name, text, kind = '', sub = false, color }) {
+  const empty = !String(text || '').trim();
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
-  el.innerHTML = `<div class="av" style="background:${color || colorOf(name)}">${esc((name[0] || '?').toUpperCase())}</div>
-    <div class="b"><div class="n">${esc(name)}${sub ? '<em>SUB</em>' : ''}</div><div class="t">${esc(text)}</div></div>`;
+  el.innerHTML = `<div class="av" style="background:${color || colorOf(name)}">${esc((Array.from(name)[0] || '?').toUpperCase())}</div>
+    <div class="b"><div class="n">${esc(name)}${sub ? '<em>SUB</em>' : ''}</div><div class="t">${empty ? '<i class="muted-i">стикер или эмодзи</i>' : esc(text)}</div></div>`;
   feed.appendChild(el);
   while (feed.children.length > 150) feed.firstChild.remove();
   feed.scrollTop = feed.scrollHeight;
@@ -297,11 +298,7 @@ function ensureSynth(item) {
   return item.p;
 }
 
-function setVoiceState(ok) {
-  const p = $('#voiceState');
-  p.lastChild.textContent = ok ? 'Голос готов' : 'Нет сети · запасной голос';
-  p.firstChild.style.background = ok ? 'var(--ok)' : 'var(--bad)';
-}
+function setVoiceState() {} // индикатор убран: состояние эфира показывает точка слева внизу
 
 async function speakItem(item) {
   let r = await ensureSynth(item);
@@ -367,7 +364,9 @@ window.echo.onError((e) => sys(e.message));
 /* ---------- подключение ---------- */
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false;
+let alertTimer = null;
 function showAlert(text, warn, detail) {
+  clearTimeout(alertTimer);
   alertBox.textContent = text;
   if (text && detail) {
     const d = document.createElement('div');
@@ -377,20 +376,38 @@ function showAlert(text, warn, detail) {
   }
   alertBox.classList.toggle('warn', !!warn);
   alertBox.hidden = !text;
+  // ошибка исчезает сама через несколько секунд
+  if (text) alertTimer = setTimeout(() => { alertBox.hidden = true; }, window.__alertMs || 8000);
 }
-function setStatus(live, text) {
+const airPill = $('#airPill'), airTime = $('#airTime'), infoTime = $('#infoTime');
+let airStart = 0, airTimer = null;
+const fmtTime = (ms) => { const s = Math.floor(ms / 1000); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':'); };
+function tickAir() { const t = fmtTime(Date.now() - airStart); airTime.textContent = t; infoTime.textContent = t; }
+function startAir() { if (airTimer) return; airStart = Date.now(); tickAir(); airTimer = setInterval(tickAir, 1000); }
+function stopAir() { clearInterval(airTimer); airTimer = null; airTime.textContent = '00:00:00'; infoTime.textContent = '—'; }
+
+// state: off | connecting | live | reconnecting
+function setStatus(state, nick) {
+  const live = state === 'live';
+  connected = state === 'live' || state === 'reconnecting';
   status.classList.toggle('on', live);
-  status.lastElementChild.textContent = text;
-  connected = live;
-  btn.textContent = live ? 'Отключиться' : 'Подключиться';
-  btn.classList.toggle('stop', live);
+  status.lastElementChild.textContent = live ? 'В эфире @' + nick : state === 'reconnecting' ? 'Переподключение…' : state === 'ended' ? 'Эфир завершён' : 'Не в эфире';
+  airPill.classList.toggle('on', live);
+  airPill.classList.toggle('wait', state === 'reconnecting');
+  $('#infoNick').textContent = live || state === 'reconnecting' ? '@' + nick : '—';
+  $('#infoStatus').textContent = live ? 'Подключено' : state === 'reconnecting' ? 'Переподключение…' : state === 'connecting' ? 'Подключение…' : 'Не подключено';
+  btn.textContent = connected ? 'Отключиться' : 'Подключиться';
+  btn.classList.toggle('stop', connected);
+  if (live) startAir(); else if (state !== 'reconnecting') stopAir();
 }
 window.echo.onStatus((s) => {
-  if (s.state === 'live') { setStatus(true, 'В эфире @' + s.username); $('#feedSub').textContent = 'Эфир @' + s.username; }
+  if (s.state === 'live') { setStatus('live', s.username); $('#feedSub').textContent = 'Эфир @' + s.username; }
+  else if (s.state === 'reconnecting') { setStatus('reconnecting', s.username); $('#feedSub').textContent = 'Связь потеряна, переподключаемся…'; }
   else {
-    setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире');
+    setStatus(s.state === 'ended' ? 'ended' : 'off');
     $('#feedSub').textContent = s.state === 'ended' ? 'Трансляция завершена' : 'Отключено';
     if (s.state === 'ended') sys('Трансляция завершена.');
+    if (s.message) sys(s.message);
   }
 });
 
@@ -404,6 +421,7 @@ btn.onclick = async () => {
     S.nick = nick; save();
     showAlert('');
     btn.textContent = 'Подключаюсь…';
+    $('#infoStatus').textContent = 'Подключение…';
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
     counters.likes = counters.gifts = counters.follows = 0;
     ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
@@ -412,7 +430,7 @@ btn.onclick = async () => {
     sys(`Ищем активный эфир @${nick}…`);
     const r = await window.echo.connect(nick);
     if (!r || !r.ok) {
-      setStatus(false, 'Не в эфире');
+      setStatus('off');
       $('#feedSub').textContent = 'Не удалось подключиться';
       // одно понятное сообщение на русском — без дублей в ленте
       showAlert((r && r.error) || 'Не удалось подключиться к эфиру. Попробуйте снова.', r && (r.code === 'offline' || r.code === 'empty'), r && r.detail);
@@ -422,7 +440,7 @@ btn.onclick = async () => {
       enqueue({ el: null, say: 'Подключено к эфиру. Озвучка включена.' });
     }
   } catch (e) {
-    setStatus(false, 'Не в эфире');
+    setStatus('off');
     showAlert('Не удалось подключиться к эфиру. Попробуйте снова.', false, e && e.message ? e.message : String(e));
   } finally {
     connecting = false;
