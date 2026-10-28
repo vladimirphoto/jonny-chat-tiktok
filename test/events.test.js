@@ -65,3 +65,37 @@ test('подписчик канала: followInfo, followRole, isFollower, не�
 test('лайки: total 0 означает «итога нет»', () => {
   assert.deepEqual(E.likesOf({ count: 4, total: 0 }), { count: 4, total: null });
 });
+
+test('аватарка и картинка подарка из разных версий событий', () => {
+  assert.equal(E.userOf({ user: { nickname: 'А', profilePicture: { url: 'https://x/a.jpg' } } }).avatar, 'https://x/a.jpg');
+  assert.equal(E.userOf({ user: { nickname: 'А', avatarThumb: { urlList: ['https://x/b.jpg'] } } }).avatar, 'https://x/b.jpg');
+  assert.equal(E.userOf({ user: { nickname: 'А' } }).avatar, '');
+  assert.equal(E.giftOf({ giftDetails: { giftName: 'Rose', giftImage: { urlList: ['https://x/r.png'] } } }).image, 'https://x/r.png');
+});
+
+test('Twitch IRC: разбор сообщения с тегами', () => {
+  const T = require('../twitch');
+  const p = T.parseLine('@badges=subscriber/1;display-name=Max;tmi-sent-ts=1700000000000 :max!max@max.tmi.twitch.tv PRIVMSG #chan :привет всем');
+  assert.equal(p.cmd, 'PRIVMSG');
+  assert.equal(p.tags['display-name'], 'Max');
+  assert.equal(p.text, 'привет всем');
+  assert.equal(T.parseLine('PING :tmi.twitch.tv').cmd, 'PING');
+  assert.equal(T.connect('!!', {}).ok, false);
+});
+
+test('сервер виджета: страница, настройки и сообщения по SSE', async () => {
+  const W = require('../widget');
+  const srv = await W.start(() => ({ scale: 120 }), 7990);
+  assert.ok(srv.port >= 7990);
+  const page = await (await fetch(`http://127.0.0.1:${srv.port}/chat`)).text();
+  assert.match(page, /EventSource/);
+  const res = await fetch(`http://127.0.0.1:${srv.port}/events`);
+  const reader = res.body.getReader();
+  setTimeout(() => srv.broadcast('msg', { platform: 'twitch', name: 'Max', text: 'hi' }), 100);
+  let got = '';
+  const dec = new TextDecoder();
+  while (!/hi/.test(got)) got += dec.decode((await reader.read()).value);
+  assert.match(got, /"scale":120/);
+  assert.match(got, /"platform":"twitch"/);
+  await reader.cancel(); srv.close();
+});

@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const ev = require('./events');
+const twitch = require('./twitch');
+const widget = require('./widget');
 
 // Пакеты могут быть ESM-only — подключаем через динамический import()
 const load = async (name) => {
@@ -10,6 +12,12 @@ const load = async (name) => {
 
 let win = null;
 let conn = null;
+let tw = null;           // подключение к чату Twitch
+let wsrv = null;         // сервер виджета
+let wset = {};           // настройки виджета (приходят из окна)
+const NAME_COLORS = ['#a78bfa', '#f472b6', '#22d3ee', '#fbbf24', '#34d399', '#818cf8', '#fb7185'];
+const colorOf = (s) => NAME_COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length];
+const wmsg = (m) => wsrv && wsrv.broadcast('msg', m);
 const SELFTEST = process.argv.includes('--selftest');
 
 function createWindow() {
@@ -83,12 +91,18 @@ async function doConnect(rawName) {
   const alive = () => conn === c;
   const EV = ControlEvent || {};
 
-  c.on(WebcastEvent.CHAT || 'chat', (d) => alive() && send('tt:chat', ev.chatOf(d)));
+  c.on(WebcastEvent.CHAT || 'chat', (d) => {
+    if (!alive()) return;
+    const m = ev.chatOf(d);
+    send('tt:chat', m);
+    if (m.text) wmsg({ platform: 'tiktok', name: m.name, text: m.text, avatar: m.avatar, color: colorOf(m.name) });
+  });
   c.on(WebcastEvent.GIFT || 'gift', (d) => {
     if (!alive()) return;
     const g = ev.giftOf(d);
     if (!g.done) return; // серия подарков идёт — считаем один раз, когда она закончилась
     send('tt:gift', g);
+    wmsg({ platform: 'tiktok', name: g.name, avatar: g.avatar, color: colorOf(g.name), gift: { name: g.gift, count: g.count, image: g.image } });
   });
   // подписка: событие follow, а если его нет в версии библиотеки — social с признаком подписки
   const seenFollow = new Map();
@@ -233,6 +247,38 @@ ipcMain.handle('tts:synth', async (_e, o) => {
   }
 });
 
+// ---------- Twitch (мультистрим) ----------
+function stopTwitch() { if (tw) { try { tw.close(); } catch (_) {} tw = null; } }
+ipcMain.handle('tw:connect', async (_e, name) => {
+  stopTwitch();
+  let first = true;
+  const t = twitch.connect(name, {
+    onStatus: (st) => { if (tw === t) send('tw:status', { state: st, channel: t.channel }); },
+    onChat: async (m) => {
+      if (tw !== t || !m.text) return;
+      const avatar = await twitch.avatarOf(m.id);
+      if (tw !== t) return;
+      send('tw:chat', { ...m, avatar });
+      wmsg({ platform: 'twitch', name: m.name, text: m.text, avatar, color: colorOf(m.name) });
+    },
+  });
+  if (!t.ok) return t;
+  tw = t;
+  return { ok: true, channel: t.channel };
+});
+ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state: 'offline' }); return { ok: true }; });
+
+// ---------- Виджет чата для OBS / TikTok LIVE Studio ----------
+ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://localhost:${wsrv.port}/chat` : ''));
+ipcMain.handle('widget:set', (_e, s) => { wset = { ...(s || {}) }; wsrv && wsrv.broadcast('settings', wset); return { ok: true }; });
+ipcMain.handle('widget:test', () => {
+  wmsg({ platform: 'tiktok', name: 'Анна', text: 'Привет из TikTok! Так выглядит чат', color: colorOf('Анна') });
+  wmsg({ platform: 'twitch', name: 'Max', text: 'Привет из Twitch!', color: colorOf('Max') });
+  wmsg({ platform: 'tiktok', name: 'Игорь', color: colorOf('Игорь'), gift: { name: 'Роза', count: 5 } });
+  return { ok: true };
+});
+ipcMain.handle('widget:clear', () => { wsrv && wsrv.broadcast('clear', {}); return { ok: true }; });
+
 const updater = require('./updater');
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('upd:check', async () => {
@@ -242,7 +288,8 @@ ipcMain.handle('upd:install', async () => {
   try { return await updater.install((p) => send('upd:progress', p)); } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  try { wsrv = await widget.start(() => wset); } catch (_) { wsrv = null; }
   createWindow();
   // прогрев: модуль, DNS и TLS-соединение готовы до первой фразы эфира
   edgeSynth('Привет', 'ru-RU-SvetlanaNeural', 1, '+0Hz').catch(() => {});
@@ -250,5 +297,7 @@ app.whenReady().then(() => {
 });
 app.on('window-all-closed', async () => {
   await disconnect();
+  stopTwitch();
+  try { wsrv && wsrv.close(); } catch (_) {}
   app.quit();
 });

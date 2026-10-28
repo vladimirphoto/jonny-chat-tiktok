@@ -160,3 +160,9 @@ select::-webkit-scrollbar-button{display:none}
 #btnTest{display:flex;align-items:center;justify-content:center;gap:8px}
 #btnTest svg{width:14px;height:14px;fill:currentColor}
 #eventVoice{margin-bottom:4px}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.msg .av{background-size:cover;background-position:center}
+.msg .n{display:flex;align-items:center;gap:6px}.msg .pi{width:15px;height:15px;flex:none}
+.msg .gi{width:28px;height:28px;vertical-align:middle;margin-left:6px}
+select{width:100%}

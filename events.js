@@ -39,6 +39,13 @@ function followerOf(u, d) {
   return null;
 }
 
+// Ссылка на аватарку: разные версии библиотеки кладут её в разные поля
+function avatarOf(u) {
+  const first = (x) => (x && (x.url || (Array.isArray(x.urlList) && x.urlList[0]) || (Array.isArray(x.url_list) && x.url_list[0]) || (Array.isArray(x.urls) && x.urls[0]))) || '';
+  const url = u.profilePictureUrl || first(u.profilePicture) || first(u.avatarThumb) || first(u.avatarMedium) || (typeof u.profilePicture === 'string' ? u.profilePicture : '');
+  return /^https?:\/\//.test(url) ? url : '';
+}
+
 function userOf(d) {
   d = d || {};
   const u = d.user || d;
@@ -49,6 +56,7 @@ function userOf(d) {
     isSub: !!(u.isSubscriber || u.subscriber || badges.includes('subscriber') || badges.includes('sub_')),
     isMod: !!(u.isModerator || u.moderator),
     isFollower: followerOf(u, d),
+    avatar: avatarOf(u),
   };
 }
 
@@ -85,6 +93,7 @@ function giftOf(d) {
   const ended = !!d.repeatEnd && d.repeatEnd !== '0';
   return {
     ...userOf(d),
+    image: (() => { const i = det.giftPictureUrl || det.giftImage || det.image || d.giftPictureUrl; const x = typeof i === 'string' ? i : (i && (i.url || (i.urlList && i.urlList[0]) || (i.url_list && i.url_list[0]))) || ''; return /^https?:\/\//.test(x) ? x : ''; })(),
     gift: str(det.giftName || det.name || d.giftName || (typeof d.gift === 'string' ? d.gift : '')) || 'подарок',
     count: Math.max(1, pick(d.repeatCount, d.comboCount) || 1),
     done: !streakable || ended,
@@ -100,4 +109,4 @@ function isFollowSocial(d) {
   return /follow/.test(text);
 }
 
-module.exports = { num, pick, userOf, timeMs, chatOf, viewersOf, likesOf, giftOf, isFollowSocial };
+module.exports = { avatarOf, num, pick, userOf, timeMs, chatOf, viewersOf, likesOf, giftOf, isFollowSocial };

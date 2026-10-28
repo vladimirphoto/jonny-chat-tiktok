@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:; img-src 'self' data:" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:; img-src 'self' data: https:" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ЭхоЧат LIVE</title>
   <link rel="stylesheet" href="styles.css" />
@@ -19,9 +19,9 @@
         <button class="nav active" data-tab="live"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>Эфир</button>
         <button class="nav" data-tab="voice"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>Голос</button>
         <button class="nav" data-tab="filters"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg>Фильтры</button>
+        <button class="nav" data-tab="widgets"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg>Виджеты</button>
       </nav>
       <div class="side-foot">
-        <div class="side-live"><span>Время в эфире</span><b id="sideTime">—</b><i class="live-dot" id="liveDot" title="Не в эфире"></i></div>
         <button class="btn ghost upd" id="btnUpdate">⟳ Проверить обновления</button>
         <small id="verLine">Версия —</small>
       </div>
@@ -49,11 +49,14 @@
               <p class="muted">Введите ник стримера TikTok</p>
               <label>Ник стримера</label>
               <div class="nick-field"><span>@</span><input id="nick" placeholder="username" spellcheck="false" /></div>
+              <label style="margin-top:12px">Канал Twitch <small class="muted">(для мультистрима, необязательно)</small></label>
+              <div class="nick-field"><span>twitch.tv/</span><input id="twNick" placeholder="channel" spellcheck="false" /></div>
               <button class="btn primary" id="btnConnect">Подключиться</button>
               <div class="alert" id="alert" hidden></div>
               <div class="conn-rows">
                 <div class="conn-row"><span>Подключённый ник</span><b id="connNick">—</b></div>
                 <div class="conn-row"><span>Статус подключения</span><b id="connStatus">Не подключено</b></div>
+                <div class="conn-row"><span>Twitch</span><b id="connTw">—</b></div>
                 <div class="conn-row"><span>Время в эфире</span><b id="connTime">—</b></div>
               </div>
             </div>
@@ -145,6 +148,45 @@
           </div>
           <label style="margin-top:18px">Максимальная длина сообщения: <b id="lenVal">140</b></label>
           <input type="range" id="maxLen" min="30" max="300" value="140" />
+        </div>
+      </section>
+
+      <!-- ВИДЖЕТЫ -->
+      <section class="tab" id="tab-widgets">
+        <div class="cols">
+          <div class="col-left">
+            <div class="card">
+              <h2>Виджет чата</h2>
+              <p class="muted">Одна ссылка для TikTok LIVE Studio и OBS: источник «Браузер» / «Ссылка». Показывает чат TikTok и Twitch на прозрачном фоне.</p>
+              <label>Ссылка на виджет</label>
+              <div class="nick-field"><input id="wUrl" readonly spellcheck="false" /></div>
+              <div class="row2"><button class="btn primary" id="wCopy">Скопировать ссылку</button><button class="btn ghost" id="wTest">Тестовые сообщения</button></div>
+              <button class="btn ghost wide" id="wClear" style="margin-top:8px">Очистить виджет</button>
+              <div class="note">OBS: Источники → + → Браузер → вставь ссылку, ширина 500, высота 800. Программа должна оставаться запущенной.</div>
+            </div>
+          </div>
+          <div class="col-right">
+            <div class="card">
+              <h2>Настройки виджета</h2>
+              <label>Выравнивание сообщений</label>
+              <select id="wAlign">
+                <option value="split">TikTok слева · Twitch справа</option>
+                <option value="left">Все слева</option>
+                <option value="right">Все справа</option>
+              </select>
+              <div class="toggles" style="margin-top:8px">
+                <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
+                <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Лёгкая тень за сообщениями</span></label>
+                <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
+                <label class="sw"><input type="checkbox" data-k="showTwitch" checked /><i></i><span>Сообщения Twitch в ленте и озвучке</span></label>
+              </div>
+              <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleVal">100%</b></div><input type="range" id="wScale" min="50" max="200" value="100" /></div>
+              <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightVal">100%</b></div><input type="range" id="wHeight" min="20" max="100" value="100" /></div>
+              <div class="ctl"><div class="row"><label>Исчезать через</label><b id="wFadeSecVal">20 с</b></div><input type="range" id="wFadeSec" min="3" max="120" value="20" /></div>
+            </div>
+          </div>
         </div>
       </section>
     </main>

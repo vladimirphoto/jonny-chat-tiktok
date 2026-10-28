@@ -25,6 +25,7 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
+  wAlign: 'split', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '',
   chat: true, readName: true, gifts: true, follows: true, subsOnly: false, eventVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
@@ -41,6 +42,7 @@ const TITLES = {
   live: ['Эфир', 'Подключись к TikTok LIVE и слушай чат вслух'],
   voice: ['Голос', 'Живые голоса, свои пресеты и события для озвучки'],
   filters: ['Фильтры', 'Чистый чат без команд, спама и мата'],
+  widgets: ['Виджеты', 'Чат TikTok и Twitch для OBS и TikTok LIVE Studio'],
 };
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $$('.nav').forEach((x) => x.classList.toggle('active', x === b));
@@ -51,7 +53,7 @@ $$('.nav').forEach((b) => b.addEventListener('click', () => {
 
 $$('input[data-k]').forEach((el) => {
   el.checked = !!S[el.dataset.k];
-  el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); });
+  el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); if (el.dataset.k[0] === 'w') pushWidget(); });
 });
 
 function bindRange(id, label, fmt, get, set) {
@@ -69,8 +71,15 @@ function syncControls() {
   $('#pitch').closest('.ctl').classList.remove('off');
 }
 const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
+const refreshWScale = bindRange('wScale', 'wScaleVal', (v) => v + '%', () => S.wScale, (v) => { S.wScale = v; pushWidget(); });
+const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => S.wHeight, (v) => { S.wHeight = v; pushWidget(); });
+const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
+function pushWidget() {
+  window.echo.widgetSet({ align: S.wAlign, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec });
+}
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
+$('#twNick').value = S.twNick || '';
 
 /* ---------- карточки голосов ---------- */
 const voicesBox = $('#voices');
@@ -169,12 +178,20 @@ const feed = $('#feed');
 const colors = ['#8b5cf6', '#ec4899', '#22d3ee', '#f59e0b', '#10b981', '#6366f1', '#ef4444'];
 const colorOf = (s) => colors[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length];
 
-function addMsg({ name, text, kind = '', sub = false, color }) {
+const ICON_TT = '<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>';
+const ICON_TW = '<svg class="pi" viewBox="0 0 24 24"><path fill="#a970ff" d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg>';
+function addMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
-  el.innerHTML = `<div class="av" style="background:${color || colorOf(name)}">${esc((name[0] || '?').toUpperCase())}</div>
-    <div class="b"><div class="n">${esc(name)}${sub ? '<em>SUB</em>' : ''}</div><div class="t">${esc(text)}</div></div>`;
+  const icon = platform === 'twitch' ? ICON_TW : platform === 'tiktok' ? ICON_TT : '';
+  el.innerHTML = `<div class="av" style="background-color:${color || colorOf(name)}">${esc((name[0] || '?').toUpperCase())}</div>
+    <div class="b"><div class="n">${icon}${esc(name)}${sub ? '<em>SUB</em>' : ''}</div><div class="t">${esc(text)}${giftImg && /^https:/.test(giftImg) ? `<img class="gi" src="${esc(giftImg)}" alt="">` : ''}</div></div>`;
+  if (/^https?:\/\//.test(avatar)) { // аватарка с обеих площадок; если не загрузится — остаётся буква
+    const av = $('.av', el), im = new Image();
+    im.onload = () => { av.style.backgroundImage = `url("${esc(avatar)}")`; av.textContent = ''; };
+    im.src = avatar;
+  }
   feed.appendChild(el);
   while (feed.children.length > 150) feed.firstChild.remove();
   feed.scrollTop = feed.scrollHeight;
@@ -329,24 +346,27 @@ const followedNow = new Set();
 const isFollowerMsg = (m) => m.isFollower === true || m.isSub || followedNow.has(String(m.name).toLowerCase());
 // сразу после подключения TikTok присылает «хвост» старых сообщений — не читаем их
 const isBacklog = (m) => m.created && connectedAt && Date.now() - connectedAt < 6000 && m.created < connectedAt - 10000;
-window.echo.onChat((m) => {
+function handleChat(m, platform) {
   if (!m.text || isBacklog(m)) return; // пустые и старые сообщения не показываем и не озвучиваем
-  const el = addMsg({ name: m.name, text: m.text, sub: m.isSub });
+  const el = addMsg({ name: m.name, text: m.text, sub: m.isSub, avatar: m.avatar, platform });
   if (!S.chat) return;
   if (S.subsOnly && !isFollowerMsg(m)) { el.classList.add('skip'); el.title = 'Пропущено: не подписчик канала'; return; }
   const t = clean(m.text);
   if (!t) return;
   enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: selectedPreset() });
-});
+}
+window.echo.onChat((m) => handleChat(m, 'tiktok'));
+// Twitch: сообщения есть только если канал указан и подключён
+window.echo.onTwChat((m) => { if (S.showTwitch) handleChat({ ...m, isFollower: m.isSub }, 'twitch'); });
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
-  const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift' });
+  const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift', avatar: g.avatar, platform: 'tiktok', giftImg: g.image });
   if (S.gifts) enqueue({ el, say: g.count > 1 ? `${speakName(g.name)}, спасибо за подарки ${g.gift}, ${g.count} штук` : `${speakName(g.name)}, спасибо за подарок ${g.gift}`, preset: eventPreset() });
 });
 window.echo.onFollow((f) => {
   counters.follows++; bump('#sFollows', counters.follows);
   followedNow.add(String(f.name).toLowerCase());
-  const el = addMsg({ name: f.name, text: '➕ подписался(ась) на канал', kind: 'follow' });
+  const el = addMsg({ name: f.name, text: '➕ подписался(ась) на канал', kind: 'follow', avatar: f.avatar, platform: 'tiktok' });
   if (S.follows) enqueue({ el, say: `${speakName(f.name)}, спасибо за подписку`, preset: eventPreset() });
 });
 // итог от TikTok (total) надёжнее суммы событий; если итога нет (или 0) — копим сами
@@ -358,18 +378,20 @@ window.echo.onViewers((v) => { if (Number.isFinite(v.count)) $('#sViewers').text
 window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
+let twLive = false;
+const connTw = $('#connTw');
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false, alertTimer = null;
-const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime'), liveDot = $('#liveDot'), sideTime = $('#sideTime');
+const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
   .map((n) => String(n).padStart(2, '0')).join(':');
 function startTimer() {
   liveSince = Date.now(); clearInterval(timerId);
-  const tick = () => { connTime.textContent = sideTime.textContent = fmtTime(Date.now() - liveSince); };
+  const tick = () => { connTime.textContent = fmtTime(Date.now() - liveSince); };
   tick(); timerId = setInterval(tick, 1000);
 }
-function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = sideTime.textContent = '—'; }
+function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
   clearTimeout(alertTimer);
   alertBox.textContent = text;
@@ -388,13 +410,17 @@ function setStatus(live, text) {
   status.classList.toggle('on', live);
   status.lastElementChild.textContent = text;
   connected = live;
-  btn.textContent = live ? 'Отключиться' : 'Подключиться';
-  btn.classList.toggle('stop', live);
+  btn.textContent = live || twLive ? 'Отключиться' : 'Подключиться';
+  btn.classList.toggle('stop', live || twLive);
   connStatus.textContent = live ? 'В эфире' : 'Не подключено';
-  liveDot.classList.toggle('on', live);
-  liveDot.title = live ? 'В эфире' : 'Не в эфире';
   if (!live) { connNick.textContent = '—'; stopTimer(); }
 }
+window.echo.onTwStatus((s) => {
+  twLive = s.state === 'live' || s.state === 'reconnect';
+  connTw.textContent = s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—';
+  if (s.state === 'live') { sys(`Twitch: чат ${s.channel} подключён.`); if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); btn.textContent = 'Отключиться'; btn.classList.add('stop'); } }
+  if (s.state === 'offline') { if (!connected) { btn.textContent = 'Подключиться'; btn.classList.remove('stop'); status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; } }
+});
 window.echo.onStatus((s) => {
   if (s.state === 'live') { connectedAt = Date.now(); setStatus(true, 'В эфире @' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
   else {
@@ -408,10 +434,17 @@ btn.onclick = async () => {
   if (connecting) return;
   connecting = true;
   try {
-    if (connected) { await window.echo.disconnect(); return; }
+    if (connected || twLive) { await window.echo.twDisconnect(); await window.echo.disconnect(); return; }
     const nick = $('#nick').value.trim().replace(/^@/, '');
-    if (!nick) { showAlert('Введите ник автора TikTok LIVE (без @).', true); $('#nick').focus(); return; }
-    S.nick = nick; save();
+    const twNick = $('#twNick').value.trim();
+    if (!nick && !twNick) { showAlert('Введите ник автора TikTok LIVE (без @) или канал Twitch.', true); $('#nick').focus(); return; }
+    S.nick = nick; S.twNick = twNick; save();
+    if (twNick) {
+      const tr = await window.echo.twConnect(twNick);
+      if (!tr || !tr.ok) { showAlert((tr && tr.error) || 'Не удалось подключить Twitch.', true); if (!nick) return; }
+      else sys(`Twitch: подключаемся к каналу ${tr.channel}…`);
+    }
+    if (!nick) return; // только Twitch
     showAlert('');
     btn.textContent = 'Подключаюсь…';
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
@@ -491,7 +524,21 @@ function speakStudio() {
 $('#btnStudio').onclick = speakStudio;
 $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
 
+/* ---------- виджет чата ---------- */
+const wAlign = $('#wAlign');
+wAlign.value = S.wAlign;
+wAlign.onchange = () => { S.wAlign = wAlign.value; save(); pushWidget(); };
+window.echo.widgetUrl().then((u) => { $('#wUrl').value = u || 'Не удалось запустить сервер виджета'; });
+$('#wUrl').onfocus = (e) => e.target.select();
+$('#wCopy').onclick = async () => {
+  const b = $('#wCopy'), u = $('#wUrl').value;
+  try { await navigator.clipboard.writeText(u); } catch (_) { $('#wUrl').select(); document.execCommand('copy'); }
+  b.textContent = '✓ Скопировано'; setTimeout(() => { b.textContent = 'Скопировать ссылку'; }, 2000);
+};
+$('#wTest').onclick = () => window.echo.widgetTest();
+$('#wClear').onclick = () => window.echo.widgetClear();
+
 /* ---------- старт ---------- */
-renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); syncControls();
+renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
 window.__echo = { S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; } };
