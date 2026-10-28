@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
-const os = require('os');
 const ev = require('./events');
 const twitch = require('./twitch');
 const widget = require('./widget');
@@ -275,22 +274,8 @@ ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state:
 // ---------- Виджет чата для OBS / TikTok LIVE Studio ----------
 // адрес для предпросмотра внутри приложения
 ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/chat` : ''));
-// ссылка для копирования: 127.0.0.1 / localhost / IP в локальной сети (на случай, если TikTok не принимает localhost)
-function lanIp() {
-  for (const list of Object.values(os.networkInterfaces())) {
-    for (const a of list || []) if (a.family === 'IPv4' && !a.internal && !/^169\.254\./.test(a.address)) return a.address;
-  }
-  return '';
-}
-ipcMain.handle('widget:link', async (_e, mode) => {
-  if (!wsrv || !wsrv.port) return { ok: false, url: '', mode: 'ip' };
-  let m = ['ip', 'host', 'lan'].includes(mode) ? mode : 'ip';
-  let ip = '';
-  if (m === 'lan') { ip = lanIp(); if (!ip || !(await wsrv.setLan(true))) m = 'ip'; }
-  if (m !== 'lan') await wsrv.setLan(false);
-  const h = m === 'lan' ? ip : m === 'host' ? 'localhost' : '127.0.0.1';
-  return { ok: true, mode: m, url: `http://${h}:${wsrv.port}/chat` };
-});
+// ссылка для копирования: настоящий https-адрес страницы виджета на GitHub Pages; порт приложения — в параметре
+ipcMain.handle('widget:link', () => (wsrv && wsrv.port ? { ok: true, url: `${widget.PAGES_URL}?port=${wsrv.port}` } : { ok: false, url: '' }));
 ipcMain.handle('widget:set', (_e, s) => { wset = { ...(s || {}) }; wsrv && wsrv.broadcast('settings', wset); return { ok: true }; });
 ipcMain.handle('widget:test', () => {
   wmsg({ platform: 'tiktok', name: 'Анна', text: 'Привет из TikTok! Так выглядит чат', color: colorOf('Анна') });

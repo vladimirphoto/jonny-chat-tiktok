@@ -25,7 +25,7 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  wAlign: 'split', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '', wHost: 'ip',
+  wAlign: 'split', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '',
   chat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
@@ -626,20 +626,10 @@ makeSelect('wAlignSel', {
   get: () => S.wAlign,
   set: (v) => { S.wAlign = v; save(); pushWidget(); },
 });
-// Формат ссылки: если TikTok LIVE Studio не принимает localhost — берём 127.0.0.1 или адрес в локальной сети
-const HOST_LABELS = { ip: '127.0.0.1 — для TikTok LIVE Studio', host: 'localhost — для OBS', lan: 'IP локальной сети' };
 async function refreshLink() {
-  const r = await window.echo.widgetLink(S.wHost).catch(() => null);
-  if (r && r.ok) {
-    if (r.mode !== S.wHost) { S.wHost = r.mode; save(); hostSel(); if (r.mode === 'ip') sys('IP локальной сети не найден — показана ссылка 127.0.0.1.'); }
-    $('#wUrl').value = r.url;
-  } else $('#wUrl').value = 'Не удалось запустить сервер виджета';
+  const r = await window.echo.widgetLink().catch(() => null);
+  $('#wUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
 }
-const hostSel = makeSelect('wHostSel', {
-  options: () => Object.entries(HOST_LABELS).map(([v, label]) => ({ v, label })),
-  get: () => S.wHost,
-  set: (v) => { S.wHost = v; save(); refreshLink(); },
-});
 refreshLink();
 $('#wUrl').onfocus = (e) => e.target.select();
 $('#wCopy').onclick = async () => {

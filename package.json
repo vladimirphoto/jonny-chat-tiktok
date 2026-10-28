@@ -1,13 +1,14 @@
 {
   "name": "echochat-live",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми нейро-голосами",
   "main": "main.js",
   "author": "EchoChat",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/events.test.js",
+    "test": "node --test \"test/*.test.js\"",
+    "pages": "node tools/build-pages.js",
     "dist": "electron-builder --win portable --x64"
   },
   "dependencies": {

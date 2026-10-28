@@ -18,7 +18,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .sh .av,.sh .pi{filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style></head><body class="sh">
-<div id="wh" style="display:none;position:fixed;left:0;right:0;pointer-events:none;z-index:9999;box-sizing:border-box;border-top:2px solid rgba(139,92,246,.85);background:rgba(139,92,246,.07)"><div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(139,92,246,.85);color:#fff;font:700 11px/1 sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">граница чата</div></div><div id="root"></div>
+<div id="wh" style="display:none;position:fixed;left:0;right:0;pointer-events:none;z-index:9999;box-sizing:border-box;border-top:2px solid rgba(139,92,246,.85);background:rgba(139,92,246,.07)"><div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(139,92,246,.85);color:#fff;font:700 11px/1 sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">граница чата</div></div><div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"></div>
 <script>
 var S={align:'split',icons:true,avatars:true,gifts:true,scale:100,height:100,fade:true,fadeSec:20,shadow:true};
 var root=document.getElementById('root');
@@ -71,8 +71,15 @@ function add(d){
   while(root.children.length>40)root.firstChild.remove();
   if(S.fade){var ms=Math.max(2,+S.fadeSec||20)*1000;setTimeout(function(){m.classList.add('out');setTimeout(function(){m.remove()},700)},ms);}
 }
+// На странице из GitHub Pages адрес приложения берётся из ?port=; локально (предпросмотр) — тот же сервер
+var PORT=+new URLSearchParams(location.search).get('port')||0;
+var BASE=PORT?'http://127.0.0.1:'+PORT:'';
+var nc=document.getElementById('nc'),ncT=null;
+function offline(){if(PORT&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 function connect(){
-  var es=new EventSource('/events');
+  var es=new EventSource(BASE+'/events');
+  es.onopen=online;es.onerror=offline;
   es.addEventListener('settings',function(e){var d=JSON.parse(e.data);var prev=d._previewHeight;delete d._previewHeight;S=Object.assign(S,d);apply();applyPreviewHeight(prev);});
   es.addEventListener('msg',function(e){add(JSON.parse(e.data));});
   es.addEventListener('clear',function(){root.innerHTML='';});
