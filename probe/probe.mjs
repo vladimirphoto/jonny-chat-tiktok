@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { TikTokLiveConnection, WebcastEvent, ControlEvent } from 'tiktok-live-connector';
 
+process.on('uncaughtException', (e) => { console.log('::notice title=probe-uncaught::' + String(e && e.stack || e).replace(/\n/g, '%0A').slice(0, 3000)); });
+process.on('unhandledRejection', (e) => { console.log('::notice title=probe-unhandled::' + String(e && e.stack || e).replace(/\n/g, '%0A').slice(0, 3000)); });
 const lines = [];
 const log = (s) => { lines.push(String(s)); };
 const emit = (title) => {
@@ -15,13 +17,21 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 log('tiktok-live-connector ' + pkg.version);
 log('events: ' + Object.entries(WebcastEvent).filter(([k]) => /CHAT|EMOTE|COMMENT|MESSAGE/i.test(k)).map(([k, v]) => k + '=' + v).join(', '));
 
-// схема чат-сообщения из .d.ts
-function walk(d, out = []) { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p, out); else if (/\.d\.ts$/.test(f.name)) out.push(p); } return out; }
-let shown = 0;
-for (const f of walk(root)) {
+// схема чат-сообщения: ищем во всех файлах пакета
+function walk(d, out = []) { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name !== 'node_modules') walk(p, out); } else if (/\.(d\.ts|js|mjs|cjs|proto)$/.test(f.name)) out.push(p); } return out; }
+const files = walk(root);
+log('files: ' + files.length);
+let found = 0;
+for (const f of files) {
   const src = fs.readFileSync(f, 'utf8');
-  const m = src.match(/(export )?interface WebcastChatMessage \{[\s\S]*?\n\}/);
-  if (m && shown < 1) { log('--- ' + f + '\n' + m[0].slice(0, 2500)); shown++; }
+  const idx = src.search(/(interface|message|type)\s+WebcastChatMessage\b/);
+  if (idx >= 0 && found < 2) { log('--- ' + f + '\n' + src.slice(idx, idx + 1800)); found++; }
+}
+if (!found) {
+  for (const f of files) {
+    const src = fs.readFileSync(f, 'utf8');
+    if (/WebcastChatMessage/.test(src)) log('mentions WebcastChatMessage: ' + f);
+  }
 }
 emit('probe-schema');
 
@@ -37,7 +47,9 @@ const shape = (v, d = 0) => {
 
 const cands = (process.env.CANDS || 'alishpro0').split(',');
 for (const name of cands) {
-  const c = new TikTokLiveConnection(name);
+  let c;
+  try { c = new TikTokLiveConnection(name); } catch (e) { log('ctor failed: ' + e); emit('probe-ctor'); continue; }
+  c.on('error', (e) => log('error event: ' + String((e && (e.info || e.message)) || e).slice(0, 200)));
   let total = 0, withComment = 0, withEmotes = 0, samples = 0;
   const events = {};
   c.on(WebcastEvent.CHAT, (d) => {
