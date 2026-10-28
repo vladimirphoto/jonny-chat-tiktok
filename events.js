@@ -36,20 +36,7 @@ function followerOf(u, d) {
   if (st !== null) return st !== 0; // 0 — нет; 1 — подписан; 2 — взаимная подписка
   const role = pick(u.followRole, d && d.followRole);
   if (role !== null) return role >= 1;
-  const ident = u.userIdentity || u.user_identity || (d && (d.userIdentity || d.user_identity));
-  if (ident) for (const k of ['isFollowerOfAnchor', 'is_follower_of_anchor']) if (typeof ident[k] === 'boolean') return ident[k];
   return null;
-}
-
-// Что именно прислал TikTok о подписке — для подсказки к сообщению (диагностика)
-function followDebug(u, d) {
-  const info = u.followInfo || u.follow_info || (d && (d.followInfo || d.follow_info));
-  const parts = [];
-  const st = info ? pick(info.followStatus, info.follow_status) : pick(u.followStatus, u.follow_status);
-  const role = pick(u.followRole, d && d.followRole);
-  if (st !== null) parts.push('followStatus=' + st);
-  if (role !== null) parts.push('followRole=' + role);
-  return parts.length ? parts.join(', ') : 'TikTok не передал данные о подписке';
 }
 
 // Ссылка на аватарку: разные версии библиотеки кладут её в разные поля
@@ -69,7 +56,6 @@ function userOf(d) {
     isSub: !!(u.isSubscriber || u.subscriber || badges.includes('subscriber') || badges.includes('sub_')),
     isMod: !!(u.isModerator || u.moderator),
     isFollower: followerOf(u, d),
-    fdbg: followDebug(u, d),
     avatar: avatarOf(u),
   };
 }

@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 const on = (channel) => (cb) => ipcRenderer.on(channel, (_e, data) => cb(data));
 
 contextBridge.exposeInMainWorld('echo', {
-  connect: (name, opts) => ipcRenderer.invoke('tt:connect', name, opts),
+  connect: (name) => ipcRenderer.invoke('tt:connect', name),
   disconnect: () => ipcRenderer.invoke('tt:disconnect'),
   synth: (opts) => ipcRenderer.invoke('tts:synth', opts),
   voices: () => ipcRenderer.invoke('tts:voices'),
@@ -15,7 +15,10 @@ contextBridge.exposeInMainWorld('echo', {
   twDisconnect: () => ipcRenderer.invoke('tw:disconnect'),
   onTwChat: on('tw:chat'),
   onTwStatus: on('tw:status'),
+  onTwViewers: on('tw:viewers'),
   widgetUrl: () => ipcRenderer.invoke('widget:url'),
+  widgetLink: (mode) => ipcRenderer.invoke('widget:link', mode),
+  widgetCheck: () => ipcRenderer.invoke('widget:check'),
   widgetSet: (s) => ipcRenderer.invoke('widget:set', s),
   widgetTest: () => ipcRenderer.invoke('widget:test'),
   widgetClear: () => ipcRenderer.invoke('widget:clear'),

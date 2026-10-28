@@ -99,10 +99,3 @@ test('сервер виджета: страница, настройки и со�
   assert.match(got, /"platform":"twitch"/);
   await reader.cancel(); srv.close();
 });
-
-test('подписчик: userIdentity и диагностика полей подписки', () => {
-  assert.equal(E.userOf({ user: { nickname: 'А', userIdentity: { isFollowerOfAnchor: true } } }).isFollower, true);
-  assert.equal(E.userOf({ user: { nickname: 'А', userIdentity: { isFollowerOfAnchor: false } } }).isFollower, false);
-  assert.match(E.userOf({ nickname: 'А', followRole: 1 }).fdbg, /followRole=1/);
-  assert.match(E.userOf({ nickname: 'А' }).fdbg, /не передал/);
-});

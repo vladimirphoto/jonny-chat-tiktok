@@ -86,12 +86,15 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;b
 .msg.speaking{border-color:var(--a1);background:rgba(139,92,246,.12)}
 .msg.gift{background:linear-gradient(135deg,rgba(236,72,153,.14),rgba(251,191,36,.08))}
 .msg.follow{background:rgba(52,211,153,.09)}
-.msg.sys{background:transparent!important;border:none!important;padding:4px 0!important;align-items:center;gap:0;margin:2px 0}
-.msg.sys .av{display:none}
-.msg.sys .b{display:flex;align-items:center;width:100%;gap:8px}
-.msg.sys .b::before,.msg.sys .b::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
-.msg.sys .n{display:none}
-.msg.sys .t{color:var(--muted);font-size:11px;white-space:nowrap;padding:0 8px;font-style:italic}
+.msg.sys{background:transparent!important;border:none!important;padding:3px 0!important;justify-content:center;gap:0;margin:3px 0}
+.msg.sys .av,.msg.sys .n{display:none}
+.msg.sys .b{display:flex;justify-content:center;width:100%}
+.msg.sys .t{display:inline-flex;align-items:center;gap:10px;max-width:94%;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);color:#d6d4e6;font-size:14px;font-weight:500;line-height:1.35;font-style:normal;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.msg.sys .t::before{content:"";width:9px;height:9px;border-radius:50%;flex:none;background:var(--a3);box-shadow:0 0 0 4px rgba(34,211,238,.16)}
+.msg.sys.ok .t{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#b6f5d8}
+.msg.sys.ok .t::before{background:var(--ok);box-shadow:0 0 0 4px rgba(52,211,153,.2)}
+.msg.sys.bad .t{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.32);color:#fecaca}
+.msg.sys.bad .t::before{background:var(--bad);box-shadow:0 0 0 4px rgba(248,113,113,.2)}
 .empty{margin:auto;color:var(--muted);text-align:center}
 
 .alert{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fecaca;animation:fade .25s}
@@ -245,7 +248,7 @@ body.t-widgets .stats{display:none}
 #tab-widgets .col-right{min-height:0}
 
 /* кнопки виджета: не вылезают за карточку */
-.wbtn-row{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.wbtn-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .wbtn{padding:10px 6px!important;font-size:13px;min-width:0;overflow:hidden}
 
 /* предпросмотр */
@@ -286,19 +289,90 @@ body.t-widgets .stats{display:none}
 .pill.tw{border-color:rgba(145,70,255,.45)}
 .pill.idle s{background:var(--muted)}
 
-/* ===== v1.7.1: вход под аккаунтом ===== */
-.auth-card{margin-top:16px}
-.auth-card input{margin-bottom:2px}
-.auth-card .note{margin-top:12px}
-.note.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.25);color:#fde68a}
-.beta{font-style:normal;font-size:10px;margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(251,191,36,.15);color:#fbbf24;vertical-align:middle;font-weight:600}
+/* ===== v1.8.0 ===== */
 
-/* ===== v1.7.2: widget targets + feed pause ===== */
-.w-target-row{display:flex;gap:8px;margin-bottom:16px}
-.w-target-btn{flex:1;padding:8px 0;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}
-.w-target-btn.active{background:rgba(255,255,255,.08);border-color:var(--a1);color:#fff}
-.w-panel{animation:fadeIn .15s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Полоса прокрутки: отступ от контента и чуть правее (в поле окна, а не вплотную к карточкам) */
+.tab.show{margin-right:-16px;padding-right:10px;scrollbar-gutter:stable}
+.feed{overflow-y:auto;scrollbar-gutter:stable;padding-right:8px;margin-right:-14px}
+textarea{padding-right:16px}
+textarea::-webkit-scrollbar-track{margin:6px 0}
 
-.feed-pause-btn{padding:5px 14px;font-size:12px;font-weight:600;border-radius:8px}
-.feed-pause-btn.on{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.6);color:#ff8a9b}
+/* Выпадающие списки: варианты не липнут к полосе прокрутки, список прокручивается */
+label+.csel{margin-top:0}
+.csel-drop{max-height:240px;overflow-y:auto;overscroll-behavior:contain}
+.csel-drop.sc{padding-right:10px}
+.csel.up .csel-drop{top:auto;bottom:calc(100% + 4px);transform:translateY(6px)}
+.csel.up.open .csel-drop{transform:none}
+.csel-drop::-webkit-scrollbar-track{margin:6px 0}
+/* список поверх соседних карточек (у карточек backdrop-filter создаёт свой слой) */
+.card:has(.csel.open){position:relative;z-index:50}
+
+/* Метки платформ на карточках голосов */
+.vtags{display:flex;gap:4px;flex:none}
+.vtags em{font-style:normal;font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;color:#fff;line-height:1.3}
+.vtags em.tt{background:#fe2c55}
+.vtags em.tw{background:#9146ff}
+
+/* Ники платформ — на цветных плашках, чтобы не сливались с текстом */
+.conn-row b.nk{padding:3px 11px;border-radius:8px;font-weight:700;border:1px solid transparent;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conn-row b.nk.tt{color:#ff7d93;background:rgba(254,44,85,.15);border-color:rgba(254,44,85,.45)}
+.conn-row b.nk.tw{color:#c9a8ff;background:rgba(145,70,255,.18);border-color:rgba(145,70,255,.5)}
+.conn-row b.nk.off{color:var(--muted);background:transparent;border-color:transparent;font-weight:600;padding-right:0}
+
+/* Плашки статуса в шапке: обе видны всегда */
+.pill.idle{border-color:var(--line);color:var(--muted)}
+.pill.idle .pi{opacity:.55}
+.pill.idle.tt .pi,.pill.idle.tw .pi{color:var(--muted)}
+.pill.on.tt{border-color:rgba(254,44,85,.5)}
+.pill.on.tw{border-color:rgba(145,70,255,.55)}
+
+/* Кнопка обновления: иконка вместо символа */
+.btn.upd{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 6px}
+.btn.upd svg{width:15px;height:15px;flex:none}
+.btn.upd span{overflow:hidden;text-overflow:ellipsis}
+.btn.upd.spin svg{animation:updspin 1s linear infinite}
+@keyframes updspin{to{transform:rotate(360deg)}}
+.wstat{margin-top:10px;font-size:13px;line-height:1.45;color:var(--muted);min-height:18px}
+.wstat.ok{color:#a7f3d0}.wstat.bad{color:#fecaca;padding:10px 12px;border-radius:12px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3)}
+.wstat a{color:#c4b5fd;text-decoration:underline;cursor:pointer;margin-right:12px}
+.align-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.align-row label{margin-top:0}
+
+/* ===== v1.9: онлайн по платформам, кнопки озвучки, статусы ===== */
+.stat-viewers .vv-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.vv{display:flex;align-items:center;gap:7px;min-width:0}
+.vv b{margin:0!important;font-size:22px!important;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vv-ic{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;flex:none}
+.vv-ic svg{width:12px;height:12px}
+.vv.tt .vv-ic,.vgroup.tt .vv-ic{background:#fe2c55;color:#fff}
+.vv.tw .vv-ic,.vgroup.tw .vv-ic{background:#9146ff;color:#fff}
+@media(max-height:820px){.vv b{font-size:18px!important}}
+
+.conn-row b.st{font-weight:600;color:var(--muted)}
+.conn-row b.st.ok{color:var(--ok)}
+.conn-row b.st.warn{color:#fbbf24}
+
+.vg-head{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--muted);margin-bottom:2px}
+/* группы переключателей озвучки: платформа — отдельная скруглённая панель */
+.vgroup{padding:10px 14px 6px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid var(--line)}
+.vgroup+.vgroup{margin-top:10px}
+.vgroup.tt{border-color:rgba(254,44,85,.3)}
+.vgroup.tw{border-color:rgba(145,70,255,.35)}
+.vgroup .toggles{gap:0}
+.vgroup .sw{padding:8px 0}
+.vgroup.tt .sw input:checked+i{background:linear-gradient(135deg,#fe2c55,#ec4899)}
+.vgroup.tw .sw input:checked+i{background:linear-gradient(135deg,#9146ff,#7c3aed)}
+
+/* кнопка обновления: при скачивании под текстом заливается яркая полоса прогресса */
+.btn.upd{position:relative;overflow:hidden;border:1px solid var(--line)}
+.btn.upd>*{position:relative;z-index:1}
+.btn.upd.dl{background:rgba(255,255,255,.06);border-color:rgba(236,72,153,.55);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);box-shadow:none}
+.btn.upd.dl::before{content:"";position:absolute;inset:0;width:calc(var(--p,0) * 1%);background:linear-gradient(90deg,#8b5cf6,#ec4899 60%,#fb7185);box-shadow:0 0 18px rgba(236,72,153,.55);transition:width .25s ease-out;z-index:0}
+
+/* вкладки виджетов */
+.wtabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.wtab{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.22);color:var(--muted);font:600 13px inherit;font-family:inherit;cursor:pointer;max-width:100%}
+.wtab span{outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.wtab:hover{color:var(--text)}
+.wtab.sel{color:#fff;border-color:rgba(167,139,250,.6);background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(236,72,153,.25))}
+.wtab.add{padding:7px 14px;font-size:16px;line-height:1}
+.wdel{font-style:normal;font-size:11px;opacity:.6}.wdel:hover{opacity:1;color:#fecaca}
