@@ -444,7 +444,7 @@ btnUpd.onclick = async () => {
     btnUpd.textContent = 'Проверяю…';
     const r = await window.echo.checkUpdate();
     btnUpd.classList.remove('busy');
-    if (!r.ok) { btnUpd.textContent = '⟳ Проверить'; sys('Не удалось проверить обновления: ' + r.error); return; }
+    if (!r.ok) { btnUpd.textContent = '⟳ Проверить обновления'; sys('Не удалось проверить обновления: ' + r.error); return; }
     if (r.available) {
       updReady = true;
       btnUpd.classList.add('new');
@@ -452,7 +452,7 @@ btnUpd.onclick = async () => {
       sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
     } else {
       btnUpd.textContent = '✓ Версия актуальна';
-      setTimeout(() => { btnUpd.textContent = '⟳ Проверить'; }, 3000);
+      setTimeout(() => { btnUpd.textContent = '⟳ Проверить обновления'; }, 3000);
     }
     return;
   }

@@ -90,10 +90,10 @@ const PAGE_TEST = `(async () => {
     // --- кнопка обновления не меняет размер ---
     const ub = $('#btnUpdate');
     const h0 = ub.getBoundingClientRect().height, w0 = ub.getBoundingClientRect().width;
-    const labels = ['✓ Версия актуальна', '⬇ Обновить до 10.20.30', 'Скачиваю… 100%', '⬇ Страница загрузки', 'Проверяю…', '⟳ Проверить', 'Перезапуск…'];
+    const labels = ['✓ Версия актуальна', '⬇ Обновить до 10.20.30', 'Скачиваю… 100%', '⬇ Страница загрузки', 'Проверяю…', '⟳ Проверить обновления', 'Перезапуск…'];
     const bad = labels.filter((l) => { ub.textContent = l; const r = ub.getBoundingClientRect(); return Math.abs(r.height - h0) > 0.5 || Math.abs(r.width - w0) > 0.5; });
     add('ui', 'кнопка обновления не меняет размер', bad.length === 0, 'h=' + h0 + ' w=' + w0 + (bad.length ? ' плохие: ' + bad.join(' | ') : ''));
-    ub.textContent = '⟳ Проверить';
+    ub.textContent = '⟳ Проверить обновления';
 
     // --- сеть: голоса Microsoft ---
     for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural']) {
@@ -119,7 +119,7 @@ const PAGE_TEST = `(async () => {
     const feedText = $('#feed').innerText;
     add('ui', 'ошибка подключения без технического мусора', !/TypeError|invoking remote|undefined|Cannot read|isn.?t online/i.test(alertText + feedText), alertText);
     add('net', 'текст «Вы не в эфире…»', /не в эфире/i.test(alertText), alertText);
-    add('ui', 'сообщение об офлайне показано один раз (не дублируется в ленте)', !/не в эфире|не удалось подключиться|ошибка/i.test(feedText), feedText.replace(/\n+/g, ' / '));
+    add('ui', 'сообщение об офлайне показано один раз (не дублируется в ленте)', !/не в эфире|не удалось подключиться|ошибка/i.test(feedText), feedText.replace(/\\n+/g, ' / '));
     add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
     add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));
 
@@ -153,4 +153,4 @@ async function run(win, app) {
   }
 }
 
-module.exports = { run };
+module.exports = { run, PAGE_TEST };
