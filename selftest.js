@@ -56,38 +56,6 @@ const PAGE_TEST = `(async () => {
     const names = [...document.querySelectorAll('#voices .voice b')].map((b) => b.textContent.trim());
     add('ui', 'встроенные голоса: только Светлана и Дмитрий', names.length === 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
-    add('ui', 'блок Google на месте', !!$('#gKey') && !!$('#btnGCheck') && !!$('#gVoice') && $('#gUsage').textContent.includes('Использовано'));
-
-    // Google-голос: пробуем добавить/удалить без сети (по метаданным)
-    const meta = E.gMeta({ id: 'ru-RU-Chirp3-HD-Aoede', gender: 'F' });
-    add('logic', 'разбор имени Google-голоса', meta.kind === 'hd' && meta.short === 'Aoede' && /лёгкий/.test(meta.label), meta.label);
-    E.fillGoogleVoices([{ id: 'ru-RU-Wavenet-B', gender: 'M' }, { id: 'ru-RU-Chirp3-HD-Kore', gender: 'F' }, { id: 'ru-RU-Neural2-A', gender: 'F' }]);
-    add('ui', 'список Google-голосов (HD первыми)', $('#gVoice').options.length === 3 && /HD/.test($('#gVoice').options[0].textContent), $('#gVoice').options[0].textContent);
-    const before = document.querySelectorAll('#voices .voice').length;
-    $('#newName').value = 'Бодрая Света';
-    $('#btnAddVoice').click();
-    await sleep(150);
-    add('ui', 'добавление Google-голоса', document.querySelectorAll('#voices .voice').length === before + 1, before + '->' + document.querySelectorAll('#voices .voice').length);
-    add('ui', 'Google-голос сохранён', (localStorage.getItem('echochat2') || '').includes('Бодрая Света'));
-    add('ui', 'для HD-голоса ползунок скорости отключён', $('#rate').disabled && $('#pitch').disabled);
-    const del = document.querySelector('#voices .voice.sel .del');
-    if (del) del.click();
-    await sleep(100);
-    add('ui', 'удаление Google-голоса', document.querySelectorAll('#voices .voice').length === before);
-    add('ui', 'после удаления ползунки снова активны', !$('#rate').disabled && !$('#pitch').disabled);
-
-    // лимит: при превышении 90% переключаемся на запасной
-    E.usage(); E.addUsage('hd', 950000);
-    add('logic', 'учёт лимита Google (90%)', E.overBudget('hd') && !E.overBudget('std'));
-    E.S.usage.hd = 0;
-
-    // ключ Google: пустой и неверный дают понятные ошибки
-    $('#gKey').value = ''; $('#btnGCheck').click(); await sleep(100);
-    add('ui', 'Google без ключа — понятная ошибка', $('#voiceMsg').classList.contains('bad') && /ключ/i.test($('#voiceMsg').textContent), $('#voiceMsg').textContent);
-    $('#gKey').value = 'AIzaFAKEKEYFORTESTING000000000000000000'; $('#btnGCheck').click();
-    const tg = Date.now(); while (Date.now() - tg < 25000 && /Проверяю/.test($('#voiceMsg').textContent)) await sleep(300);
-    add('net', 'Google с неверным ключом — русская ошибка', $('#voiceMsg').classList.contains('bad') && /[а-я]/i.test($('#voiceMsg').textContent) && !/API key not valid/i.test($('#voiceMsg').textContent), $('#voiceMsg').textContent);
-    $('#gKey').value = ''; E.S.gKey = '';
 
     // --- кнопка обновления не меняет размер ---
     const ub = $('#btnUpdate');
@@ -106,8 +74,6 @@ const PAGE_TEST = `(async () => {
     add('net', 'скорость и тон принимаются', slow.ok, slow.ok ? slow.audio.length : slow.error);
     const cat = await window.echo.voices();
     add('net', 'каталог Microsoft (только русские)', cat.voices.length >= 2 && cat.voices.every((v) => /^ru-/i.test(v.id)), cat.ok + ' / ' + cat.voices.map((v) => v.id).join(','));
-    const gs = await window.echo.synth({ text: 'тест', provider: 'google', gName: 'ru-RU-Wavenet-A', gKey: '' });
-    add('logic', 'Google без ключа возвращает ошибку', !gs.ok && /ключ/i.test(gs.error), gs.error);
 
     // --- сеть: подключение к несуществующему эфиру ---
     $('.nav[data-tab=live]').click();

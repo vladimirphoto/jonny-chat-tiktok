@@ -21,7 +21,7 @@
         <button class="nav" data-tab="filters"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg>Фильтры</button>
       </nav>
       <div class="side-foot">
-        <div class="live-dot" id="liveDot" title="Не в эфире"></div>
+        <div class="side-live"><span>Время в эфире</span><b id="sideTime">—</b><i class="live-dot" id="liveDot" title="Не в эфире"></i></div>
         <button class="btn ghost upd" id="btnUpdate">⟳ Проверить обновления</button>
         <small id="verLine">Версия —</small>
       </div>
@@ -111,30 +111,6 @@
             </div>
           </div>
           <div class="col-right">
-            <div class="card" id="addCard">
-              <h2>Живые голоса Google</h2>
-              <p class="muted">Бесплатно каждый месяц: живые HD-голоса — 1 млн символов, Neural2 — 1 млн, WaveNet — 4 млн. Для 2–3 стримов в неделю по 2–3 часа обычно хватает: 1 млн символов — это около 16 часов речи. Приложение само считает символы и при 90% лимита переходит на Microsoft-голос.</p>
-              <details class="guide">
-                <summary>Как получить бесплатный ключ (5 шагов)</summary>
-                <ol>
-                  <li>Откройте <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>, войдите в Google и создайте проект.</li>
-                  <li>Включите сервис <b>Cloud Text-to-Speech API</b> (APIs &amp; Services → Library).</li>
-                  <li>Подключите оплату (Billing). Google просит банковскую карту, но пока вы в бесплатном лимите, деньги не списываются. Поставьте бюджет-оповещение на 1 доллар.</li>
-                  <li>APIs &amp; Services → Credentials → Create credentials → <b>API key</b>. Скопируйте ключ.</li>
-                  <li>Вставьте ключ ниже и нажмите «Проверить ключ».</li>
-                </ol>
-              </details>
-              <label>API-ключ Google</label>
-              <input id="gKey" type="password" placeholder="AIza…" spellcheck="false" />
-              <button class="btn ghost wide" id="btnGCheck">Проверить ключ и загрузить голоса</button>
-              <select id="gVoice" size="6"></select>
-              <label>Название голоса</label>
-              <input id="newName" placeholder="Например: Бодрая Света" />
-              <button class="btn primary" id="btnAddVoice">+ Добавить голос</button>
-              <div class="vmsg" id="voiceMsg"></div>
-              <div class="usage" id="gUsage"></div>
-              <div class="note">Ключ хранится только на вашем компьютере, запросы идут напрямую в Google.</div>
-            </div>
             <div class="card">
               <h2>Что озвучивать</h2>
               <p class="muted">Включи только то, что важно для эфира</p>

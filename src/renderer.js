@@ -21,8 +21,7 @@ const DEFAULTS = {
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
 // встроенные голоса всегда на месте, свои — добавляются после них
-const customs = (S.presets || []).filter((p) => p && !p.builtin && p.provider === 'google');
-S.presets = [...BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true })), ...customs];
+S.presets = BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true }));
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
 const save = () => { try { localStorage.setItem('echochat2', JSON.stringify(S)); } catch (_) {} };
 const selectedPreset = () => S.presets.find((p) => p.id === S.selected) || S.presets[0];
@@ -97,81 +96,6 @@ function previewPreset(p) {
   enqueue({ el: null, say: `Привет! Меня зовут ${p.name}. Я буду читать чат твоего эфира.`, preset: p }, true);
 }
 $('#btnTest').onclick = () => previewPreset(selectedPreset());
-
-/* ---------- живые голоса Google (бесплатный месячный лимит) ---------- */
-const LIMIT = { hd: 1000000, n2: 1000000, std: 4000000 };
-const SAFE = 0.9; // при 90% лимита автоматически уходим на Microsoft
-const KIND_NAME = { hd: 'Живые HD', n2: 'Neural2', std: 'WaveNet/Standard' };
-const PERSONA = { Zephyr: 'яркий', Puck: 'бодрый', Charon: 'информативный', Kore: 'уверенный', Fenrir: 'эмоциональный', Leda: 'юный', Orus: 'уверенный', Aoede: 'лёгкий', Callirrhoe: 'непринуждённый', Autonoe: 'яркий', Enceladus: 'мягкий', Iapetus: 'чёткий', Umbriel: 'непринуждённый', Algieba: 'плавный', Despina: 'плавный', Erinome: 'чёткий', Algenib: 'с хрипотцой', Rasalgethi: 'информативный', Laomedeia: 'бодрый', Achernar: 'мягкий', Alnilam: 'уверенный', Schedar: 'ровный', Gacrux: 'зрелый', Pulcherrima: 'напористый', Achird: 'дружелюбный', Zubenelgenubi: 'разговорный', Vindemiatrix: 'нежный', Sadachbia: 'живой', Sadaltager: 'знающий', Sulafat: 'тёплый' };
-
-const gKeyEl = $('#gKey'), gVoice = $('#gVoice'), voiceMsg = $('#voiceMsg');
-let gCatalog = [];
-gKeyEl.value = S.gKey || '';
-const say = (t, bad) => { voiceMsg.textContent = t; voiceMsg.className = 'vmsg' + (bad ? ' bad' : ''); };
-
-function gMeta(v) {
-  const n = v.id;
-  let kind = 'std', short = n.replace(/^ru-RU-/, '');
-  if (/Chirp3-HD/i.test(n)) { kind = 'hd'; short = n.split('-').pop(); }
-  else if (/Neural2/i.test(n)) { kind = 'n2'; short = 'Neural2 ' + n.split('-').pop(); }
-  else if (/Wavenet/i.test(n)) short = 'WaveNet ' + n.split('-').pop();
-  else short = 'Standard ' + n.split('-').pop();
-  const gender = v.gender === 'M' ? 'муж.' : 'жен.';
-  const style = kind === 'hd' && PERSONA[short] ? ' · ' + PERSONA[short] : '';
-  return { ...v, kind, short, label: `${KIND_NAME[kind]} · ${short} · ${gender}${style}` };
-}
-function fillGoogleVoices(list) {
-  const order = { hd: 0, n2: 1, std: 2 };
-  gCatalog = list.map(gMeta).sort((a, b) => order[a.kind] - order[b.kind] || a.short.localeCompare(b.short));
-  gVoice.innerHTML = '';
-  gCatalog.forEach((v) => { const o = document.createElement('option'); o.value = v.id; o.textContent = v.label; gVoice.appendChild(o); });
-  if (gVoice.options.length) gVoice.selectedIndex = 0;
-}
-
-// учёт символов за месяц (локально) — чтобы не выйти за бесплатный лимит
-function usage() {
-  const m = new Date().toISOString().slice(0, 7);
-  if (!S.usage || S.usage.m !== m) S.usage = { m, hd: 0, n2: 0, std: 0 };
-  return S.usage;
-}
-function addUsage(kind, n) { usage()[kind] += n; save(); renderUsage(); }
-const overBudget = (kind) => usage()[kind] >= LIMIT[kind] * SAFE;
-function renderUsage() {
-  const u = usage();
-  const f = (k) => `${KIND_NAME[k]}: ${Math.round(u[k] / 1000).toLocaleString('ru-RU')} тыс. из ${(LIMIT[k] / 1000).toLocaleString('ru-RU')} тыс.`;
-  $('#gUsage').textContent = 'Использовано в этом месяце · ' + f('hd') + ' · ' + f('n2') + ' · ' + f('std');
-}
-
-function addGoogleVoice(meta, customName) {
-  const name = (customName || '').trim() || meta.short;
-  const preset = {
-    id: 'g-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name, builtin: false, provider: 'google',
-    gName: meta.id, gKind: meta.kind, gender: meta.gender, rate: 0, pitch: 0,
-    desc: 'Google · ' + (meta.label || meta.id),
-  };
-  S.presets.push(preset);
-  S.selected = preset.id;
-  save(); renderVoices(); refreshRate(); refreshPitch(); syncControls();
-  return preset;
-}
-
-$('#btnGCheck').onclick = async () => {
-  const key = gKeyEl.value.trim();
-  if (!key) return say('Вставьте API-ключ Google.', true);
-  say('Проверяю ключ…');
-  const r = await window.echo.googleVoices(key).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
-  if (!r.ok) return say(r.error, true);
-  S.gKey = key; save();
-  fillGoogleVoices(r.voices);
-  say(`Ключ работает. Найдено русских голосов: ${r.voices.length}. Выберите голос и нажмите «Добавить».`);
-};
-$('#btnAddVoice').onclick = () => {
-  const meta = gCatalog.find((v) => v.id === gVoice.value);
-  if (!meta) return say('Сначала проверьте ключ — список голосов загрузится автоматически.', true);
-  const p = addGoogleVoice(meta, $('#newName').value);
-  $('#newName').value = '';
-  say(`Голос «${p.name}» добавлен и выбран. Нажмите ▶, чтобы услышать.`);
-};
 
 /* ---------- лента ---------- */
 const feed = $('#feed');
@@ -284,31 +208,17 @@ function warnOnce(text) {
 
 // синтез стартует заранее, пока играет предыдущая фраза — без пауз между сообщениями
 function ensureSynth(item) {
-  if (!item.p) {
-    const p = item.preset;
-    if (p.provider === 'google' && overBudget(p.gKind)) {
-      item.fallback = true;
-      warnOnce(`Бесплатный лимит Google (${KIND_NAME[p.gKind]}) почти исчерпан — включён голос Microsoft до начала следующего месяца.`);
-      item.p = synthFor(item.say, fallbackPreset(p));
-    } else {
-      item.p = synthFor(item.say, p);
-    }
-  }
+  if (!item.p) item.p = synthFor(item.say, item.preset);
   return item.p;
 }
 
 async function speakItem(item) {
-  let r = await ensureSynth(item);
-  const p = item.preset;
-  if (p.provider === 'google' && !item.fallback) {
-    if (r && r.ok) addUsage(p.gKind, r.chars || item.say.length);
-    else {
-      warnOnce(`Голос «${p.name}»: ${(r && r.error) || 'ошибка'} Включён запасной голос Microsoft.`);
-      r = await synthFor(item.say, fallbackPreset(p));
-    }
-  }
+  const r = await ensureSynth(item);
   if (r && r.ok) {
     try { await playBlob(r.audio); return; } catch (_) {}
+  } else {
+    // раньше ошибка терялась — теперь видно в ленте, почему не звучит
+    warnOnce(`Озвучка не работает: ${(r && r.error) || 'нет ответа'}. Включён системный голос Windows.`);
   }
   await fallbackSpeak(item.say);
 }
@@ -361,16 +271,16 @@ window.echo.onError((e) => sys(e.message));
 /* ---------- подключение ---------- */
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false, alertTimer = null;
-const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime'), liveDot = $('#liveDot');
+const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime'), liveDot = $('#liveDot'), sideTime = $('#sideTime');
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
   .map((n) => String(n).padStart(2, '0')).join(':');
 function startTimer() {
   liveSince = Date.now(); clearInterval(timerId);
-  const tick = () => { connTime.textContent = fmtTime(Date.now() - liveSince); };
+  const tick = () => { connTime.textContent = sideTime.textContent = fmtTime(Date.now() - liveSince); };
   tick(); timerId = setInterval(tick, 1000);
 }
-function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
+function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = sideTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
   clearTimeout(alertTimer);
   alertBox.textContent = text;
@@ -493,5 +403,5 @@ $('#btnStudio').onclick = speakStudio;
 $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
 
 /* ---------- старт ---------- */
-renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); syncControls(); renderUsage();
-window.__echo = { S, clean, speakName, renderVoices, gMeta, addGoogleVoice, fillGoogleVoices, overBudget, addUsage, usage, get presets() { return S.presets; } };
+renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); syncControls();
+window.__echo = { S, clean, speakName, renderVoices, get presets() { return S.presets; } };

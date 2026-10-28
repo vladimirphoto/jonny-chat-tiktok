@@ -60,7 +60,7 @@ async function disconnect() {
   }
 }
 
-const { explain, explainGoogle } = require('./errors');
+const { explain } = require('./errors');
 
 async function doConnect(rawName) {
   const username = String(rawName || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?tiktok\.com\/@/i, '').replace(/\/live.*$/i, '');
@@ -92,18 +92,18 @@ async function doConnect(rawName) {
   const alive = () => conn === c;
   const EV = ControlEvent || {};
 
-  c.on(WebcastEvent.CHAT, (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || d.content || '' }));
-  c.on(WebcastEvent.GIFT, (d) => {
+  c.on(WebcastEvent.CHAT || 'chat', (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || d.content || '' }));
+  c.on(WebcastEvent.GIFT || 'gift', (d) => {
     if (!alive()) return;
     const det = d.giftDetails || {};
     // серия подарков (giftType 1) считается один раз — когда она закончилась
     if (det.giftType === 1 && !d.repeatEnd) return;
     send('tt:gift', { ...userOf(d), gift: det.giftName || d.giftName || 'подарок', count: d.repeatCount || 1 });
   });
-  c.on(WebcastEvent.FOLLOW, (d) => alive() && send('tt:follow', userOf(d)));
-  c.on(WebcastEvent.LIKE, (d) => alive() && send('tt:like', { total: d.totalLikeCount, count: d.likeCount || 1 }));
-  c.on(WebcastEvent.ROOM_USER, (d) => alive() && send('tt:viewers', { count: d.viewerCount }));
-  c.on(WebcastEvent.STREAM_END, () => alive() && send('tt:status', { state: 'ended' }));
+  c.on(WebcastEvent.FOLLOW || 'follow', (d) => alive() && send('tt:follow', userOf(d)));
+  c.on(WebcastEvent.LIKE || 'like', (d) => alive() && send('tt:like', { total: d.totalLikeCount, count: d.likeCount || 1 }));
+  c.on(WebcastEvent.ROOM_USER || 'roomUser', (d) => alive() && send('tt:viewers', { count: d.viewerCount }));
+  c.on(WebcastEvent.STREAM_END || 'streamEnd', () => alive() && send('tt:status', { state: 'ended' }));
   c.on(EV.DISCONNECTED || 'disconnected', () => alive() && send('tt:status', { state: 'offline' }));
   c.on(EV.ERROR || 'error', (e) => {
     if (!alive() || !ready) return; // ошибки подключения показывает сам обработчик ниже — один раз
@@ -206,54 +206,11 @@ async function edgeSynth(text, voice, rate, pitch) {
   throw last;
 }
 
-// ---------- Google Cloud Text-to-Speech (живые голоса, бесплатный месячный лимит) ----------
-async function googleFetch(url, key, init) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 20000);
-  try {
-    const res = await fetch(url, { ...init, signal: ctl.signal, headers: { 'X-Goog-Api-Key': key, 'Content-Type': 'application/json', ...(init && init.headers) } });
-    const text = await res.text();
-    if (!res.ok) { const e = new Error(explainGoogle(res.status, text)); e.status = res.status; e.friendly = true; throw e; }
-    return JSON.parse(text);
-  } catch (err) {
-    if (err && err.friendly) throw err;
-    const e = new Error('Нет связи с Google. Проверьте интернет и попробуйте снова.');
-    e.friendly = true;
-    throw e;
-  } finally { clearTimeout(timer); }
-}
-
-ipcMain.handle('g:voices', async (_e, key) => {
-  try {
-    if (!key) return { ok: false, error: 'Вставьте API-ключ Google.' };
-    const data = await googleFetch('https://texttospeech.googleapis.com/v1/voices?languageCode=ru-RU', key);
-    const voices = (data.voices || [])
-      .filter((v) => /Chirp3-HD|Neural2|Wavenet|Standard/i.test(v.name) && !/Studio|News|Polyglot|Journey|Casual/i.test(v.name))
-      .map((v) => ({ id: v.name, gender: v.ssmlGender === 'MALE' ? 'M' : 'F' }));
-    if (!voices.length) return { ok: false, error: 'Google не вернул русских голосов для этого ключа.' };
-    return { ok: true, voices };
-  } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
-});
-
-async function googleSynth(text, name, key, rate) {
-  if (!key || !name) throw new Error('Не задан ключ Google или голос.');
-  const audioConfig = { audioEncoding: 'MP3' };
-  if (!/Chirp3-HD/i.test(name)) audioConfig.speakingRate = Math.min(2, Math.max(0.6, Number(rate) || 1));
-  const data = await googleFetch('https://texttospeech.googleapis.com/v1/text:synthesize', key, {
-    method: 'POST',
-    body: JSON.stringify({ input: { text }, voice: { languageCode: 'ru-RU', name }, audioConfig }),
-  });
-  if (!data.audioContent) throw new Error('Google вернул пустой звук.');
-  return Buffer.from(data.audioContent, 'base64');
-}
-
 ipcMain.handle('tts:synth', async (_e, o) => {
   try {
     const text = String(o.text || '').slice(0, 400);
     if (!text.trim()) return { ok: false, error: 'empty text' };
-    const buf = o.provider === 'google'
-      ? await googleSynth(text, o.gName, o.gKey, o.rate)
-      : await edgeSynth(text, o.voice, o.rate, o.pitch);
+    const buf = await edgeSynth(text, o.voice, o.rate, o.pitch);
     return { ok: true, audio: buf.toString('base64'), chars: text.length };
   } catch (err) {
     return { ok: false, error: String((err && err.message) || err) };
