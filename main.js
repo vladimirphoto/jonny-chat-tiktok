@@ -275,7 +275,15 @@ ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state:
 // адрес для предпросмотра внутри приложения
 ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/chat` : ''));
 // ссылка для копирования: настоящий https-адрес страницы виджета на GitHub Pages; порт приложения — в параметре
-ipcMain.handle('widget:link', () => (wsrv && wsrv.port ? { ok: true, url: `${widget.PAGES_URL}?port=${wsrv.port}` } : { ok: false, url: '' }));
+ipcMain.handle('widget:link', () => (wsrv && wsrv.port ? { ok: true, url: widget.PAGES_URL } : { ok: false, url: '' }));
+// Доступна ли страница на GitHub Pages (404 — Pages для репозитория ещё не включён)
+ipcMain.handle('widget:check', () => new Promise((resolve) => {
+  try {
+    const r = require('https').get(widget.PAGES_URL, { timeout: 7000, headers: { 'User-Agent': 'echochat' } }, (res) => { res.resume(); resolve({ ok: res.statusCode === 200, status: res.statusCode }); });
+    r.on('timeout', () => { r.destroy(); resolve({ ok: false, status: 0 }); });
+    r.on('error', () => resolve({ ok: false, status: 0 }));
+  } catch (_) { resolve({ ok: false, status: 0 }); }
+}));
 ipcMain.handle('widget:set', (_e, s) => { wset = { ...(s || {}) }; wsrv && wsrv.broadcast('settings', wset); return { ok: true }; });
 ipcMain.handle('widget:test', () => {
   wmsg({ platform: 'tiktok', name: 'Анна', text: 'Привет из TikTok! Так выглядит чат', color: colorOf('Анна') });

@@ -39,7 +39,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/\\?port=\\d+$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
@@ -95,6 +95,8 @@ const PAGE_TEST = `(async () => {
     add('ui', 'вкладки: полоса прокрутки сдвинута вправо', parseFloat(tb.paddingRight) >= 8 && parseFloat(tb.marginRight) < 0, tb.paddingRight + ' / ' + tb.marginRight);
     // --- формат ссылки виджета ---
     add('ui', 'вариантов формата ссылки нет — одна рабочая ссылка', !$('#wHostSel'));
+    for (let i = 0; i < 40 && /Проверяю/.test($('#wStat').textContent); i++) await sleep(250);
+    add('ui', 'статус страницы виджета показан (доступна / Pages не включён / нет сети)', $('#wStat').textContent.length > 10 && !/Проверяю/.test($('#wStat').textContent), $('#wStat').className + ' | ' + $('#wStat').textContent.slice(0, 80));
     add('ui', 'выбор голоса для подарков и подписок', !!$('#eventVoiceSel') && $('#eventVoiceSel').querySelectorAll('.csel-opt').length >= 3, $('#eventVoiceSel') ? $('#eventVoiceSel').querySelectorAll('.csel-opt').length : 'нет списка');
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 

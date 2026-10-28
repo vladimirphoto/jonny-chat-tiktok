@@ -11,6 +11,7 @@ test('страница для GitHub Pages совпадает с виджето�
 });
 
 test('страница берёт адрес приложения из параметра port', () => {
-  assert.match(PAGE, /URLSearchParams\(location\.search\)\.get\('port'\)/);
-  assert.match(PAGE, /EventSource\(BASE\+'\/events'\)/);
+  assert.match(PAGE, /new URLSearchParams\(location\.search\)/);
+  assert.match(PAGE, /\.get\('port'\)/);
+  assert.match(PAGE, /127\.0\.0\.1:'\+port\+'\/events/); // страница сама перебирает порты 7878-7898
 });

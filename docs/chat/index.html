@@ -69,18 +69,32 @@ function add(d){
   while(root.children.length>40)root.firstChild.remove();
   if(S.fade){var ms=Math.max(2,+S.fadeSec||20)*1000;setTimeout(function(){m.classList.add('out');setTimeout(function(){m.remove()},700)},ms);}
 }
-// На странице из GitHub Pages адрес приложения берётся из ?port=; локально (предпросмотр) — тот же сервер
-var PORT=+new URLSearchParams(location.search).get('port')||0;
-var BASE=PORT?'http://127.0.0.1:'+PORT:'';
+// Страница из GitHub Pages сама находит приложение на этом компьютере: пробует порты 7878-7898
+// (или тот, что указан в ?port=). Локальный предпросмотр в приложении работает с тем же сервером напрямую.
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127.0.0.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
 var nc=document.getElementById('nc'),ncT=null;
-function offline(){if(PORT&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
 function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
-function connect(){
-  var es=new EventSource(BASE+'/events');
-  es.onopen=online;es.onerror=offline;
+function bind(es){
   es.addEventListener('settings',function(e){var d=JSON.parse(e.data);var prev=d._previewHeight;delete d._previewHeight;S=Object.assign(S,d);apply();applyPreviewHeight(prev);});
   es.addEventListener('msg',function(e){add(JSON.parse(e.data));});
   es.addEventListener('clear',function(){root.innerHTML='';});
+}
+function connect(){
+  if(!REMOTE){var es0=new EventSource('/events');bind(es0);return;}
+  var i=0;
+  (function probe(){
+    var port=PORTS[i%PORTS.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,t;
+    function fail(){if(got)return;clearTimeout(t);es.close();offline();setTimeout(probe,PORTS.length>1&&i%PORTS.length?30:2500);}
+    t=setTimeout(fail,1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
+    es.onerror=function(){if(got)offline();else fail();};
+    es.onopen=function(){if(got)online();};
+    bind(es);
+  })();
 }
 apply();connect();
 </script></body></html>
