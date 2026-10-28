@@ -303,7 +303,7 @@ function speakName(n) {
 
 /* ---------- очередь озвучки ---------- */
 const queue = [];
-let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null, lastWarn = 0;
+let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null;
 
 const QUEUE_MAX = 8;       // длиннее очередь — больше отставание от эфира
 const STALE_MS = 25000;    // сообщение старше этого времени уже не озвучиваем
@@ -324,7 +324,6 @@ function enqueue(item, force = false) {
 function stopCurrent() {
   if (cur) { cur.onended = cur.onerror = null; cur.pause(); cur = null; }
   if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
-  try { speechSynthesis.cancel(); } catch (_) {}
   if (curResolve) { const r = curResolve; curResolve = null; r(); }
 }
 
@@ -341,29 +340,12 @@ function playBlob(b64) {
   });
 }
 
-function fallbackSpeak(text) {
-  return new Promise((resolve) => {
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      const ru = speechSynthesis.getVoices().find((v) => v.lang.startsWith('ru'));
-      if (ru) u.voice = ru;
-      u.lang = 'ru-RU'; u.volume = S.vol / 100;
-      curResolve = resolve;
-      u.onend = u.onerror = () => { curResolve = null; resolve(); };
-      speechSynthesis.speak(u);
-    } catch (_) { resolve(); }
-  });
-}
-
 function synthFor(text, p) {
   return window.echo.synth({
     text, voice: p.voice,
     rate: Math.max(0.5, 1 + (p.rate || 0) / 100),
     pitch: ((p.pitch || 0) >= 0 ? '+' : '') + (p.pitch || 0) + 'Hz',
   }).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
-}
-function warnOnce(text) {
-  if (Date.now() - lastWarn > 30000) { lastWarn = Date.now(); sys(text); }
 }
 
 // синтез стартует заранее, пока играет предыдущая фраза — без пауз между сообщениями
@@ -375,13 +357,8 @@ function ensureSynth(item) {
 async function speakItem(item) {
   const r = await ensureSynth(item);
   if (item.cancelled) return; // нажали паузу, пока звук готовился
-  if (r && r.ok) {
-    try { await playBlob(r.audio); return; } catch (_) {}
-  } else {
-    // раньше ошибка терялась — теперь видно в ленте, почему не звучит
-    warnOnce(`Озвучка не работает: ${(r && r.error) || 'нет ответа'}. Включён системный голос Windows.`);
-  }
-  await fallbackSpeak(item.say);
+  // не получилось озвучить — молча пропускаем сообщение: без системного голоса Windows и без уведомлений
+  if (r && r.ok) { try { await playBlob(r.audio); } catch (_) {} }
 }
 
 async function pump() {
@@ -577,7 +554,6 @@ btn.onclick = async () => {
   }
 };
 $('#nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
-try { speechSynthesis.getVoices(); } catch (_) {}
 
 /* ---------- обновление по кнопке ---------- */
 const btnUpd = $('#btnUpdate');
