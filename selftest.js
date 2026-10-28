@@ -95,7 +95,7 @@ const PAGE_TEST = `(async () => {
     add('ui', 'вкладки: полоса прокрутки сдвинута вправо', parseFloat(tb.paddingRight) >= 8 && parseFloat(tb.marginRight) < 0, tb.paddingRight + ' / ' + tb.marginRight);
     // --- формат ссылки виджета ---
     add('ui', 'выбор формата ссылки виджета', !!$('#wHostSel') && $('#wHostSel').querySelectorAll('.csel-opt').length === 3);
-    add('ui', 'выбор голоса для подарков и подписок', $('#eventVoice').options.length >= 3, $('#eventVoice').options.length);
+    add('ui', 'выбор голоса для подарков и подписок', !!$('#eventVoiceSel') && $('#eventVoiceSel').querySelectorAll('.csel-opt').length >= 3, $('#eventVoiceSel') ? $('#eventVoiceSel').querySelectorAll('.csel-opt').length : 'нет списка');
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 
     // --- кнопка обновления не меняет размер ---
