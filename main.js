@@ -175,7 +175,7 @@ ipcMain.handle('tts:voices', async () => {
   return { ok: false, voices: FALLBACK_VOICES, all: [] };
 });
 
-async function edgeSynthOnce(text, voice, rate, pitch) {
+async function edgeSynthOnce(text, voice, rate, pitch, timeoutMs = 8000) {
   let tts = null;
   try {
     const { MsEdgeTTS, OUTPUT_FORMAT } = await load('msedge-tts');
@@ -191,7 +191,7 @@ async function edgeSynthOnce(text, voice, rate, pitch) {
         res.audioStream.on('close', resolve);
         res.audioStream.on('error', reject);
       }),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('tts timeout')), 15000)),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('tts timeout')), timeoutMs)),
     ]);
     const buf = Buffer.concat(chunks);
     if (!buf.length) throw new Error('empty audio');
@@ -201,16 +201,25 @@ async function edgeSynthOnce(text, voice, rate, pitch) {
   }
 }
 
-// Сервер Microsoft иногда обрывает поток — повторяем до 3 раз (короткие паузы, чтобы не копить задержку)
-async function edgeSynth(text, voice, rate, pitch) {
-  let last;
-  for (let i = 0; i < 3; i++) {
-    try { return await edgeSynthOnce(text, voice, rate, pitch); } catch (err) {
-      last = err;
-      await new Promise((r) => setTimeout(r, 150 * (i + 1)));
-    }
-  }
-  throw last;
+// Сервер Microsoft иногда отвечает медленно или обрывает поток. Если ответа нет за HEDGE_MS,
+// параллельно запускается ещё одна попытка (до 3), берём первую успешную — без многосекундных пауз.
+function edgeSynth(text, voice, rate, pitch) {
+  const MAX = 3, HEDGE_MS = 2500;
+  return new Promise((resolve, reject) => {
+    let done = false, started = 0, failed = 0, last, timer;
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(timer); fn(v); };
+    const launch = () => {
+      if (done || started >= MAX) return;
+      started++;
+      edgeSynthOnce(text, voice, rate, pitch).then((buf) => finish(resolve, buf)).catch((err) => {
+        last = err; failed++;
+        if (failed >= MAX) finish(reject, last); else launch(); // оборвалось — сразу следующая попытка
+      });
+      clearTimeout(timer);
+      if (started < MAX) timer = setTimeout(launch, HEDGE_MS);
+    };
+    launch();
+  });
 }
 
 ipcMain.handle('tts:synth', async (_e, o) => {
@@ -235,7 +244,8 @@ ipcMain.handle('upd:install', async () => {
 
 app.whenReady().then(() => {
   createWindow();
-  load('msedge-tts').catch(() => {}); // модуль озвучки грузится заранее — первая фраза не ждёт
+  // прогрев: модуль, DNS и TLS-соединение готовы до первой фразы эфира
+  edgeSynth('Привет', 'ru-RU-SvetlanaNeural', 1, '+0Hz').catch(() => {});
   if (SELFTEST) require('./selftest').run(win, app);
 });
 app.on('window-all-closed', async () => {
