@@ -140,3 +140,13 @@ body.talking .eq span{opacity:1;animation:bar 0.9s ease-in-out infinite}
 .conn-rows{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:12px}
 .conn-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
 .conn-row b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+/* поле ключа и кнопка: не слипаются */
+#gKey{margin-bottom:10px}
+#btnGCheck{margin-top:10px}
+/* полоса прокрутки списка голосов в тёмной теме */
+select{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
+select::-webkit-scrollbar{width:8px}
+select::-webkit-scrollbar-track{background:transparent;margin:6px 0}
+select::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px}
+select::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28)}
+select::-webkit-scrollbar-button{display:none}
