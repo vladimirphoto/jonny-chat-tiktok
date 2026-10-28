@@ -25,12 +25,14 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  wAlign: 'split', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '',
+  wAlignTt: 'left', wAlignTw: 'right', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '',
   chat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
+// прежняя общая настройка выравнивания (split / left / right) переносится на TikTok и Twitch отдельно
+try { const raw = JSON.parse(localStorage.getItem('echochat2') || '{}'); if (raw.wAlign && !raw.wAlignTt) { S.wAlignTt = raw.wAlign === 'right' ? 'right' : 'left'; S.wAlignTw = raw.wAlign === 'left' ? 'left' : 'right'; } } catch (_) {}
 // встроенные голоса всегда на месте, свои — добавляются после них
 S.presets = BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true }));
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
@@ -124,7 +126,7 @@ $('#wHeight').addEventListener('touchstart', () => window.echo.widgetSet({ ...ge
 $('#wHeight').addEventListener('mouseup', () => { window.echo.widgetSet({ ...getWSet(), _previewHeight: false }); });
 $('#wHeight').addEventListener('touchend', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
 const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
-function getWSet() { return { align: S.wAlign, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
+function getWSet() { return { alignTt: S.wAlignTt, alignTw: S.wAlignTw, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
 function pushWidget() { window.echo.widgetSet(getWSet()); }
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
@@ -620,12 +622,11 @@ $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textC
 
 /* ---------- виджет чата ---------- */
 // --- выпадающие списки виджета ---
-const ALIGN_LABELS = { split: 'TikTok слева · Twitch справа', left: 'Все слева', right: 'Все справа' };
-makeSelect('wAlignSel', {
-  options: () => Object.entries(ALIGN_LABELS).map(([v, label]) => ({ v, label })),
-  get: () => S.wAlign,
-  set: (v) => { S.wAlign = v; save(); pushWidget(); },
-});
+// выравнивание сообщений задаётся отдельно для TikTok и для Twitch
+const ALIGN_LABELS = { left: 'Слева', right: 'Справа' };
+const alignOpts = () => Object.entries(ALIGN_LABELS).map(([v, label]) => ({ v, label }));
+makeSelect('wAlignTtSel', { options: alignOpts, get: () => S.wAlignTt, set: (v) => { S.wAlignTt = v; save(); pushWidget(); } });
+makeSelect('wAlignTwSel', { options: alignOpts, get: () => S.wAlignTw, set: (v) => { S.wAlignTw = v; save(); pushWidget(); } });
 async function refreshLink() {
   const r = await window.echo.widgetLink().catch(() => null);
   $('#wUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';

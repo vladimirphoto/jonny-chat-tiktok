@@ -335,3 +335,4 @@ label+.csel{margin-top:0}
 .wstat{margin-top:10px;font-size:13px;line-height:1.45;color:var(--muted);min-height:18px}
 .wstat.ok{color:#a7f3d0}.wstat.bad{color:#fecaca;padding:10px 12px;border-radius:12px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3)}
 .wstat a{color:#c4b5fd;text-decoration:underline;cursor:pointer;margin-right:12px}
+.align-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.align-row label{margin-top:0}

@@ -39,7 +39,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
@@ -95,6 +95,13 @@ const PAGE_TEST = `(async () => {
     add('ui', 'вкладки: полоса прокрутки сдвинута вправо', parseFloat(tb.paddingRight) >= 8 && parseFloat(tb.marginRight) < 0, tb.paddingRight + ' / ' + tb.marginRight);
     // --- формат ссылки виджета ---
     add('ui', 'вариантов формата ссылки нет — одна рабочая ссылка', !$('#wHostSel'));
+    // выравнивание отдельно для TikTok и Twitch
+    const pick2 = async (id, re) => { $('#' + id).click(); await sleep(40); [...$('#' + id).querySelectorAll('.csel-opt')].find((o) => re.test(o.textContent)).click(); await sleep(40); };
+    await pick2('wAlignTtSel', /Справа/); await pick2('wAlignTwSel', /Слева/);
+    const alOk1 = E.S.wAlignTt === 'right' && E.S.wAlignTw === 'left';
+    await pick2('wAlignTtSel', /Слева/); await pick2('wAlignTwSel', /Справа/);
+    add('ui', 'выравнивание задаётся отдельно для TikTok и Twitch', alOk1 && E.S.wAlignTt === 'left' && E.S.wAlignTw === 'right', E.S.wAlignTt + ' / ' + E.S.wAlignTw);
+    add('ui', 'старого общего выбора выравнивания нет', !$('#wAlignSel'));
     for (let i = 0; i < 40 && $('#wStat').dataset.state === 'checking'; i++) await sleep(250);
     add('ui', 'проверка страницы виджета завершилась; при успехе подпись не показывается', $('#wStat').dataset.state !== 'checking' && ($('#wStat').dataset.state !== 'ok' || $('#wStat').textContent === ''), $('#wStat').dataset.state + ' | ' + $('#wStat').textContent.slice(0, 60));
     add('ui', 'инструкции для OBS под ссылкой нет', !/OBS: Источники/.test($('#tab-widgets').innerText));
