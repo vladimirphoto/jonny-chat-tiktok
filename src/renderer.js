@@ -405,7 +405,16 @@ btnTw && (btnTw.onclick = async () => { twLive ? disconnectTwitch() : connectTwi
 $('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !twLive) connectTwitch(); });
 
 const btn = $('#btnConnect'), status = $('#status');
+const pillOff = $('#pillOff'), pillTt = $('#pillTt'), pillTw = $('#pillTw');
 let connected = false, connecting = false;
+let _ttText = '', _twText = '';
+function renderPills() {
+  pillTt.hidden = !connected;
+  pillTw.hidden = !twLive;
+  pillOff.hidden = connected || twLive;
+  if (connected) pillTt.lastElementChild.textContent = _ttText;
+  if (twLive)    pillTw.lastElementChild.textContent = _twText;
+}
 const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
@@ -429,9 +438,9 @@ function showAlert(text, warn, detail) {
   feed.scrollTop = feed.scrollHeight;
 }
 function setStatus(live, text) {
-  status.classList.toggle('on', live);
-  status.lastElementChild.textContent = text;
   connected = live;
+  if (live) _ttText = text;
+  renderPills();
   btn.textContent = live ? 'Отключить' : 'Подключить';
   btn.classList.toggle('connected', live);
   connStatus.textContent = live ? 'В эфире' : 'Не подключено';
@@ -443,16 +452,17 @@ window.echo.onTwStatus((s) => {
   if (s.state === 'live') {
     twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
     sys('Twitch: чат ' + s.channel + ' подключён.');
-    if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); }
+    _twText = '#' + s.channel;
   }
   if (s.state === 'offline' || s.state === 'reconnect') {
     if (s.state === 'offline') { twLive = false; btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); }
     else { btnTw.textContent = 'Переподкл…'; }
-    if (!connected) { status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; }
+    if (s.state === 'reconnect') _twText = 'Twitch · переподкл…';
   }
+  renderPills();
 });
 window.echo.onStatus((s) => {
-  if (s.state === 'live') { connectedAt = Date.now(); setStatus(true, 'В эфире @' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
+  if (s.state === 'live') { connectedAt = Date.now(); setStatus(true, '@' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
   else {
     setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире');
     $('#feedSub').textContent = s.state === 'ended' ? 'Трансляция завершена' : 'Отключено';

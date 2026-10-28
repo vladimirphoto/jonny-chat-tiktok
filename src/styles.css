@@ -213,9 +213,10 @@ select::-webkit-scrollbar-button{display:none}
 .plat-btn{display:flex!important;align-items:center;justify-content:center;height:46px;padding:0 10px!important;width:100%;font-size:13px;white-space:nowrap;color:#fff;border:1px solid transparent;transition:.2s}
 .plat-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .plat-btn:disabled{opacity:.6;pointer-events:none}
-.tt-btn{background:linear-gradient(135deg,#fe2c55,#ff4f8b);box-shadow:-3px 0 0 rgba(37,244,238,.55),0 8px 22px rgba(254,44,85,.3)}
+.tt-btn{background:#fe2c55;box-shadow:0 8px 22px rgba(254,44,85,.28)}
 .tw-btn{background:#9146ff;box-shadow:0 8px 22px rgba(145,70,255,.32)}
-.plat-btn.connected{background:rgba(255,255,255,.07);box-shadow:none;border-color:var(--ok);color:var(--ok)}
+.plat-btn.connected{background:rgba(248,113,113,.12);box-shadow:none;border-color:rgba(248,113,113,.7);color:#ff8a9b}
+.plat-btn.connected:hover{background:rgba(248,113,113,.2)}
 .plat-btn.connecting{opacity:.75}
 .col-left label:first-of-type{margin-top:4px}
 
@@ -264,3 +265,23 @@ body.t-widgets .stats{display:none}
   #tab-live .tips{display:none}
   header{margin-bottom:10px}
 }
+
+/* ===== v1.7.0 ===== */
+
+/* Полоса прокрутки в стиле приложения */
+*::-webkit-scrollbar{width:6px;height:6px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.13);border-radius:10px;transition:background .2s}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--a1),var(--a2))}
+*::-webkit-scrollbar-button,*::-webkit-scrollbar-corner{display:none}
+
+/* Плашки статуса */
+.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pills .pill[hidden]{display:none}
+.pill .pi{display:flex;align-items:center;width:15px;height:15px;flex:none}
+.pill .pi svg{width:100%;height:100%}
+.pill.tt .pi{color:#fff}
+.pill.tw .pi{color:#a970ff}
+.pill.tt{border-color:rgba(254,44,85,.4)}
+.pill.tw{border-color:rgba(145,70,255,.45)}
+.pill.idle s{background:var(--muted)}
