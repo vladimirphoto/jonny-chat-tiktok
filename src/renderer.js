@@ -297,12 +297,6 @@ function ensureSynth(item) {
   return item.p;
 }
 
-function setVoiceState(ok) {
-  const p = $('#voiceState');
-  p.lastChild.textContent = ok ? 'Голос готов' : 'Нет сети · запасной голос';
-  p.firstChild.style.background = ok ? 'var(--ok)' : 'var(--bad)';
-}
-
 async function speakItem(item) {
   let r = await ensureSynth(item);
   const p = item.preset;
@@ -314,9 +308,8 @@ async function speakItem(item) {
     }
   }
   if (r && r.ok) {
-    try { setVoiceState(true); await playBlob(r.audio); return; } catch (_) {}
+    try { await playBlob(r.audio); return; } catch (_) {}
   }
-  setVoiceState(false);
   await fallbackSpeak(item.say);
 }
 
@@ -344,6 +337,7 @@ const counters = { likes: 0, gifts: 0, follows: 0 };
 const bump = (id, v) => { $(id).textContent = v.toLocaleString('ru-RU'); };
 
 window.echo.onChat((m) => {
+  if (!m.text) return; // пустые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub });
   if (!S.chat || (S.subsOnly && !m.isSub)) return;
   const t = clean(m.text);
@@ -366,8 +360,19 @@ window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
-let connected = false, connecting = false;
+let connected = false, connecting = false, alertTimer = null;
+const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime'), liveDot = $('#liveDot');
+let liveSince = 0, timerId = null;
+const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
+  .map((n) => String(n).padStart(2, '0')).join(':');
+function startTimer() {
+  liveSince = Date.now(); clearInterval(timerId);
+  const tick = () => { connTime.textContent = fmtTime(Date.now() - liveSince); };
+  tick(); timerId = setInterval(tick, 1000);
+}
+function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
+  clearTimeout(alertTimer);
   alertBox.textContent = text;
   if (text && detail) {
     const d = document.createElement('div');
@@ -377,6 +382,8 @@ function showAlert(text, warn, detail) {
   }
   alertBox.classList.toggle('warn', !!warn);
   alertBox.hidden = !text;
+  // ошибка под кнопкой исчезает сама через 8 секунд
+  if (text) alertTimer = setTimeout(() => { alertBox.hidden = true; }, 8000);
 }
 function setStatus(live, text) {
   status.classList.toggle('on', live);
@@ -384,9 +391,13 @@ function setStatus(live, text) {
   connected = live;
   btn.textContent = live ? 'Отключиться' : 'Подключиться';
   btn.classList.toggle('stop', live);
+  connStatus.textContent = live ? 'В эфире' : 'Не подключено';
+  liveDot.classList.toggle('on', live);
+  liveDot.title = live ? 'В эфире' : 'Не в эфире';
+  if (!live) { connNick.textContent = '—'; stopTimer(); }
 }
 window.echo.onStatus((s) => {
-  if (s.state === 'live') { setStatus(true, 'В эфире @' + s.username); $('#feedSub').textContent = 'Эфир @' + s.username; }
+  if (s.state === 'live') { setStatus(true, 'В эфире @' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
   else {
     setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире');
     $('#feedSub').textContent = s.state === 'ended' ? 'Трансляция завершена' : 'Отключено';

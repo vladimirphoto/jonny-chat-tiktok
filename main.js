@@ -92,7 +92,7 @@ async function doConnect(rawName) {
   const alive = () => conn === c;
   const EV = ControlEvent || {};
 
-  c.on(WebcastEvent.CHAT, (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || '' }));
+  c.on(WebcastEvent.CHAT, (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || d.content || '' }));
   c.on(WebcastEvent.GIFT, (d) => {
     if (!alive()) return;
     const det = d.giftDetails || {};

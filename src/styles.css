@@ -127,3 +127,16 @@ body.talking .eq span{opacity:1;animation:bar 0.9s ease-in-out infinite}
 .guide a{color:var(--a3)}
 .usage{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
 #gVoice{margin-top:10px}
+
+/* индикатор эфира в боковой панели */
+.live-dot{width:12px;height:12px;border-radius:50%;background:var(--bad);margin:4px 0 0 6px;transition:.3s}
+.live-dot.on{background:var(--ok);animation:pulse 1.6s infinite}
+/* блок подключения */
+.nick-field{display:flex;align-items:center;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);padding:0 14px;transition:.2s}
+.nick-field:focus-within{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.nick-field span{color:var(--muted);margin-right:6px;font-size:15px}
+.nick-field input{border:0;background:transparent;box-shadow:none;padding:12px 0;flex:1;min-width:0}
+.nick-field input:focus{border:0;box-shadow:none}
+.conn-rows{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:12px}
+.conn-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.conn-row b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}

@@ -21,7 +21,7 @@
         <button class="nav" data-tab="filters"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg>Фильтры</button>
       </nav>
       <div class="side-foot">
-        <div class="pill" id="voiceState"><s></s>Голос готов</div>
+        <div class="live-dot" id="liveDot" title="Не в эфире"></div>
         <button class="btn ghost upd" id="btnUpdate">⟳ Проверить обновления</button>
         <small id="verLine">Версия —</small>
       </div>
@@ -46,17 +46,23 @@
           <div class="col-left">
             <div class="card">
               <h2>Подключение</h2>
-              <label>Ник автора (без @)</label>
-              <input id="nick" placeholder="например, yanejonny" spellcheck="false" />
+              <p class="muted">Введите ник стримера TikTok</p>
+              <label>Ник стримера</label>
+              <div class="nick-field"><span>@</span><input id="nick" placeholder="username" spellcheck="false" /></div>
               <button class="btn primary" id="btnConnect">Подключиться</button>
               <div class="alert" id="alert" hidden></div>
+              <div class="conn-rows">
+                <div class="conn-row"><span>Подключённый ник</span><b id="connNick">—</b></div>
+                <div class="conn-row"><span>Статус подключения</span><b id="connStatus">Не подключено</b></div>
+                <div class="conn-row"><span>Время в эфире</span><b id="connTime">—</b></div>
+              </div>
             </div>
             <div class="card tips">
               <h2>Перед эфиром</h2>
               <ol>
                 <li>Запусти TikTok LIVE</li>
                 <li>Введи ник и подключись</li>
-                <li>Включи захват звука ПК в OBS</li>
+                <li>Выбери голос во вкладке «Голос» — нажми на карточку</li>
               </ol>
             </div>
           </div>
@@ -80,7 +86,7 @@
           <div class="col-left">
           <div class="card">
             <h2>Мои голоса</h2>
-            <p class="muted">Нажми на карточку, чтобы выбрать голос. ▶ — прослушать.</p>
+            <p class="muted">Нажми на карточку чтобы выбрать голос</p>
             <div class="voices" id="voices"></div>
             <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
             <input type="range" id="vol" min="0" max="100" value="80" />
