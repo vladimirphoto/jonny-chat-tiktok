@@ -31,6 +31,7 @@ const PAGE_TEST = `(async () => {
   const add = (group, name, ok, detail) => R.push({ group, name, ok: !!ok, detail: detail === undefined ? '' : String(detail) });
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
   try {
     // --- интерфейс (критично) ---
     add('ui', 'preload API', window.echo && ['connect','disconnect','synth','voices','checkUpdate'].every((k) => typeof window.echo[k] === 'function'));
@@ -95,14 +96,31 @@ const PAGE_TEST = `(async () => {
     $('#nick').value = 'zz_no_such_live_user_84317';
     $('#btnConnect').click();
     const t0 = Date.now();
-    while (Date.now() - t0 < 50000 && $('#alert').hidden) await sleep(500);
-    add('ui', 'при отсутствии эфира показана ошибка', !$('#alert').hidden, $('#alert').textContent);
-    add('ui', 'кнопка вернулась в исходное состояние', $('#btnConnect').textContent === 'Подключиться', $('#btnConnect').textContent);
-    const alertText = $('#alert').textContent;
+    while (Date.now() - t0 < 50000 && !$('#feed .msg.notice')) await sleep(500);
+    const noticeEl = $('#feed .msg.notice');
+    const alertText = noticeEl ? noticeEl.textContent : '';
     const feedText = $('#feed').innerText;
+    add('ui', 'при отсутствии эфира сообщение показано в ленте чата', !!noticeEl, alertText);
+    add('ui', 'под кнопкой нет плашки с ошибкой', !$('#alert'));
+    add('ui', 'кнопка TikTok вернулась в исходное состояние', $('#btnConnect').textContent === 'Подключить', $('#btnConnect').textContent);
     add('ui', 'ошибка подключения без технического мусора', !/TypeError|invoking remote|undefined|Cannot read|isn.?t online/i.test(alertText + feedText), alertText);
     add('net', 'текст ошибки об эфире по-русски', /не в эфире|эфир не найден/i.test(alertText) && !/Technical|Failed|Room/i.test(alertText), alertText);
-    add('ui', 'сообщение об офлайне показано один раз (не дублируется в ленте)', !/не в эфире|не удалось подключиться|ошибка/i.test(feedText), feedText.replace(/\\n+/g, ' / '));
+    add('ui', 'сообщение об офлайне одно (без дублей)', $$('#feed .msg.notice').length === 1, $$('#feed .msg.notice').length);
+    // --- вёрстка ---
+    const rr = (el) => el.getBoundingClientRect();
+    const f1 = rr($('#nick').closest('.nick-field')), f2 = rr($('#twNick').closest('.nick-field'));
+    const b1 = rr($('#btnConnect')), b2 = rr($('#btnTwitch'));
+    add('ui', 'поля ников TikTok и Twitch одного размера', Math.abs(f1.width - f2.width) < 1 && Math.abs(f1.height - f2.height) < 1, f1.width + 'x' + f1.height + ' / ' + f2.width + 'x' + f2.height);
+    add('ui', 'кнопки TikTok и Twitch одного размера', Math.abs(b1.width - b2.width) < 1 && Math.abs(b1.height - b2.height) < 1, b1.width + 'x' + b1.height + ' / ' + b2.width + 'x' + b2.height);
+    add('ui', 'вкладка «Эфир» без прокрутки', $('#tab-live').scrollHeight <= $('#tab-live').clientHeight + 1, $('#tab-live').scrollHeight + '/' + $('#tab-live').clientHeight);
+    const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
+    add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
+    $('.nav[data-tab=widgets]').click(); await sleep(400);
+    add('ui', 'вкладка «Виджеты» без прокрутки', $('#tab-widgets').scrollHeight <= $('#tab-widgets').clientHeight + 1, $('#tab-widgets').scrollHeight + '/' + $('#tab-widgets').clientHeight);
+    add('ui', 'предпросмотр виджета под карточкой виджета', !!$('#pvFrame') && rr($('#pvFrame')).top > rr($('#wCopy')).bottom, '');
+    const wc = rr($('#wClear')), wcard = rr($('#wClear').closest('.card'));
+    add('ui', 'кнопки виджета не вылезают за карточку', wc.right <= wcard.right && wc.left >= wcard.left, JSON.stringify([wc.right, wcard.right]));
+    $('.nav[data-tab=live]').click();
     add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
     add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));
 

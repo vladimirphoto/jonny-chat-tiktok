@@ -21,11 +21,14 @@ const wmsg = (m) => wsrv && wsrv.broadcast('msg', m);
 const SELFTEST = process.argv.includes('--selftest');
 
 function createWindow() {
+  // размер под содержимое: все блоки помещаются без прокрутки (но не больше экрана)
+  const wa = require('electron').screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
-    width: 1180,
-    height: 780,
-    minWidth: 980,
-    minHeight: 660,
+    width: Math.min(1260, wa.width),
+    height: Math.min(880, wa.height),
+    useContentSize: true,
+    minWidth: 1060,
+    minHeight: 720,
     show: !SELFTEST,
     backgroundColor: '#0b0b12',
     title: 'ЭхоЧат LIVE',

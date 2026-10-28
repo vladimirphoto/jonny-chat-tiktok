@@ -47,6 +47,8 @@ const TITLES = {
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $$('.nav').forEach((x) => x.classList.toggle('active', x === b));
   $$('.tab').forEach((t) => t.classList.toggle('show', t.id === 'tab-' + b.dataset.tab));
+  document.body.classList.toggle('t-widgets', b.dataset.tab === 'widgets');
+  if (b.dataset.tab === 'widgets') initPreview();
   $('#title').textContent = TITLES[b.dataset.tab][0];
   $('#subtitle').textContent = TITLES[b.dataset.tab][1];
 }));
@@ -388,7 +390,7 @@ const btnTw = $('#btnTwitch');
 async function connectTwitch() {
   const nick = $('#twNick').value.trim();
   if (!nick || twConnecting) return false;
-  twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true;
+  twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true; S.twNick = nick; save();
   const r = await window.echo.twConnect(nick);
   btnTw.disabled = false; twConnecting = false;
   if (!r || !r.ok) { btnTw.textContent = 'Подключить'; sys('Twitch: ' + ((r && r.error) || 'ошибка подключения')); return false; }
@@ -402,8 +404,8 @@ async function disconnectTwitch() {
 btnTw && (btnTw.onclick = async () => { twLive ? disconnectTwitch() : connectTwitch(); });
 $('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !twLive) connectTwitch(); });
 
-const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
-let connected = false, connecting = false, alertTimer = null;
+const btn = $('#btnConnect'), status = $('#status');
+let connected = false, connecting = false;
 const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
@@ -415,25 +417,23 @@ function startTimer() {
 }
 function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
-  clearTimeout(alertTimer);
-  alertBox.textContent = text;
-  if (text && detail) {
-    const d = document.createElement('div');
-    d.className = 'alert-detail';
-    d.textContent = 'Техническая информация: ' + detail;
-    alertBox.appendChild(d);
-  }
-  alertBox.classList.toggle('warn', !!warn);
-  alertBox.hidden = !text;
-  // ошибка под кнопкой исчезает сама через 8 секунд
-  if (text) alertTimer = setTimeout(() => { alertBox.hidden = true; }, 8000);
+  // сообщение об ошибке выводим в ленте чата, а не под кнопкой
+  if (!text) return;
+  $('.empty', feed)?.remove();
+  feed.querySelectorAll('.msg.notice').forEach((n) => n.remove());
+  const el = document.createElement('div');
+  el.className = 'msg notice' + (warn ? ' warn' : '');
+  const t = document.createElement('div'); t.className = 't'; t.textContent = text; el.appendChild(t);
+  if (detail) { const d = document.createElement('div'); d.className = 'alert-detail'; d.textContent = 'Техническая информация: ' + detail; el.appendChild(d); }
+  feed.appendChild(el);
+  feed.scrollTop = feed.scrollHeight;
 }
 function setStatus(live, text) {
   status.classList.toggle('on', live);
   status.lastElementChild.textContent = text;
   connected = live;
-  btn.textContent = live || twLive ? 'Отключиться' : 'Подключиться';
-  btn.classList.toggle('stop', live || twLive);
+  btn.textContent = live ? 'Отключить' : 'Подключить';
+  btn.classList.toggle('connected', live);
   connStatus.textContent = live ? 'В эфире' : 'Не подключено';
   if (!live) { connNick.textContent = '—'; stopTimer(); }
 }
@@ -443,12 +443,12 @@ window.echo.onTwStatus((s) => {
   if (s.state === 'live') {
     twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
     sys('Twitch: чат ' + s.channel + ' подключён.');
-    if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); btn.textContent = 'Отключиться'; btn.classList.add('stop'); }
+    if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); }
   }
   if (s.state === 'offline' || s.state === 'reconnect') {
     if (s.state === 'offline') { twLive = false; btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); }
     else { btnTw.textContent = 'Переподкл…'; }
-    if (!connected) { btn.textContent = 'Подключиться'; btn.classList.remove('stop'); status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; }
+    if (!connected) { status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; }
   }
 });
 window.echo.onStatus((s) => {
@@ -464,28 +464,24 @@ btn.onclick = async () => {
   if (connecting) return;
   connecting = true;
   try {
-    if (connected || twLive) { await window.echo.disconnect(); await disconnectTwitch(); return; }
+    if (connected) { await window.echo.disconnect(); return; }
     const nick = $('#nick').value.trim().replace(/^@/, '');
     if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); $('#nick').focus(); return; }
     S.nick = nick; save();
-    showAlert('');
-    btn.textContent = 'Подключаюсь…';
+    btn.textContent = 'Подключаю…'; btn.classList.add('connecting');
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
     counters.likes = counters.gifts = counters.follows = 0; followedNow.clear();
     ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
     $('#sViewers').textContent = '—';
-    resetEmpty();
+    if (!twLive) resetEmpty();
     sys(`Ищем активный эфир @${nick}…`);
-    const twNick2 = $('#twNick').value.trim();
-    if (twNick2 && !twLive) { S.twNick = twNick2; save(); connectTwitch(); }
     const r = await window.echo.connect(nick);
     if (!r || !r.ok) {
       setStatus(false, 'Не в эфире');
       $('#feedSub').textContent = 'Не удалось подключиться';
-      // одно понятное сообщение на русском — без дублей в ленте
+      // одно понятное сообщение на русском — в ленте чата
       showAlert((r && r.error) || 'Не удалось подключиться к эфиру. Попробуйте снова.', r && (r.code === 'offline' || r.code === 'empty'), r && r.detail);
     } else {
-      showAlert('');
       sys('Подключено! Чат будет озвучен.');
       enqueue({ el: null, say: 'Подключено к эфиру. Озвучка включена.' });
     }
@@ -493,7 +489,8 @@ btn.onclick = async () => {
     setStatus(false, 'Не в эфире');
     showAlert('Не удалось подключиться к эфиру. Попробуйте снова.', false, e && e.message ? e.message : String(e));
   } finally {
-    connecting = false;
+    connecting = false; btn.classList.remove('connecting');
+    if (!connected) btn.textContent = 'Подключить';
   }
 };
 $('#nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
@@ -567,6 +564,16 @@ $('#wCopy').onclick = async () => {
   b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Копировать'; }, 1500);
 };
 $('#wTest').onclick = () => window.echo.widgetTest();
+$('#pvTest').onclick = () => window.echo.widgetTest();
+let pvInit = false;
+async function initPreview() {
+  if (pvInit) return; pvInit = true;
+  const u = await window.echo.widgetUrl();
+  if (!u) return;
+  const f = $('#pvFrame');
+  f.addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); }, { once: true });
+  f.src = u;
+}
 $('#wClear').onclick = () => window.echo.widgetClear();
 
 /* ---------- старт ---------- */
