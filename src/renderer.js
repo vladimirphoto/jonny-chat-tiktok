@@ -25,14 +25,27 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  wAlignTt: 'left', wAlignTw: 'right', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, twNick: '',
+  widgets: [], wSel: '', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
-// прежняя общая настройка выравнивания (split / left / right) переносится на TikTok и Twitch отдельно
-try { const raw = JSON.parse(localStorage.getItem('echochat2') || '{}'); if (raw.wAlign && !raw.wAlignTt) { S.wAlignTt = raw.wAlign === 'right' ? 'right' : 'left'; S.wAlignTw = raw.wAlign === 'left' ? 'left' : 'right'; } } catch (_) {}
+// виджеты: у каждого своё выравнивание TikTok и Twitch и своя ссылка. Первый — для OBS, второй — для TikTok LIVE Studio.
+// Прежнее выравнивание (одно на всё приложение) переносится на первый виджет.
+try {
+  const raw = JSON.parse(localStorage.getItem('echochat2') || '{}');
+  if (!Array.isArray(S.widgets) || !S.widgets.length) {
+    let tt = raw.wAlignTt, tw = raw.wAlignTw;
+    if (!tt && raw.wAlign) { tt = raw.wAlign === 'right' ? 'right' : 'left'; tw = raw.wAlign === 'left' ? 'left' : 'right'; }
+    S.widgets = [{ id: 'w1', name: 'OBS', tt: tt || 'left', tw: tw || 'left' }, { id: 'w2', name: 'TikTok LIVE', tt: 'right', tw: 'right' }];
+  }
+} catch (_) {}
+delete S.wAlignTt; delete S.wAlignTw;
+S.widgets = S.widgets.filter((w) => w && w.id).map((w) => ({ id: String(w.id), name: String(w.name || 'Виджет').slice(0, 20), tt: w.tt === 'right' ? 'right' : 'left', tw: w.tw === 'right' ? 'right' : 'left' }));
+if (!S.widgets.length) S.widgets = [{ id: 'w1', name: 'OBS', tt: 'left', tw: 'left' }];
+if (!S.widgets.some((w) => w.id === S.wSel)) S.wSel = S.widgets[0].id;
+const curW = () => S.widgets.find((w) => w.id === S.wSel) || S.widgets[0];
 // встроенные голоса всегда на месте, свои — добавляются после них
 S.presets = BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true }));
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
@@ -130,7 +143,7 @@ $('#wHeight').addEventListener('touchstart', () => window.echo.widgetSet({ ...ge
 $('#wHeight').addEventListener('mouseup', () => { window.echo.widgetSet({ ...getWSet(), _previewHeight: false }); });
 $('#wHeight').addEventListener('touchend', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
 const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
-function getWSet() { return { alignTt: S.wAlignTt, alignTw: S.wAlignTw, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
+function getWSet() { return { icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
 function pushWidget() { window.echo.widgetSet(getWSet()); }
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
@@ -495,7 +508,7 @@ function setStatus(live, text) {
 window.echo.onTwStatus((s) => {
   twLive = s.state === 'live' || s.state === 'reconnect';
   setSt(connTwStatus, s.state === 'live' ? 'Чат подключён' : s.state === 'reconnect' ? 'Переподключение…' : 'Не подключено', s.state === 'live' ? 'ok' : s.state === 'reconnect' ? 'warn' : '');
-  if (s.state === 'live') startTimer(); else if (s.state === 'offline') { stopTimer(); $('#sViewersTw').textContent = '—'; }
+  if (s.state === 'live') startTimer(); else if (s.state === 'offline') { stopTimer(); $('#sViewersTw').textContent = '—' }
   setNk(connTw, s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—');
   if (s.state === 'live') {
     twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
@@ -624,12 +637,50 @@ $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textC
 // выравнивание сообщений задаётся отдельно для TikTok и для Twitch
 const ALIGN_LABELS = { left: 'Слева', right: 'Справа' };
 const alignOpts = () => Object.entries(ALIGN_LABELS).map(([v, label]) => ({ v, label }));
-makeSelect('wAlignTtSel', { options: alignOpts, get: () => S.wAlignTt, set: (v) => { S.wAlignTt = v; save(); pushWidget(); } });
-makeSelect('wAlignTwSel', { options: alignOpts, get: () => S.wAlignTw, set: (v) => { S.wAlignTw = v; save(); pushWidget(); } });
+const alignRenders = [
+  makeSelect('wAlignTtSel', { options: alignOpts, get: () => curW().tt, set: (v) => { curW().tt = v; save(); onWidgetChanged(); } }),
+  makeSelect('wAlignTwSel', { options: alignOpts, get: () => curW().tw, set: (v) => { curW().tw = v; save(); onWidgetChanged(); } }),
+];
+// вкладки виджетов: переключение, добавление (до 5), удаление, переименование двойным щелчком
+const MAX_WIDGETS = 5;
+function renderWTabs() {
+  const box = $('#wTabs'); box.innerHTML = '';
+  S.widgets.forEach((w) => {
+    const b = document.createElement('button');
+    b.className = 'wtab' + (w.id === S.wSel ? ' sel' : '');
+    b.dataset.id = w.id; b.title = 'Двойной щелчок — переименовать';
+    const nm = document.createElement('span'); nm.textContent = w.name; b.appendChild(nm);
+    b.onclick = () => { if (S.wSel === w.id) return; S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
+    nm.ondblclick = (e) => {
+      e.stopPropagation(); nm.contentEditable = 'true'; nm.focus();
+      document.getSelection().selectAllChildren(nm);
+      const done = () => { nm.contentEditable = 'false'; w.name = (nm.textContent || '').trim().slice(0, 20) || 'Виджет'; nm.textContent = w.name; save(); };
+      nm.onblur = done; nm.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); nm.blur(); } ev.stopPropagation(); };
+    };
+    if (S.widgets.length > 1 && w.id === S.wSel) {
+      const x = document.createElement('i'); x.className = 'wdel'; x.textContent = '✕'; x.title = 'Удалить виджет';
+      x.onclick = (e) => { e.stopPropagation(); S.widgets = S.widgets.filter((q) => q.id !== w.id); S.wSel = S.widgets[0].id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
+      b.appendChild(x);
+    }
+    box.appendChild(b);
+  });
+  if (S.widgets.length < MAX_WIDGETS) {
+    const add = document.createElement('button'); add.className = 'wtab add'; add.textContent = '+'; add.title = 'Добавить виджет со своим выравниванием';
+    add.onclick = () => {
+      const n = S.widgets.length + 1, w = { id: 'w' + Date.now().toString(36), name: 'Виджет ' + n, tt: curW().tt, tw: curW().tw };
+      S.widgets.push(w); S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged();
+    };
+    box.appendChild(add);
+  }
+}
+// ссылка и предпросмотр зависят от выбранного виджета
+function onWidgetChanged() { refreshLink(); reloadPreview(); }
+const widgetQuery = () => '?tt=' + curW().tt + '&tw=' + curW().tw;
+let pageChecked = false;
 async function refreshLink() {
   const r = await window.echo.widgetLink().catch(() => null);
-  $('#wUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
-  checkPage();
+  $('#wUrl').value = r && r.ok ? r.url + widgetQuery() : 'Не удалось запустить сервер виджета';
+  if (!pageChecked) { pageChecked = true; checkPage(); }
 }
 // Опубликована ли страница на GitHub Pages: 404 значит, что Pages в репозитории ещё не включён
 const PAGES_SETTINGS = 'https://github.com/vladimirphoto/jonny-chat-tiktok/settings/pages';
@@ -652,20 +703,20 @@ $('#wCopy').onclick = async () => {
   const b = $('#wCopy'), svg = b.querySelector('svg').outerHTML;
   b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Копировать'; }, 1500);
 };
-$('#wTest').onclick = () => window.echo.widgetTest();
 $('#pvTest').onclick = () => window.echo.widgetTest();
-let pvInit = false;
+let pvInit = false, pvBase = '';
 async function initPreview() {
   if (pvInit) return; pvInit = true;
-  const u = await window.echo.widgetUrl();
-  if (!u) return;
-  const f = $('#pvFrame');
-  f.addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); }, { once: true });
-  f.src = u;
+  pvBase = await window.echo.widgetUrl();
+  if (!pvBase) return;
+  $('#pvFrame').addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); });
+  reloadPreview();
 }
+// предпросмотр показывает выбранный виджет: страница читает выравнивание из адреса
+function reloadPreview() { if (pvBase) $('#pvFrame').src = pvBase + widgetQuery(); }
 $('#wClear').onclick = () => window.echo.widgetClear();
 
 /* ---------- старт ---------- */
-renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
+renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
 window.__echo = { get voiceCalls() { return voiceCalls; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };

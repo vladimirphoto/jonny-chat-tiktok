@@ -39,7 +39,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/\\?tt=(left|right)&tw=(left|right)$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
@@ -69,7 +69,7 @@ const PAGE_TEST = `(async () => {
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
     // --- озвучка: отдельные кнопки для TikTok и Twitch ---
     const vb = (k) => document.querySelector('input[data-k=' + k + ']');
-    add('ui', 'озвучка: отдельные переключатели TikTok (чат, подарки, подписки), Twitch (чат) и «Читать ник»', ['ttChat', 'gifts', 'follows', 'twChat', 'readName'].every((k) => vb(k)) && !!document.querySelector('.vgroup.tt [data-k=ttChat]') && !!document.querySelector('.vgroup.tw [data-k=twChat]'));
+    add('ui', 'озвучка: отдельные переключатели TikTok (чат, подарки, подписки), Twitch (чат), заголовки без значков и «Читать ник»', ['ttChat', 'gifts', 'follows', 'twChat', 'readName'].every((k) => vb(k)) && !!document.querySelector('.vgroup.tt [data-k=ttChat]') && !!document.querySelector('.vgroup.tw [data-k=twChat]') && !document.querySelector('.vgroup .vg-head .vv-ic'));
     add('ui', 'озвучка: старые переключатели «Что озвучивать» убраны', !document.querySelector('input[data-k=chat]') && /Что озвучивать/.test($('#tab-voice').innerText));
     const tw0 = E.S.twChat;
     vb('twChat').click();
@@ -105,10 +105,19 @@ const PAGE_TEST = `(async () => {
     add('ui', 'вариантов формата ссылки нет — одна рабочая ссылка', !$('#wHostSel'));
     // выравнивание отдельно для TikTok и Twitch
     const pick2 = async (id, re) => { $('#' + id).click(); await sleep(40); [...$('#' + id).querySelectorAll('.csel-opt')].find((o) => re.test(o.textContent)).click(); await sleep(40); };
+    const cw = () => E.S.widgets.find((w) => w.id === E.S.wSel);
     await pick2('wAlignTtSel', /Справа/); await pick2('wAlignTwSel', /Слева/);
-    const alOk1 = E.S.wAlignTt === 'right' && E.S.wAlignTw === 'left';
-    await pick2('wAlignTtSel', /Слева/); await pick2('wAlignTwSel', /Справа/);
-    add('ui', 'выравнивание задаётся отдельно для TikTok и Twitch', alOk1 && E.S.wAlignTt === 'left' && E.S.wAlignTw === 'right', E.S.wAlignTt + ' / ' + E.S.wAlignTw);
+    const alOk1 = cw().tt === 'right' && cw().tw === 'left' && /\\?tt=right&tw=left$/.test($('#wUrl').value);
+    await pick2('wAlignTtSel', /Слева/); await pick2('wAlignTwSel', /Слева/);
+    add('ui', 'выравнивание задаётся отдельно для TikTok и Twitch, ссылка меняется', alOk1 && cw().tt === 'left' && cw().tw === 'left' && /\\?tt=left&tw=left$/.test($('#wUrl').value), cw().tt + ' / ' + cw().tw + ' | ' + $('#wUrl').value);
+    // несколько виджетов: у каждого своя ссылка
+    const tabs0 = document.querySelectorAll('#wTabs .wtab:not(.add)').length;
+    const url1 = $('#wUrl').value;
+    document.querySelectorAll('#wTabs .wtab:not(.add)')[1].click(); await sleep(60);
+    const url2 = $('#wUrl').value;
+    add('ui', 'два виджета с отдельными ссылками и выравниванием', tabs0 >= 2 && url1 !== url2 && /\\?tt=right&tw=right$/.test(url2), url1 + ' | ' + url2);
+    document.querySelectorAll('#wTabs .wtab:not(.add)')[0].click(); await sleep(60);
+    add('ui', 'кнопки «Тест» в карточке виджета нет, в предпросмотре есть', !$('#wTest') && !!$('#pvTest'));
     add('ui', 'старого общего выбора выравнивания нет', !$('#wAlignSel'));
     for (let i = 0; i < 40 && $('#wStat').dataset.state === 'checking'; i++) await sleep(250);
     add('ui', 'проверка страницы виджета завершилась; при успехе подпись не показывается', $('#wStat').dataset.state !== 'checking' && ($('#wStat').dataset.state !== 'ok' || $('#wStat').textContent === ''), $('#wStat').dataset.state + ' | ' + $('#wStat').textContent.slice(0, 60));

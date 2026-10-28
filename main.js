@@ -285,7 +285,7 @@ ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state:
 // ---------- Виджет чата для OBS / TikTok LIVE Studio ----------
 // адрес для предпросмотра внутри приложения
 ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/chat` : ''));
-// ссылка для копирования: настоящий https-адрес страницы виджета на GitHub Pages; порт приложения — в параметре
+// ссылка для копирования: настоящий https-адрес страницы виджета на GitHub Pages (выравнивание добавляет окно приложения)
 ipcMain.handle('widget:link', () => (wsrv && wsrv.port ? { ok: true, url: widget.PAGES_URL } : { ok: false, url: '' }));
 // Доступна ли страница на GitHub Pages (404 — Pages для репозитория ещё не включён)
 ipcMain.handle('widget:check', () => new Promise((resolve) => {

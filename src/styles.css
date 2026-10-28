@@ -248,7 +248,7 @@ body.t-widgets .stats{display:none}
 #tab-widgets .col-right{min-height:0}
 
 /* кнопки виджета: не вылезают за карточку */
-.wbtn-row{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.wbtn-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .wbtn{padding:10px 6px!important;font-size:13px;min-width:0;overflow:hidden}
 
 /* предпросмотр */
@@ -367,3 +367,12 @@ label+.csel{margin-top:0}
 .btn.upd>*{position:relative;z-index:1}
 .btn.upd.dl{background:rgba(255,255,255,.06);border-color:rgba(236,72,153,.55);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);box-shadow:none}
 .btn.upd.dl::before{content:"";position:absolute;inset:0;width:calc(var(--p,0) * 1%);background:linear-gradient(90deg,#8b5cf6,#ec4899 60%,#fb7185);box-shadow:0 0 18px rgba(236,72,153,.55);transition:width .25s ease-out;z-index:0}
+
+/* вкладки виджетов */
+.wtabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.wtab{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.22);color:var(--muted);font:600 13px inherit;font-family:inherit;cursor:pointer;max-width:100%}
+.wtab span{outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.wtab:hover{color:var(--text)}
+.wtab.sel{color:#fff;border-color:rgba(167,139,250,.6);background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(236,72,153,.25))}
+.wtab.add{padding:7px 14px;font-size:16px;line-height:1}
+.wdel{font-style:normal;font-size:11px;opacity:.6}.wdel:hover{opacity:1;color:#fecaca}
