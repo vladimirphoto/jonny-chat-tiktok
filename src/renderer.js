@@ -25,80 +25,17 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  widgets: [], wSel: '', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, twNick: '',
-  ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
+  wAlign: 'split', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wScaleTt: 100, wHeightTt: 100, wFadeSec: 20, showTwitch: true, twNick: '',
+  chat: true, readName: true, gifts: true, follows: true, subsOnly: false, eventVoice: '', ttSession: '', ttIdc: '', ttSignKey: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
-// виджеты: у каждого своё выравнивание TikTok и Twitch и своя ссылка. Первый — для OBS, второй — для TikTok LIVE Studio.
-// Прежнее выравнивание (одно на всё приложение) переносится на первый виджет.
-try {
-  const raw = JSON.parse(localStorage.getItem('echochat2') || '{}');
-  if (!Array.isArray(S.widgets) || !S.widgets.length) {
-    let tt = raw.wAlignTt, tw = raw.wAlignTw;
-    if (!tt && raw.wAlign) { tt = raw.wAlign === 'right' ? 'right' : 'left'; tw = raw.wAlign === 'left' ? 'left' : 'right'; }
-    S.widgets = [{ id: 'w1', name: 'OBS', tt: tt || 'left', tw: tw || 'left' }, { id: 'w2', name: 'TikTok LIVE', tt: 'right', tw: 'right' }];
-  }
-} catch (_) {}
-delete S.wAlignTt; delete S.wAlignTw;
-S.widgets = S.widgets.filter((w) => w && w.id).map((w) => ({ id: String(w.id), name: String(w.name || 'Виджет').slice(0, 20), tt: w.tt === 'right' ? 'right' : 'left', tw: w.tw === 'right' ? 'right' : 'left' }));
-if (!S.widgets.length) S.widgets = [{ id: 'w1', name: 'OBS', tt: 'left', tw: 'left' }];
-if (!S.widgets.some((w) => w.id === S.wSel)) S.wSel = S.widgets[0].id;
-const curW = () => S.widgets.find((w) => w.id === S.wSel) || S.widgets[0];
 // встроенные голоса всегда на месте, свои — добавляются после них
 S.presets = BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true }));
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
-delete S.subsOnly; // режим «только подписчики» убран
-delete S.showTwitch; // чат Twitch всегда показывается в ленте, если канал подключён
-// прежняя общая настройка «озвучивать чат» переносится на обе платформы
-try { const raw = JSON.parse(localStorage.getItem('echochat2') || '{}'); if (typeof raw.chat === 'boolean' && raw.ttChat === undefined) { S.ttChat = raw.chat; S.twChat = raw.chat; } } catch (_) {}
-delete S.chat;
-// голоса платформ: у тех, кто обновился, остаётся прежний голос чата
-const ensureRouteVoices = () => ['ttVoice', 'twVoice'].forEach((k) => { if (!S.presets.some((p) => p.id === S[k])) S[k] = S.presets.some((p) => p.id === S.selected) ? S.selected : BUILTIN[0].id; });
-ensureRouteVoices();
 const save = () => { try { localStorage.setItem('echochat2', JSON.stringify(S)); } catch (_) {} };
 const selectedPreset = () => S.presets.find((p) => p.id === S.selected) || S.presets[0];
-const ttPreset = () => S.presets.find((p) => p.id === S.ttVoice) || selectedPreset();
-const twPreset = () => S.presets.find((p) => p.id === S.twVoice) || selectedPreset();
-
-/* ---------- выпадающие списки в стиле приложения ---------- */
-const csels = [];
-function closeSels(except) { csels.forEach((c) => { if (c.root !== except) c.root.classList.remove('open'); }); }
-function makeSelect(id, { options, get, set }) {
-  const root = $('#' + id), val = $('.csel-val', root), drop = $('.csel-drop', root);
-  const render = () => {
-    const opts = options(), cur = get();
-    const o = opts.find((x) => x.v === cur) || opts[0];
-    val.textContent = o ? o.label : '';
-    drop.innerHTML = '';
-    opts.forEach((x) => {
-      const d = document.createElement('div');
-      d.className = 'csel-opt' + (o && x.v === o.v ? ' sel' : '');
-      d.textContent = x.label;
-      d.onclick = (e) => { e.stopPropagation(); root.classList.remove('open'); set(x.v); render(); };
-      drop.appendChild(d);
-    });
-  };
-  root.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeSels(root);
-    root.classList.toggle('open');
-    if (root.classList.contains('open')) {
-      // мало места снизу — раскрываем вверх
-      root.classList.remove('up');
-      const r = root.getBoundingClientRect(), need = Math.min(drop.scrollHeight, 240) + 12;
-      if (window.innerHeight - r.bottom < need && r.top > need) root.classList.add('up');
-      drop.classList.toggle('sc', drop.scrollHeight > drop.clientHeight + 1); // отступ под полосу прокрутки
-      const sel = $('.sel', drop); if (sel) sel.scrollIntoView({ block: 'nearest' });
-    }
-  });
-  csels.push({ root, render });
-  render();
-  return render;
-}
-document.addEventListener('click', () => closeSels());
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSels(); });
 
 /* ---------- вкладки ---------- */
 const TITLES = {
@@ -136,14 +73,33 @@ function syncControls() {
   $('#pitch').closest('.ctl').classList.remove('off');
 }
 const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
-const refreshWScale = bindRange('wScale', 'wScaleVal', (v) => v + '%', () => S.wScale, (v) => { S.wScale = v; pushWidget(); });
-const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => S.wHeight, (v) => { S.wHeight = v; pushWidget(); window.echo.widgetSet({ ...getWSet(), _previewHeight: true }); });
-$('#wHeight').addEventListener('mousedown', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }));
-$('#wHeight').addEventListener('touchstart', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }), { passive: true });
-$('#wHeight').addEventListener('mouseup', () => { window.echo.widgetSet({ ...getWSet(), _previewHeight: false }); });
-$('#wHeight').addEventListener('touchend', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
+// Переключатель OBS / TikTok LIVE Studio
+let wTarget = 'obs'; // 'obs' | 'tt'
+function setWTarget(t) {
+  wTarget = t;
+  $('#wPanelObs').hidden = t !== 'obs';
+  $('#wPanelTt').hidden  = t !== 'tt';
+  $('#wTargetObs').classList.toggle('active', t === 'obs');
+  $('#wTargetTt').classList.toggle('active',  t === 'tt');
+  refreshWScaleObs(); refreshWHeightObs(); refreshWScaleTt(); refreshWHeightTt();
+}
+$$('.w-target-btn').forEach((b) => b.addEventListener('click', () => setWTarget(b.dataset.target)));
+
+function getScale()  { return wTarget === 'tt' ? S.wScaleTt  : S.wScale; }
+function getHeight() { return wTarget === 'tt' ? S.wHeightTt : S.wHeight; }
+
+const refreshWScaleObs  = bindRange('wScaleObs',  'wScaleValObs',  (v) => v + '%', () => S.wScale,    (v) => { S.wScale    = v; pushWidget(); });
+const refreshWHeightObs = bindRange('wHeightObs', 'wHeightValObs', (v) => v + '%', () => S.wHeight,   (v) => { S.wHeight   = v; pushWidget(); window.echo.widgetSet({ ...getWSet(), _previewHeight: true }); });
+const refreshWScaleTt   = bindRange('wScaleTt',   'wScaleValTt',   (v) => v + '%', () => S.wScaleTt,  (v) => { S.wScaleTt  = v; pushWidget(); });
+const refreshWHeightTt  = bindRange('wHeightTt',  'wHeightValTt',  (v) => v + '%', () => S.wHeightTt, (v) => { S.wHeightTt = v; pushWidget(); window.echo.widgetSet({ ...getWSet(), _previewHeight: true }); });
+['wHeightObs','wHeightTt'].forEach((id) => {
+  $('#' + id).addEventListener('mousedown', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }));
+  $('#' + id).addEventListener('touchstart', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }), { passive: true });
+  $('#' + id).addEventListener('mouseup',   () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
+  $('#' + id).addEventListener('touchend',  () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
+});
 const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
-function getWSet() { return { icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
+function getWSet() { return { align: S.wAlign, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: getScale(), height: getHeight(), fadeSec: S.wFadeSec }; }
 function pushWidget() { window.echo.widgetSet(getWSet()); }
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
@@ -161,7 +117,6 @@ function renderVoices() {
     d.dataset.id = p.id;
     d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
       <div class="vi"><b>${esc(p.name)}</b><small>${esc(p.desc || p.voice || '')}</small></div>
-      <span class="vtags">${S.ttVoice === p.id ? '<em class="tt">TikTok</em>' : ''}${S.twVoice === p.id ? '<em class="tw">Twitch</em>' : ''}</span>
       <button class="mini play" title="Прослушать">${ICON_PLAY}</button>
       ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
     d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); syncControls(); };
@@ -171,28 +126,26 @@ function renderVoices() {
       e.stopPropagation();
       S.presets = S.presets.filter((x) => x.id !== p.id);
       if (S.selected === p.id) S.selected = BUILTIN[0].id;
-      ensureRouteVoices();
       save(); renderVoices(); refreshRate(); refreshPitch(); syncControls();
     };
     voicesBox.appendChild(d);
   });
   refreshPreviewUi();
-  fillVoiceSelects();
+  fillEventVoice();
 }
 
-// голос чата TikTok, голос чата Twitch и голос для подарков и подписок — отдельные выпадающие списки
-const voiceOpts = () => S.presets.map((p) => ({ v: p.id, label: p.name + ' · ' + (p.gender === 'M' ? 'муж.' : 'жен.') }));
-const routeSelects = [
-  makeSelect('ttVoiceSel', { options: voiceOpts, get: () => S.ttVoice, set: (v) => { S.ttVoice = v; save(); renderVoices(); } }),
-  makeSelect('twVoiceSel', { options: voiceOpts, get: () => S.twVoice, set: (v) => { S.twVoice = v; save(); renderVoices(); } }),
-  makeSelect('eventVoiceSel', {
-    options: () => [{ v: '', label: 'Как у чата TikTok' }, ...voiceOpts()],
-    get: () => (S.presets.some((p) => p.id === S.eventVoice) ? S.eventVoice : ''),
-    set: (v) => { S.eventVoice = v; save(); },
-  }),
-];
-function fillVoiceSelects() { ensureRouteVoices(); routeSelects.forEach((r) => r()); }
-const eventPreset = () => S.presets.find((p) => p.id === S.eventVoice) || ttPreset();
+// голос для подарков и подписок: «как у чата» или любой из списка
+const eventVoiceEl = $('#eventVoice');
+function fillEventVoice() {
+  eventVoiceEl.innerHTML = '';
+  const add = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; eventVoiceEl.appendChild(o); };
+  add('', 'Как у чата');
+  S.presets.forEach((p) => add(p.id, p.name + ' · ' + (p.gender === 'M' ? 'муж.' : 'жен.')));
+  if (!S.presets.some((p) => p.id === S.eventVoice)) S.eventVoice = '';
+  eventVoiceEl.value = S.eventVoice;
+}
+eventVoiceEl.onchange = () => { S.eventVoice = eventVoiceEl.value; save(); };
+const eventPreset = () => S.presets.find((p) => p.id === S.eventVoice) || selectedPreset();
 
 // Оставляем только голоса, которые реально есть у сервиса Microsoft
 const BASE_IDS = ['b-svetlana', 'b-dmitry'];
@@ -201,7 +154,6 @@ function applyCatalog(all) {
   const have = new Set(all);
   S.presets = S.presets.filter((p) => BASE_IDS.includes(p.id) || have.has(p.voice));
   if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
-  ensureRouteVoices(); save();
   renderVoices(); refreshRate(); refreshPitch(); syncControls();
 }
 
@@ -266,12 +218,10 @@ function addMsg({ name, text, kind = '', sub = false, color, avatar = '', platfo
   }
   feed.appendChild(el);
   while (feed.children.length > 150) feed.firstChild.remove();
-  feed.scrollTop = feed.scrollHeight;
+  if (!$('#feedPaused').classList.contains('on')) feed.scrollTop = feed.scrollHeight;
   return el;
 }
-// цвет точки в «таблетке»: зелёный — подключились, красный — завершилось или ошибка, голубой — остальное
-const sysTone = (t) => (/завершена|ошибк|не удалось|не работает|нестабильн|отклон|отмен|не найден|не в эфире/i.test(t) ? 'bad' : /подключено!|подключён\./i.test(t) ? 'ok' : '');
-const sys = (text) => addMsg({ name: 'Система', text, kind: ('sys ' + sysTone(text)).trim(), color: '#475569' });
+const sys = (text) => addMsg({ name: 'Система', text, kind: 'sys', color: '#475569' });
 const resetEmpty = () => { feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
 resetEmpty();
 $('#btnClear').onclick = resetEmpty;
@@ -309,16 +259,14 @@ function speakName(n) {
 
 /* ---------- очередь озвучки ---------- */
 const queue = [];
-let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null;
+let busy = false, cur = null, curUrl = null, curEl = null, curResolve = null, lastWarn = 0;
 
 const QUEUE_MAX = 8;       // длиннее очередь — больше отставание от эфира
 const STALE_MS = 25000;    // сообщение старше этого времени уже не озвучиваем
 function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук готовится заранее, пока говорит предыдущая фраза
 
-let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
-  voiceCalls++;
-  if ($('#paused').checked && !force) return;
+  if ($('#feedPaused').classList.contains('on') && !force) return;
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
   item.t = Date.now(); item.force = force;
@@ -330,6 +278,7 @@ function enqueue(item, force = false) {
 function stopCurrent() {
   if (cur) { cur.onended = cur.onerror = null; cur.pause(); cur = null; }
   if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
+  try { speechSynthesis.cancel(); } catch (_) {}
   if (curResolve) { const r = curResolve; curResolve = null; r(); }
 }
 
@@ -346,12 +295,29 @@ function playBlob(b64) {
   });
 }
 
+function fallbackSpeak(text) {
+  return new Promise((resolve) => {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      const ru = speechSynthesis.getVoices().find((v) => v.lang.startsWith('ru'));
+      if (ru) u.voice = ru;
+      u.lang = 'ru-RU'; u.volume = S.vol / 100;
+      curResolve = resolve;
+      u.onend = u.onerror = () => { curResolve = null; resolve(); };
+      speechSynthesis.speak(u);
+    } catch (_) { resolve(); }
+  });
+}
+
 function synthFor(text, p) {
   return window.echo.synth({
     text, voice: p.voice,
     rate: Math.max(0.5, 1 + (p.rate || 0) / 100),
     pitch: ((p.pitch || 0) >= 0 ? '+' : '') + (p.pitch || 0) + 'Hz',
   }).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
+}
+function warnOnce(text) {
+  if (Date.now() - lastWarn > 30000) { lastWarn = Date.now(); sys(text); }
 }
 
 // синтез стартует заранее, пока играет предыдущая фраза — без пауз между сообщениями
@@ -363,8 +329,13 @@ function ensureSynth(item) {
 async function speakItem(item) {
   const r = await ensureSynth(item);
   if (item.cancelled) return; // нажали паузу, пока звук готовился
-  // не получилось озвучить — молча пропускаем сообщение: без системного голоса Windows и без уведомлений
-  if (r && r.ok) { try { await playBlob(r.audio); } catch (_) {} }
+  if (r && r.ok) {
+    try { await playBlob(r.audio); return; } catch (_) {}
+  } else {
+    // раньше ошибка терялась — теперь видно в ленте, почему не звучит
+    warnOnce(`Озвучка не работает: ${(r && r.error) || 'нет ответа'}. Включён системный голос Windows.`);
+  }
+  await fallbackSpeak(item.say);
 }
 
 async function pump() {
@@ -387,28 +358,36 @@ async function pump() {
 }
 
 $('#btnSkip').onclick = () => stopCurrent();
-$('#paused').addEventListener('change', (e) => { if (e.target.checked) { queue.length = 0; stopCurrent(); } });
+const feedPausedBtn = $('#feedPaused');
+feedPausedBtn.addEventListener('click', () => {
+  const on = feedPausedBtn.classList.toggle('on');
+  feedPausedBtn.textContent = on ? '▶ Продолжить' : '⏸ Пауза';
+  if (!on) feed.scrollTop = feed.scrollHeight; // при снятии паузы — прокрутить вниз
+});
 
 /* ---------- события TikTok ---------- */
 const counters = { likes: 0, gifts: 0, follows: 0 };
 const bump = (id, v) => { $(id).textContent = v.toLocaleString('ru-RU'); };
 
-// Озвучиваем только то, что написали после подключения. Время отсчитывается от нажатия «Подключить»:
-// всё, что создано раньше (хвост чата, который иногда присылает платформа), не показываем и не читаем.
-const since = { tiktok: 0, twitch: 0 };
-const BACKLOG_WINDOW = 20000, SKEW = 2000;
-const isBacklog = (m, platform) => !!(m.created && since[platform] && Date.now() - since[platform] < BACKLOG_WINDOW && m.created < since[platform] - SKEW);
+let connectedAt = 0;
+// подписчик = подписан на канал (признак из TikTok) либо подписался в этом эфире либо платный подписчик
+const followedNow = new Set();
+const isFollowerMsg = (m) => m.isFollower === true || m.isSub || followedNow.has(String(m.name).toLowerCase());
+// сразу после подключения TikTok присылает «хвост» старых сообщений — не читаем их
+const isBacklog = (m) => m.created && connectedAt && Date.now() - connectedAt < 6000 && m.created < connectedAt - 10000;
 function handleChat(m, platform) {
-  if (!m.text || isBacklog(m, platform)) return; // пустые и старые сообщения не показываем и не озвучиваем
+  if (!m.text || isBacklog(m)) return; // пустые и старые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub, avatar: m.avatar, platform });
-  if (platform === 'twitch' ? !S.twChat : !S.ttChat) return; // озвучка этой платформы выключена — сообщение остаётся в ленте
+  if (platform === 'tiktok' && m.fdbg) el.title = 'Подписка: ' + m.fdbg;
+  if (!S.chat) return;
+  if (S.subsOnly && !isFollowerMsg(m)) { el.classList.add('skip'); el.title = 'Пропущено: не подписчик канала' + (m.fdbg ? ' (' + m.fdbg + ')' : ''); return; }
   const t = clean(m.text);
   if (!t) return;
-  enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: platform === 'twitch' ? twPreset() : ttPreset() });
+  enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: selectedPreset() });
 }
 window.echo.onChat((m) => handleChat(m, 'tiktok'));
 // Twitch: сообщения есть только если канал указан и подключён
-window.echo.onTwChat((m) => handleChat(m, 'twitch'));
+window.echo.onTwChat((m) => { if (S.showTwitch) handleChat({ ...m, isFollower: m.isSub }, 'twitch'); });
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
   const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift', avatar: g.avatar, platform: 'tiktok', giftImg: g.image });
@@ -416,6 +395,7 @@ window.echo.onGift((g) => {
 });
 window.echo.onFollow((f) => {
   counters.follows++; bump('#sFollows', counters.follows);
+  followedNow.add(String(f.name).toLowerCase());
   const el = addMsg({ name: f.name, text: '➕ подписался(ась) на канал', kind: 'follow', avatar: f.avatar, platform: 'tiktok' });
   if (S.follows) enqueue({ el, say: `${speakName(f.name)}, спасибо за подписку`, preset: eventPreset() });
 });
@@ -425,8 +405,6 @@ window.echo.onLike((l) => {
   bump('#sLikes', counters.likes);
 });
 window.echo.onViewers((v) => { if (Number.isFinite(v.count)) $('#sViewers').textContent = v.count.toLocaleString('ru-RU'); });
-// онлайн Twitch считается отдельно: пока стрима нет (или канал не подключён) — прочерк
-window.echo.onTwViewers((v) => { $('#sViewersTw').textContent = v && Number.isFinite(v.count) ? v.count.toLocaleString('ru-RU') : '—'; });
 window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
@@ -438,7 +416,6 @@ async function connectTwitch() {
   const nick = $('#twNick').value.trim();
   if (!nick || twConnecting) return false;
   twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true; S.twNick = nick; save();
-  since.twitch = Date.now();
   const r = await window.echo.twConnect(nick);
   btnTw.disabled = false; twConnecting = false;
   if (!r || !r.ok) { btnTw.textContent = 'Подключить'; sys('Twitch: ' + ((r && r.error) || 'ошибка подключения')); return false; }
@@ -452,32 +429,34 @@ async function disconnectTwitch() {
 btnTw && (btnTw.onclick = async () => { twLive ? disconnectTwitch() : connectTwitch(); });
 $('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !twLive) connectTwitch(); });
 
+['ttSession', 'ttIdc', 'ttSignKey'].forEach((k) => {
+  const el = $('#' + k); if (!el) return;
+  el.value = S[k] || '';
+  el.addEventListener('input', () => { S[k] = el.value.trim(); save(); });
+});
+const authOpts = () => ({ sessionId: S.ttSession, ttTargetIdc: S.ttIdc, signApiKey: S.ttSignKey });
+
 const btn = $('#btnConnect'), status = $('#status');
-const pillTt = $('#pillTt'), pillTw = $('#pillTw');
+const pillOff = $('#pillOff'), pillTt = $('#pillTt'), pillTw = $('#pillTw');
 let connected = false, connecting = false;
 let _ttText = '', _twText = '';
-// обе плашки видны всегда: «Не в эфире TikTok» / «Не в эфире Twitch» до подключения
 function renderPills() {
-  [[pillTt, connected, _ttText, 'Не в эфире TikTok'], [pillTw, twLive, _twText, 'Не в эфире Twitch']].forEach(([el, on, txt, off]) => {
-    el.classList.toggle('on', on); el.classList.toggle('idle', !on);
-    el.lastElementChild.textContent = on ? txt : off;
-  });
+  pillTt.hidden = !connected;
+  pillTw.hidden = !twLive;
+  pillOff.hidden = connected || twLive;
+  if (connected) pillTt.lastElementChild.textContent = _ttText;
+  if (twLive)    pillTw.lastElementChild.textContent = _twText;
 }
-const connNick = $('#connNick'), connStatus = $('#connStatus'), connTwStatus = $('#connTwStatus'), connTime = $('#connTime');
-// статус подключения платформы: зелёный — подключена, жёлтый — переподключение
-const setSt = (el, t, tone) => { el.textContent = t; el.classList.toggle('ok', tone === 'ok'); el.classList.toggle('warn', tone === 'warn'); };
-// ник на цветной плашке; «—» — приглушённый
-const setNk = (el, t) => { el.textContent = t; el.classList.toggle('off', !t || t === '—'); };
+const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
   .map((n) => String(n).padStart(2, '0')).join(':');
 function startTimer() {
-  if (timerId) return; // идёт с первой подключённой платформы
   liveSince = Date.now(); clearInterval(timerId);
   const tick = () => { connTime.textContent = fmtTime(Date.now() - liveSince); };
   tick(); timerId = setInterval(tick, 1000);
 }
-function stopTimer() { if (connected || twLive) return; clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
+function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
   // сообщение об ошибке выводим в ленте чата, а не под кнопкой
   if (!text) return;
@@ -490,26 +469,18 @@ function showAlert(text, warn, detail) {
   feed.appendChild(el);
   feed.scrollTop = feed.scrollHeight;
 }
-// после отключения статистика эфира обнуляется (онлайн Twitch сбрасывается при отключении Twitch)
-function resetStats() {
-  counters.likes = counters.gifts = counters.follows = 0;
-  ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
-  $('#sViewers').textContent = '—';
-}
 function setStatus(live, text) {
   connected = live;
   if (live) _ttText = text;
   renderPills();
   btn.textContent = live ? 'Отключить' : 'Подключить';
   btn.classList.toggle('connected', live);
-  setSt(connStatus, live ? 'В эфире' : 'Не подключено', live ? 'ok' : '');
-  if (!live) { setNk(connNick, '—'); stopTimer(); resetStats(); }
+  connStatus.textContent = live ? 'В эфире' : 'Не подключено';
+  if (!live) { connNick.textContent = '—'; stopTimer(); }
 }
 window.echo.onTwStatus((s) => {
   twLive = s.state === 'live' || s.state === 'reconnect';
-  setSt(connTwStatus, s.state === 'live' ? 'Чат подключён' : s.state === 'reconnect' ? 'Переподключение…' : 'Не подключено', s.state === 'live' ? 'ok' : s.state === 'reconnect' ? 'warn' : '');
-  if (s.state === 'live') startTimer(); else if (s.state === 'offline') { stopTimer(); $('#sViewersTw').textContent = '—' }
-  setNk(connTw, s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—');
+  connTw.textContent = s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—';
   if (s.state === 'live') {
     twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
     sys('Twitch: чат ' + s.channel + ' подключён.');
@@ -523,7 +494,7 @@ window.echo.onTwStatus((s) => {
   renderPills();
 });
 window.echo.onStatus((s) => {
-  if (s.state === 'live') { setStatus(true, '@' + s.username); setNk(connNick, '@' + s.username); startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
+  if (s.state === 'live') { connectedAt = Date.now(); setStatus(true, '@' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
   else {
     setStatus(false, s.state === 'ended' ? 'Эфир завершён' : 'Не в эфире');
     $('#feedSub').textContent = s.state === 'ended' ? 'Трансляция завершена' : 'Отключено';
@@ -539,22 +510,21 @@ btn.onclick = async () => {
     const nick = $('#nick').value.trim().replace(/^@/, '');
     if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); $('#nick').focus(); return; }
     S.nick = nick; save();
-    since.tiktok = Date.now();
     btn.textContent = 'Подключаю…'; btn.classList.add('connecting');
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
-    counters.likes = counters.gifts = counters.follows = 0;
+    counters.likes = counters.gifts = counters.follows = 0; followedNow.clear();
     ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
     $('#sViewers').textContent = '—';
     if (!twLive) resetEmpty();
     sys(`Ищем активный эфир @${nick}…`);
-    const r = await window.echo.connect(nick);
+    const r = await window.echo.connect(nick, authOpts());
     if (!r || !r.ok) {
       setStatus(false, 'Не в эфире');
       $('#feedSub').textContent = 'Не удалось подключиться';
       // одно понятное сообщение на русском — в ленте чата
       showAlert((r && r.error) || 'Не удалось подключиться к эфиру. Попробуйте снова.', r && (r.code === 'offline' || r.code === 'empty'), r && r.detail);
     } else {
-      sys('Подключено! Чат будет озвучен.');
+      sys('Подключено! Чат будет озвучен.' + (r.authed ? ' Вход под аккаунтом выполнен.' : ''));
       enqueue({ el: null, say: 'Подключено к эфиру. Озвучка включена.' });
     }
   } catch (e) {
@@ -566,58 +536,44 @@ btn.onclick = async () => {
   }
 };
 $('#nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
+try { speechSynthesis.getVoices(); } catch (_) {}
 
 /* ---------- обновление по кнопке ---------- */
 const btnUpd = $('#btnUpdate');
 let updReady = false;
-const SVG = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const UPD_ICON = {
-  sync: SVG('<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/>'),
-  ok: SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
-  down: SVG('<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>'),
-  open: SVG('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
-};
-function setUpd(icon, label, spin) {
-  btnUpd.innerHTML = (UPD_ICON[icon] || '') + '<span>' + esc(label) + '</span>';
-  btnUpd.classList.toggle('spin', !!spin);
-}
 window.echo.version().then((v) => { $('#verLine').textContent = 'Версия ' + v; });
-// полоска прогресса заполняется цветом под текстом кнопки
-const setProgress = (p) => { btnUpd.classList.add('dl'); btnUpd.style.setProperty('--p', Math.max(0, Math.min(100, Number(p) || 0))); };
-const clearProgress = () => { btnUpd.classList.remove('dl'); btnUpd.style.removeProperty('--p'); };
-window.echo.onUpdateProgress((p) => { setProgress(p); setUpd('down', `Скачиваю… ${p}%`, false); });
+window.echo.onUpdateProgress((p) => { btnUpd.textContent = `Скачиваю… ${p}%`; });
 
 btnUpd.onclick = async () => {
   if (btnUpd.classList.contains('busy')) return;
   btnUpd.classList.add('busy');
   if (!updReady) {
-    setUpd('sync', 'Проверяю…', true);
+    btnUpd.textContent = 'Проверяю…';
     const r = await window.echo.checkUpdate();
     btnUpd.classList.remove('busy');
-    if (!r.ok) { setUpd('sync', 'Проверить обновления'); sys('Не удалось проверить обновления: ' + r.error); return; }
+    if (!r.ok) { btnUpd.textContent = '⟳ Проверить обновления'; sys('Не удалось проверить обновления: ' + r.error); return; }
     if (r.available) {
       updReady = true;
       btnUpd.classList.add('new');
-      setUpd('down', `Обновить до ${r.version}`);
+      btnUpd.textContent = `⬇ Обновить до ${r.version}`;
       sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
     } else {
-      setUpd('ok', 'Версия актуальна');
-      setTimeout(() => { setUpd('sync', 'Проверить обновления'); }, 3000);
+      btnUpd.textContent = '✓ Версия актуальна';
+      setTimeout(() => { btnUpd.textContent = '⟳ Проверить обновления'; }, 3000);
     }
     return;
   }
-  btnUpd.classList.remove('new'); setProgress(0);
-  setUpd('down', 'Скачиваю… 0%', false);
+  btnUpd.textContent = 'Скачиваю… 0%';
   const r = await window.echo.installUpdate();
   if (!r.ok) {
-    btnUpd.classList.remove('busy'); clearProgress(); btnUpd.classList.add('new');
-    setUpd('down', 'Повторить');
+    btnUpd.classList.remove('busy');
+    btnUpd.textContent = '⬇ Повторить';
     sys('Ошибка обновления: ' + r.error);
   } else if (r.manual) {
-    btnUpd.classList.remove('busy'); clearProgress(); btnUpd.classList.add('new');
-    setUpd('open', 'Страница загрузки');
+    btnUpd.classList.remove('busy');
+    btnUpd.textContent = '⬇ Страница загрузки';
   } else {
-    setProgress(100); setUpd('sync', 'Перезапуск…', false);
+    btnUpd.textContent = 'Перезапуск…';
   }
 };
 
@@ -633,69 +589,15 @@ $('#btnStudio').onclick = speakStudio;
 $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
 
 /* ---------- виджет чата ---------- */
-// --- выпадающие списки виджета ---
-// выравнивание сообщений задаётся отдельно для TikTok и для Twitch
-const ALIGN_LABELS = { left: 'Слева', right: 'Справа' };
-const alignOpts = () => Object.entries(ALIGN_LABELS).map(([v, label]) => ({ v, label }));
-const alignRenders = [
-  makeSelect('wAlignTtSel', { options: alignOpts, get: () => curW().tt, set: (v) => { curW().tt = v; save(); onWidgetChanged(); } }),
-  makeSelect('wAlignTwSel', { options: alignOpts, get: () => curW().tw, set: (v) => { curW().tw = v; save(); onWidgetChanged(); } }),
-];
-// вкладки виджетов: переключение, добавление (до 5), удаление, переименование двойным щелчком
-const MAX_WIDGETS = 5;
-function renderWTabs() {
-  const box = $('#wTabs'); box.innerHTML = '';
-  S.widgets.forEach((w) => {
-    const b = document.createElement('button');
-    b.className = 'wtab' + (w.id === S.wSel ? ' sel' : '');
-    b.dataset.id = w.id; b.title = 'Двойной щелчок — переименовать';
-    const nm = document.createElement('span'); nm.textContent = w.name; b.appendChild(nm);
-    b.onclick = () => { if (S.wSel === w.id) return; S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
-    nm.ondblclick = (e) => {
-      e.stopPropagation(); nm.contentEditable = 'true'; nm.focus();
-      document.getSelection().selectAllChildren(nm);
-      const done = () => { nm.contentEditable = 'false'; w.name = (nm.textContent || '').trim().slice(0, 20) || 'Виджет'; nm.textContent = w.name; save(); };
-      nm.onblur = done; nm.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); nm.blur(); } ev.stopPropagation(); };
-    };
-    if (S.widgets.length > 1 && w.id === S.wSel) {
-      const x = document.createElement('i'); x.className = 'wdel'; x.textContent = '✕'; x.title = 'Удалить виджет';
-      x.onclick = (e) => { e.stopPropagation(); S.widgets = S.widgets.filter((q) => q.id !== w.id); S.wSel = S.widgets[0].id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
-      b.appendChild(x);
-    }
-    box.appendChild(b);
-  });
-  if (S.widgets.length < MAX_WIDGETS) {
-    const add = document.createElement('button'); add.className = 'wtab add'; add.textContent = '+'; add.title = 'Добавить виджет со своим выравниванием';
-    add.onclick = () => {
-      const n = S.widgets.length + 1, w = { id: 'w' + Date.now().toString(36), name: 'Виджет ' + n, tt: curW().tt, tw: curW().tw };
-      S.widgets.push(w); S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged();
-    };
-    box.appendChild(add);
-  }
-}
-// ссылка и предпросмотр зависят от выбранного виджета
-function onWidgetChanged() { refreshLink(); reloadPreview(); }
-const widgetQuery = () => '?tt=' + curW().tt + '&tw=' + curW().tw;
-let pageChecked = false;
-async function refreshLink() {
-  const r = await window.echo.widgetLink().catch(() => null);
-  $('#wUrl').value = r && r.ok ? r.url + widgetQuery() : 'Не удалось запустить сервер виджета';
-  if (!pageChecked) { pageChecked = true; checkPage(); }
-}
-// Опубликована ли страница на GitHub Pages: 404 значит, что Pages в репозитории ещё не включён
-const PAGES_SETTINGS = 'https://github.com/vladimirphoto/jonny-chat-tiktok/settings/pages';
-async function checkPage() {
-  const el = $('#wStat');
-  el.className = 'wstat'; el.textContent = ''; el.dataset.state = 'checking';
-  const r = await window.echo.widgetCheck().catch(() => ({ ok: false, status: 0 }));
-  if (r.ok) { el.dataset.state = 'ok'; return; } // всё в порядке — ничего не показываем
-  el.dataset.state = 'bad'; el.className = 'wstat bad';
-  el.innerHTML = r.status === 404
-    ? 'Страница виджета ещё не опубликована: в репозитории не включён GitHub Pages. Откройте Settings → Pages, выберите ветку <b>main</b> и папку <b>/docs</b>, нажмите Save и подождите минуту.<br><a href="' + PAGES_SETTINGS + '" target="_blank">Открыть настройки Pages</a><a id="wRecheck">Проверить снова</a>'
-    : 'Не удалось проверить страницу виджета (нет доступа к интернету или GitHub).<br><a id="wRecheck">Проверить снова</a>';
-  const rc = $('#wRecheck'); if (rc) rc.onclick = checkPage;
-}
-refreshLink();
+// --- кастомный дропдаун выравнивания ---
+const ALIGN_LABELS = { split: 'TikTok слева · Twitch справа', left: 'Все слева', right: 'Все справа' };
+const wAlignSel = $('#wAlignSel'), wAlignVal = $('#wAlignVal'), wAlignDrop = $('#wAlignDrop');
+function setAlign(v) { S.wAlign = v; save(); pushWidget(); wAlignVal.textContent = ALIGN_LABELS[v] || v; $$('.csel-opt', wAlignDrop).forEach((o) => o.classList.toggle('sel', o.dataset.v === v)); }
+setAlign(S.wAlign);
+wAlignSel.addEventListener('click', (e) => { e.stopPropagation(); wAlignSel.classList.toggle('open'); });
+$$('.csel-opt', wAlignDrop).forEach((o) => o.addEventListener('click', (e) => { e.stopPropagation(); setAlign(o.dataset.v); wAlignSel.classList.remove('open'); }));
+document.addEventListener('click', () => wAlignSel.classList.remove('open'));
+window.echo.widgetUrl().then((u) => { $('#wUrl').value = u || 'Не удалось запустить сервер виджета'; });
 $('#wUrl').onfocus = (e) => e.target.select();
 $('#wCopy').onclick = async () => {
   const u = $('#wUrl').value;
@@ -703,20 +605,20 @@ $('#wCopy').onclick = async () => {
   const b = $('#wCopy'), svg = b.querySelector('svg').outerHTML;
   b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Копировать'; }, 1500);
 };
+$('#wTest').onclick = () => window.echo.widgetTest();
 $('#pvTest').onclick = () => window.echo.widgetTest();
-let pvInit = false, pvBase = '';
+let pvInit = false;
 async function initPreview() {
   if (pvInit) return; pvInit = true;
-  pvBase = await window.echo.widgetUrl();
-  if (!pvBase) return;
-  $('#pvFrame').addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); });
-  reloadPreview();
+  const u = await window.echo.widgetUrl();
+  if (!u) return;
+  const f = $('#pvFrame');
+  f.addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); }, { once: true });
+  f.src = u;
 }
-// предпросмотр показывает выбранный виджет: страница читает выравнивание из адреса
-function reloadPreview() { if (pvBase) $('#pvFrame').src = pvBase + widgetQuery(); }
 $('#wClear').onclick = () => window.echo.widgetClear();
 
 /* ---------- старт ---------- */
-renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
+renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScaleObs(); refreshWHeightObs(); refreshWScaleTt(); refreshWHeightTt(); refreshWFade(); syncControls(); pushWidget();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { get voiceCalls() { return voiceCalls; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; } };

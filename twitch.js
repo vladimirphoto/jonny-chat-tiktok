@@ -73,22 +73,4 @@ async function avatarOf(login) {
   return url;
 }
 
-// Сколько зрителей сейчас смотрит канал: публичный GraphQL Twitch (как у веб-версии), без ключей.
-// null — стрима нет или узнать не удалось.
-async function viewersOf(login, fetchImpl = globalThis.fetch) {
-  login = String(login || '').toLowerCase();
-  if (!/^\w{3,25}$/.test(login) || typeof fetchImpl !== 'function') return null;
-  try {
-    const r = await fetchImpl('https://gql.twitch.tv/gql', {
-      method: 'POST',
-      headers: { 'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'query{user(login:"' + login + '"){stream{viewersCount}}}' }),
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!r.ok) return null;
-    const n = (await r.json())?.data?.user?.stream?.viewersCount;
-    return Number.isFinite(n) ? n : null;
-  } catch (_) { return null; }
-}
-
-module.exports = { connect, avatarOf, parseLine, viewersOf };
+module.exports = { connect, avatarOf, parseLine };

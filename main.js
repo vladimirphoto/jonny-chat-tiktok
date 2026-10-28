@@ -64,7 +64,7 @@ async function disconnect() {
 
 const { explain } = require('./errors');
 
-async function doConnect(rawName) {
+async function doConnect(rawName, opts) {
   const username = String(rawName || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?tiktok\.com\/@/i, '').replace(/\/live.*$/i, '');
   if (!username) return { ok: false, code: 'empty', error: 'Введите ник автора.' };
   await disconnect();
@@ -75,16 +75,29 @@ async function doConnect(rawName) {
     return { ok: false, code: 'module', error: 'Не удалось загрузить модуль TikTok: ' + String((err && err.message) || err) };
   }
   let c;
+  let authed = false;
   try {
-    c = new TikTokLiveConnection(username, {
-      processInitialData: false, // «хвост» старых сообщений не нужен — озвучиваем только новое
+    // вход под аккаунтом (необязательно): TikTok тогда присылает, кто из зрителей подписан на этот аккаунт
+    const o = opts || {};
+    const sid = String(o.sessionId || '').trim();
+    const idc = String(o.ttTargetIdc || '').trim();
+    const sign = String(o.signApiKey || '').trim();
+    const cfg = {
+      processInitialData: true,
       fetchRoomInfoOnConnect: true,
       enableExtendedGiftInfo: false,
-      authenticateWs: false,
+      authenticateWs: !!sid,
       useMobile: false,
       webClientOptions: {},
       wsClientOptions: {},
-    });
+    };
+    if (sid) {
+      cfg.sessionId = sid; // совместимость со старым форматом настроек
+      cfg.session = { cookie: { type: 'cookie', value: { sessionId: sid, ...(idc ? { ttTargetIdc: idc } : {}) } } };
+    }
+    if (sign) cfg.signApiKey = sign;
+    authed = !!sid;
+    c = new TikTokLiveConnection(username, cfg);
   } catch (err) {
     return { ok: false, code: 'init', error: 'Не удалось запустить подключение к TikTok: ' + String((err && err.message) || err) };
   }
@@ -143,7 +156,7 @@ async function doConnect(rawName) {
     if (!alive()) return { ok: false, code: 'cancelled', error: 'Подключение отменено.' };
     ready = true;
     send('tt:status', { state: 'live', username, roomId: state && state.roomId });
-    return { ok: true, username };
+    return { ok: true, username, authed };
   } catch (err) {
     if (conn === c) conn = null;
     try { c.removeAllListeners(); c.disconnect().catch(() => {}); } catch (_) {}
@@ -151,8 +164,8 @@ async function doConnect(rawName) {
   }
 }
 
-ipcMain.handle('tt:connect', async (_e, rawName) => {
-  try { return await doConnect(rawName); } catch (err) { return { ok: false, ...explain(err) }; }
+ipcMain.handle('tt:connect', async (_e, rawName, opts) => {
+  try { return await doConnect(rawName, opts); } catch (err) { return { ok: false, ...explain(err) }; }
 });
 
 ipcMain.handle('tt:disconnect', async () => {
@@ -251,17 +264,7 @@ ipcMain.handle('tts:synth', async (_e, o) => {
 });
 
 // ---------- Twitch (мультистрим) ----------
-let twViewersTimer = null;
-function stopTwitch() {
-  clearInterval(twViewersTimer); twViewersTimer = null;
-  if (tw) { try { tw.close(); } catch (_) {} tw = null; }
-  send('tw:viewers', { count: null });
-}
-// онлайн Twitch: опрашиваем раз в 30 секунд, пока канал подключён
-function pollTwitchViewers(t) {
-  const tick = async () => { const n = await twitch.viewersOf(t.channel); if (tw === t) send('tw:viewers', { count: n }); };
-  tick(); twViewersTimer = setInterval(tick, 30000);
-}
+function stopTwitch() { if (tw) { try { tw.close(); } catch (_) {} tw = null; } }
 ipcMain.handle('tw:connect', async (_e, name) => {
   stopTwitch();
   let first = true;
@@ -277,24 +280,12 @@ ipcMain.handle('tw:connect', async (_e, name) => {
   });
   if (!t.ok) return t;
   tw = t;
-  pollTwitchViewers(t);
   return { ok: true, channel: t.channel };
 });
 ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state: 'offline' }); return { ok: true }; });
 
 // ---------- Виджет чата для OBS / TikTok LIVE Studio ----------
-// адрес для предпросмотра внутри приложения
-ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/chat` : ''));
-// ссылка для копирования: настоящий https-адрес страницы виджета на GitHub Pages (выравнивание добавляет окно приложения)
-ipcMain.handle('widget:link', () => (wsrv && wsrv.port ? { ok: true, url: widget.PAGES_URL } : { ok: false, url: '' }));
-// Доступна ли страница на GitHub Pages (404 — Pages для репозитория ещё не включён)
-ipcMain.handle('widget:check', () => new Promise((resolve) => {
-  try {
-    const r = require('https').get(widget.PAGES_URL, { timeout: 7000, headers: { 'User-Agent': 'echochat' } }, (res) => { res.resume(); resolve({ ok: res.statusCode === 200, status: res.statusCode }); });
-    r.on('timeout', () => { r.destroy(); resolve({ ok: false, status: 0 }); });
-    r.on('error', () => resolve({ ok: false, status: 0 }));
-  } catch (_) { resolve({ ok: false, status: 0 }); }
-}));
+ipcMain.handle('widget:url', () => (wsrv && wsrv.port ? `http://localhost:${wsrv.port}/chat` : ''));
 ipcMain.handle('widget:set', (_e, s) => { wset = { ...(s || {}) }; wsrv && wsrv.broadcast('settings', wset); return { ok: true }; });
 ipcMain.handle('widget:test', () => {
   wmsg({ platform: 'tiktok', name: 'Анна', text: 'Привет из TikTok! Так выглядит чат', color: colorOf('Анна') });

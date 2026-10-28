@@ -22,7 +22,7 @@
         <button class="nav" data-tab="widgets"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg>Виджеты</button>
       </nav>
       <div class="side-foot">
-        <button class="btn ghost upd" id="btnUpdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg><span>Проверить обновления</span></button>
+        <button class="btn ghost upd" id="btnUpdate">⟳ Проверить обновления</button>
         <small id="verLine">Версия —</small>
       </div>
     </aside>
@@ -30,11 +30,11 @@
     <main>
       <header>
         <div><h1 id="title">Эфир</h1><p id="subtitle">Подключись к TikTok LIVE и слушай чат вслух</p></div>
-        <div class="pills" id="status"><div class="pill status idle tt" id="pillTt"><span class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg></span><s></s><span class="pt">Не в эфире TikTok</span></div><div class="pill status idle tw" id="pillTw"><span class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg></span><s></s><span class="pt">Не в эфире Twitch</span></div></div>
+        <div class="pills" id="status"><div class="pill status idle" id="pillOff"><s></s><span>Не в эфире</span></div><div class="pill status on tt" id="pillTt" hidden><span class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg></span><s></s><span>TikTok</span></div><div class="pill status on tw" id="pillTw" hidden><span class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg></span><s></s><span>Twitch</span></div></div>
       </header>
 
       <section class="stats">
-        <div class="stat stat-viewers"><div class="stat-top"><span>Зрители сейчас</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.8a3.4 3.4 0 0 1 0 6.4M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg></div><div class="vv-row"><div class="vv tt" title="Онлайн в TikTok"><i class="vv-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg></i><b id="sViewers">—</b></div><div class="vv tw" title="Онлайн в Twitch"><i class="vv-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg></i><b id="sViewersTw">—</b></div></div></div>
+        <div class="stat"><div class="stat-top"><span>Зрители сейчас</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.8a3.4 3.4 0 0 1 0 6.4M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg></div><b id="sViewers">—</b></div>
         <div class="stat"><div class="stat-top"><span>Лайки</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-8-4.7-8-10.6A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.9c0 5.9-8 10.6-8 10.6z"/></svg></div><b id="sLikes">0</b></div>
         <div class="stat"><div class="stat-top"><span>Подарки</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4.5" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8v12M12 8c-1.5-4-6-4-6-1.5S10 8 12 8zm0 0c1.5-4 6-4 6-1.5S14 8 12 8z"/></svg></div><b id="sGifts">0</b></div>
         <div class="stat"><div class="stat-top"><span>Новые подписки</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/></svg></div><b id="sFollows">0</b></div>
@@ -58,10 +58,9 @@
                 <button class="btn plat-btn tw-btn" id="btnTwitch">Подключить</button>
               </div>
               <div class="conn-rows">
-                <div class="conn-row"><span>TikTok</span><b id="connNick" class="nk tt off">—</b></div>
-                <div class="conn-row"><span>Статус TikTok</span><b id="connStatus" class="st">Не подключено</b></div>
-                <div class="conn-row"><span>Twitch</span><b id="connTw" class="nk tw off">—</b></div>
-                <div class="conn-row"><span>Статус Twitch</span><b id="connTwStatus" class="st">Не подключено</b></div>
+                <div class="conn-row"><span>Подключённый ник</span><b id="connNick">—</b></div>
+                <div class="conn-row"><span>Статус подключения</span><b id="connStatus">Не подключено</b></div>
+                <div class="conn-row"><span>Twitch</span><b id="connTw">—</b></div>
                 <div class="conn-row"><span>Время в эфире</span><b id="connTime">—</b></div>
               </div>
             </div>
@@ -78,7 +77,7 @@
             <div class="feed-head">
               <div><h2>Лента чата</h2><small id="feedSub">Ожидание подключения</small></div>
               <div class="feed-actions">
-                <label class="sw"><input type="checkbox" id="paused" /><i></i><span>Пауза</span></label>
+                <button class="btn ghost feed-pause-btn" id="feedPaused" title="Пауза ленты">⏸ Пауза</button>
                 <button class="btn ghost" id="btnSkip">Пропустить</button>
                 <button class="btn ghost" id="btnClear">Очистить</button>
               </div>
@@ -94,7 +93,7 @@
           <div class="col-left">
           <div class="card">
             <h2>Мои голоса</h2>
-            <p class="muted">Нажми на карточку, чтобы прослушать голос и настроить скорость и тон</p>
+            <p class="muted">Нажми на карточку чтобы выбрать голос</p>
             <div class="voices" id="voices"></div>
             <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
             <input type="range" id="vol" min="0" max="100" value="80" />
@@ -106,25 +105,18 @@
           </div>
           </div>
           <div class="col-right">
-            <div class="card" id="voiceRoutes">
-              <h2>Голоса платформ</h2>
-              <p class="muted">Каждая платформа читается своим голосом</p>
-              <label>Чат TikTok</label>
-              <div class="csel" id="ttVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-              <label>Чат Twitch</label>
-              <div class="csel" id="twVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-              <label>Подарки и подписки</label>
-              <div class="csel" id="eventVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-            </div>
             <div class="card">
               <h2>Что озвучивать</h2>
-              <p class="muted">Озвучку можно выключить отдельно для каждой платформы. Чат при этом остаётся в ленте и в виджете</p>
-              <div class="vgroup tt"><div class="vg-head">TikTok</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="ttChat" checked /><i></i><span>Сообщения чата</span></label><label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label><label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label></div></div>
-              <div class="vgroup tw"><div class="vg-head">Twitch</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="twChat" checked /><i></i><span>Сообщения чата</span></label></div></div>
-              <div class="vgroup"><div class="vg-head">Для всех платформ</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник перед сообщением</span></label></div></div>
+              <p class="muted">Включи только то, что важно для эфира</p>
+              <div class="toggles">
+                <label class="sw"><input type="checkbox" data-k="chat" checked /><i></i><span>Сообщения чата</span></label>
+                <label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник</span></label>
+                <label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label>
+                <label class="sw"><input type="checkbox" data-k="subsOnly" /><i></i><span>Только подписчики</span></label>
+              </div>
+              <label>Голос для подарков и подписок</label>
+              <select id="eventVoice"></select>
               <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Нейро-голоса требуют интернет.</div>
             </div>
             <div class="card studio" id="studio">
@@ -161,6 +153,19 @@
           <label style="margin-top:18px">Максимальная длина сообщения: <b id="lenVal">140</b></label>
           <input type="range" id="maxLen" min="30" max="300" value="140" />
         </div>
+        <div class="card auth-card">
+          <h2>Точное определение подписчиков <em class="beta">эксперимент</em></h2>
+          <p class="muted">Нужно для режима «Только подписчики» (вкладка «Голос»). Если подключаться к эфиру анонимно, TikTok может не сообщать, кто подписан. Вход под аккаунтом стримера должен это исправить. Поля необязательны.</p>
+          <label>sessionid — cookie аккаунта TikTok</label>
+          <input type="password" id="ttSession" placeholder="вставь значение cookie sessionid" spellcheck="false" autocomplete="off" />
+          <label>tt-target-idc <small class="muted">(необязательно, cookie «tt-target-idc»)</small></label>
+          <input id="ttIdc" placeholder="например useast2a" spellcheck="false" autocomplete="off" />
+          <label>Ключ подписи Euler <small class="muted">(необязательно, если TikTok просит)</small></label>
+          <input type="password" id="ttSignKey" placeholder="API-ключ" spellcheck="false" autocomplete="off" />
+          <div class="note">Где взять sessionid: открой tiktok.com в браузере, войди в аккаунт, нажми F12 → вкладка Application (Приложение) → Cookies → tiktok.com → строка <b>sessionid</b>. Ключи хранятся только на этом компьютере.</div>
+          <div class="note warn">Используй запасной аккаунт, а не основной: неофициальный вход может привести к ограничениям со стороны TikTok. Никому не показывай sessionid — это доступ к аккаунту. Подключись заново после изменения полей.</div>
+          <div class="note">Проверка: наведи курсор на сообщение в ленте — во всплывающей подсказке видно, что именно TikTok прислал о подписке (followRole / followStatus).</div>
+        </div>
       </section>
 
       <!-- ВИДЖЕТЫ -->
@@ -168,17 +173,12 @@
         <div class="cols">
           <div class="col-left">
             <div class="card">
-              <h2>Виджеты чата</h2>
-              <p class="muted">Для каждого места (OBS, TikTok LIVE Studio) — своя ссылка со своим выравниванием. Чат TikTok и Twitch на прозрачном фоне.</p>
-              <div class="wtabs" id="wTabs"></div>
-              <div class="align-row">
-                <div><label>Выравнивание TikTok</label><div class="csel" id="wAlignTtSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
-                <div><label>Выравнивание Twitch</label><div class="csel" id="wAlignTwSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
-              </div>
+              <h2>Виджет чата</h2>
+              <p class="muted">Одна ссылка для TikTok LIVE Studio и OBS: источник «Браузер» / «Ссылка». Показывает чат TikTok и Twitch на прозрачном фоне.</p>
               <label>Ссылка на виджет</label>
               <div class="nick-field"><input id="wUrl" readonly spellcheck="false" /></div>
-              <div class="wstat" id="wStat"></div>
-              <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
+              <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button><button class="btn wbtn ghost" id="wTest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Тест</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
+              <div class="note">OBS: Источники → + → Браузер → вставь ссылку, ширина 500, высота 800. Программа должна оставаться запущенной.</div>
             </div>
             <div class="card preview-card">
               <div class="prev-head">
@@ -190,17 +190,29 @@
           </div>
           <div class="col-right">
             <div class="card">
-              <h2>Общие настройки</h2>
-              <p class="muted">Применяются ко всем виджетам</p>
+              <h2>Настройки виджета</h2>
+              <label>Выравнивание сообщений</label>
+              <div class="csel" id="wAlignSel"><div class="csel-val" id="wAlignVal">TikTok слева · Twitch справа</div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop" id="wAlignDrop"><div class="csel-opt sel" data-v="split">TikTok слева · Twitch справа</div><div class="csel-opt" data-v="left">Все слева</div><div class="csel-opt" data-v="right">Все справа</div></div></div>
               <div class="toggles" style="margin-top:8px">
                 <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
                 <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
                 <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
                 <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Лёгкая тень за сообщениями</span></label>
                 <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
+                <label class="sw"><input type="checkbox" data-k="showTwitch" checked /><i></i><span>Сообщения Twitch в ленте и озвучке</span></label>
               </div>
-              <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleVal">100%</b></div><input type="range" id="wScale" min="50" max="200" value="100" /></div>
-              <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightVal">100%</b></div><input type="range" id="wHeight" min="20" max="100" value="100" /></div>
+              <div class="w-target-row">
+                <button class="w-target-btn active" id="wTargetObs" data-target="obs">OBS</button>
+                <button class="w-target-btn" id="wTargetTt" data-target="tt">TikTok LIVE Studio</button>
+              </div>
+              <div class="w-panel" id="wPanelObs">
+                <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleValObs">100%</b></div><input type="range" id="wScaleObs" min="50" max="200" value="100" /></div>
+                <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightValObs">100%</b></div><input type="range" id="wHeightObs" min="20" max="100" value="100" /></div>
+              </div>
+              <div class="w-panel" id="wPanelTt" hidden>
+                <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleValTt">100%</b></div><input type="range" id="wScaleTt" min="50" max="200" value="100" /></div>
+                <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightValTt">100%</b></div><input type="range" id="wHeightTt" min="20" max="100" value="100" /></div>
+              </div>
               <div class="ctl"><div class="row"><label>Исчезать через</label><b id="wFadeSecVal">20 с</b></div><input type="range" id="wFadeSec" min="3" max="120" value="20" /></div>
             </div>
           </div>
