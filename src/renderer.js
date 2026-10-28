@@ -72,11 +72,14 @@ function syncControls() {
 }
 const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
 const refreshWScale = bindRange('wScale', 'wScaleVal', (v) => v + '%', () => S.wScale, (v) => { S.wScale = v; pushWidget(); });
-const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => S.wHeight, (v) => { S.wHeight = v; pushWidget(); });
+const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => S.wHeight, (v) => { S.wHeight = v; pushWidget(); window.echo.widgetSet({ ...getWSet(), _previewHeight: true }); });
+$('#wHeight').addEventListener('mousedown', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }));
+$('#wHeight').addEventListener('touchstart', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }), { passive: true });
+$('#wHeight').addEventListener('mouseup', () => { window.echo.widgetSet({ ...getWSet(), _previewHeight: false }); });
+$('#wHeight').addEventListener('touchend', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
 const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
-function pushWidget() {
-  window.echo.widgetSet({ align: S.wAlign, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec });
-}
+function getWSet() { return { align: S.wAlign, icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
+function pushWidget() { window.echo.widgetSet(getWSet()); }
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
 $('#twNick').value = S.twNick || '';
@@ -378,8 +381,24 @@ window.echo.onViewers((v) => { if (Number.isFinite(v.count)) $('#sViewers').text
 window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
-let twLive = false;
+let twLive = false, twConnecting = false;
 const connTw = $('#connTw');
+const btnTw = $('#btnTwitch');
+
+async function doTwitch() {
+  if (twConnecting) return;
+  if (twLive) { await window.echo.twDisconnect(); btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); return; }
+  const nick = $('#twNick').value.trim();
+  if (!nick) { $('#twNick').focus(); return; }
+  twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true;
+  const r = await window.echo.twConnect(nick);
+  btnTw.disabled = false; twConnecting = false;
+  if (!r || !r.ok) { btnTw.textContent = 'Подключить'; showAlert((r && r.error) || 'Не удалось подключить Twitch.', true); }
+  else { sys('Twitch: подключаемся к ' + r.channel + '…'); }
+}
+btnTw && (btnTw.onclick = doTwitch);
+$('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter') doTwitch(); });
+
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false, alertTimer = null;
 const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
@@ -418,8 +437,16 @@ function setStatus(live, text) {
 window.echo.onTwStatus((s) => {
   twLive = s.state === 'live' || s.state === 'reconnect';
   connTw.textContent = s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—';
-  if (s.state === 'live') { sys(`Twitch: чат ${s.channel} подключён.`); if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); btn.textContent = 'Отключиться'; btn.classList.add('stop'); } }
-  if (s.state === 'offline') { if (!connected) { btn.textContent = 'Подключиться'; btn.classList.remove('stop'); status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; } }
+  if (s.state === 'live') {
+    twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
+    sys('Twitch: чат ' + s.channel + ' подключён.');
+    if (!connected) { setStatus(false, 'Twitch #' + s.channel); status.classList.add('on'); btn.textContent = 'Отключиться'; btn.classList.add('stop'); }
+  }
+  if (s.state === 'offline' || s.state === 'reconnect') {
+    if (s.state === 'offline') { twLive = false; btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); }
+    else { btnTw.textContent = 'Переподкл…'; }
+    if (!connected) { btn.textContent = 'Подключиться'; btn.classList.remove('stop'); status.classList.remove('on'); status.lastElementChild.textContent = 'Не в эфире'; }
+  }
 });
 window.echo.onStatus((s) => {
   if (s.state === 'live') { connectedAt = Date.now(); setStatus(true, 'В эфире @' + s.username); connNick.textContent = '@' + s.username; startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
@@ -434,17 +461,11 @@ btn.onclick = async () => {
   if (connecting) return;
   connecting = true;
   try {
-    if (connected || twLive) { await window.echo.twDisconnect(); await window.echo.disconnect(); return; }
+    if (connected) { await window.echo.disconnect(); return; }
+    if (twLive && !connected) { await window.echo.twDisconnect(); return; }
     const nick = $('#nick').value.trim().replace(/^@/, '');
-    const twNick = $('#twNick').value.trim();
-    if (!nick && !twNick) { showAlert('Введите ник автора TikTok LIVE (без @) или канал Twitch.', true); $('#nick').focus(); return; }
-    S.nick = nick; S.twNick = twNick; save();
-    if (twNick) {
-      const tr = await window.echo.twConnect(twNick);
-      if (!tr || !tr.ok) { showAlert((tr && tr.error) || 'Не удалось подключить Twitch.', true); if (!nick) return; }
-      else sys(`Twitch: подключаемся к каналу ${tr.channel}…`);
-    }
-    if (!nick) return; // только Twitch
+    if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); $('#nick').focus(); return; }
+    S.nick = nick; save();
     showAlert('');
     btn.textContent = 'Подключаюсь…';
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
@@ -525,15 +546,21 @@ $('#btnStudio').onclick = speakStudio;
 $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
 
 /* ---------- виджет чата ---------- */
-const wAlign = $('#wAlign');
-wAlign.value = S.wAlign;
-wAlign.onchange = () => { S.wAlign = wAlign.value; save(); pushWidget(); };
+// --- кастомный дропдаун выравнивания ---
+const ALIGN_LABELS = { split: 'TikTok слева · Twitch справа', left: 'Все слева', right: 'Все справа' };
+const wAlignSel = $('#wAlignSel'), wAlignVal = $('#wAlignVal'), wAlignDrop = $('#wAlignDrop');
+function setAlign(v) { S.wAlign = v; save(); pushWidget(); wAlignVal.textContent = ALIGN_LABELS[v] || v; $$('.csel-opt', wAlignDrop).forEach((o) => o.classList.toggle('sel', o.dataset.v === v)); }
+setAlign(S.wAlign);
+wAlignSel.addEventListener('click', (e) => { e.stopPropagation(); wAlignSel.classList.toggle('open'); });
+$$('.csel-opt', wAlignDrop).forEach((o) => o.addEventListener('click', (e) => { e.stopPropagation(); setAlign(o.dataset.v); wAlignSel.classList.remove('open'); }));
+document.addEventListener('click', () => wAlignSel.classList.remove('open'));
 window.echo.widgetUrl().then((u) => { $('#wUrl').value = u || 'Не удалось запустить сервер виджета'; });
 $('#wUrl').onfocus = (e) => e.target.select();
 $('#wCopy').onclick = async () => {
-  const b = $('#wCopy'), u = $('#wUrl').value;
+  const u = $('#wUrl').value;
   try { await navigator.clipboard.writeText(u); } catch (_) { $('#wUrl').select(); document.execCommand('copy'); }
-  b.textContent = '✓ Скопировано'; setTimeout(() => { b.textContent = 'Скопировать ссылку'; }, 2000);
+  const b = $('#wCopy'), svg = b.querySelector('svg').outerHTML;
+  b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Скопировать ссылку'; }, 1500);
 };
 $('#wTest').onclick = () => window.echo.widgetTest();
 $('#wClear').onclick = () => window.echo.widgetClear();

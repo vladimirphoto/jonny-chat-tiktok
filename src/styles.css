@@ -161,8 +161,40 @@ select::-webkit-scrollbar-button{display:none}
 #btnTest svg{width:14px;height:14px;fill:currentColor}
 #eventVoice{margin-bottom:4px}
 
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .msg .av{background-size:cover;background-position:center}
 .msg .n{display:flex;align-items:center;gap:6px}.msg .pi{width:15px;height:15px;flex:none}
 .msg .gi{width:28px;height:28px;vertical-align:middle;margin-left:6px}
-select{width:100%}
+
+/* --- виджет: кнопки --- */
+.wbtn-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:12px;align-items:stretch}
+.wbtn{display:flex!important;align-items:center;justify-content:center;gap:7px;width:100%!important;margin:0!important;white-space:nowrap}
+.wbtn svg{width:15px;height:15px;flex:none}
+.wbtn.primary{width:100%}
+
+/* --- кастомный дропдаун --- */
+.csel{position:relative;user-select:none;margin-top:8px}
+.csel-val{padding:11px 40px 11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csel.open .csel-val,.csel-val:hover{border-color:var(--a1);background:rgba(0,0,0,.5)}
+.csel-arr{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);pointer-events:none;transition:transform .2s}
+.csel.open .csel-arr{transform:translateY(-50%) rotate(180deg)}
+.csel-drop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#1a1a2e;border:1px solid var(--a1);border-radius:12px;padding:4px;z-index:100;opacity:0;transform:translateY(-6px);pointer-events:none;transition:.15s;box-shadow:0 16px 40px rgba(0,0,0,.6)}
+.csel.open .csel-drop{opacity:1;transform:none;pointer-events:all}
+.csel-opt{padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:.15s}
+.csel-opt:hover{background:rgba(139,92,246,.18)}
+.csel-opt.sel{background:var(--grad);color:#fff;font-weight:600}
+
+/* --- Twitch поле --- */
+.nick-tw-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.nick-tw{flex:1;min-width:0}
+.tw-ico{display:flex;align-items:center;color:#a970ff;padding-right:4px}.tw-ico svg{width:16px;height:16px}
+.tw-btn{white-space:nowrap;flex:none;padding:10px 14px;font-size:13px}
+.tw-btn.connected{color:#34d399;border-color:#34d399}
+
+/* --- расстояние между сообщениями в ленте --- */
+.feed{gap:10px!important}
+.msg{padding:10px 14px!important}
+
+/* --- высота виджета: индикатор границы --- */
+.wh-preview{position:fixed;bottom:0;left:0;right:0;pointer-events:none;transition:height .1s;z-index:9999}
+.wh-preview-line{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(139,92,246,.8);box-shadow:0 0 8px rgba(139,92,246,.6)}
+.wh-preview-shade{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(139,92,246,.08);border-top:1px dashed rgba(139,92,246,.4)}

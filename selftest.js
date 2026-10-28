@@ -60,6 +60,7 @@ const PAGE_TEST = `(async () => {
     add('ui', 'голоса: Светлана и Дмитрий первыми, есть мультиязычные', names.length >= 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
     const pb = $('#voices .voice .play');
     pb.click(); await sleep(150);
+    add('ui', 'кнопка Twitch есть', !!$('#btnTwitch'), !!$('#btnTwitch'));
     add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));

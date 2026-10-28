@@ -50,7 +50,7 @@
               <label>Ник стримера</label>
               <div class="nick-field"><span>@</span><input id="nick" placeholder="username" spellcheck="false" /></div>
               <label style="margin-top:12px">Канал Twitch <small class="muted">(для мультистрима, необязательно)</small></label>
-              <div class="nick-field"><span>twitch.tv/</span><input id="twNick" placeholder="channel" spellcheck="false" /></div>
+              <div class="nick-tw-row"><div class="nick-field nick-tw"><span class="tw-ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg></span><input id="twNick" placeholder="channel" spellcheck="false" /></div><button class="btn ghost tw-btn" id="btnTwitch">Подключить</button></div>
               <button class="btn primary" id="btnConnect">Подключиться</button>
               <div class="alert" id="alert" hidden></div>
               <div class="conn-rows">
@@ -160,8 +160,7 @@
               <p class="muted">Одна ссылка для TikTok LIVE Studio и OBS: источник «Браузер» / «Ссылка». Показывает чат TikTok и Twitch на прозрачном фоне.</p>
               <label>Ссылка на виджет</label>
               <div class="nick-field"><input id="wUrl" readonly spellcheck="false" /></div>
-              <div class="row2"><button class="btn primary" id="wCopy">Скопировать ссылку</button><button class="btn ghost" id="wTest">Тестовые сообщения</button></div>
-              <button class="btn ghost wide" id="wClear" style="margin-top:8px">Очистить виджет</button>
+              <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать ссылку</button><button class="btn wbtn ghost" id="wTest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Тест</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
               <div class="note">OBS: Источники → + → Браузер → вставь ссылку, ширина 500, высота 800. Программа должна оставаться запущенной.</div>
             </div>
           </div>
@@ -169,11 +168,7 @@
             <div class="card">
               <h2>Настройки виджета</h2>
               <label>Выравнивание сообщений</label>
-              <select id="wAlign">
-                <option value="split">TikTok слева · Twitch справа</option>
-                <option value="left">Все слева</option>
-                <option value="right">Все справа</option>
-              </select>
+              <div class="csel" id="wAlignSel"><div class="csel-val" id="wAlignVal">TikTok слева · Twitch справа</div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop" id="wAlignDrop"><div class="csel-opt sel" data-v="split">TikTok слева · Twitch справа</div><div class="csel-opt" data-v="left">Все слева</div><div class="csel-opt" data-v="right">Все справа</div></div></div>
               <div class="toggles" style="margin-top:8px">
                 <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
                 <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
