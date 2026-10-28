@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('echo', {
   disconnect: () => ipcRenderer.invoke('tt:disconnect'),
   synth: (opts) => ipcRenderer.invoke('tts:synth', opts),
   voices: () => ipcRenderer.invoke('tts:voices'),
+  googleVoices: (key) => ipcRenderer.invoke('g:voices', key),
   version: () => ipcRenderer.invoke('app:version'),
   checkUpdate: () => ipcRenderer.invoke('upd:check'),
   installUpdate: () => ipcRenderer.invoke('upd:install'),

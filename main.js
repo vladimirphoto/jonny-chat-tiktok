@@ -60,25 +60,7 @@ async function disconnect() {
   }
 }
 
-// Понятные тексты для типичных ошибок подключения
-function explain(err) {
-  const raw = String((err && (err.message || err.info)) || err || '');
-  const name = String((err && (err.name || (err.constructor && err.constructor.name))) || '');
-  const all = `${name} ${raw}`.toLowerCase();
-  if (/useroffline|offline|not live|isn.t live|not currently live|has ended|room_id|room id|roomid|not found|404/.test(all)) {
-    return { code: 'offline', error: 'Вы не в эфире. Запустите трансляцию в TikTok LIVE, подключитесь и попробуйте снова. Также проверьте, что ник введён правильно.' };
-  }
-  if (/timeout|timed out|превышено/.test(all)) {
-    return { code: 'timeout', error: 'Нет ответа от TikTok. Проверьте интернет и попробуйте снова.' };
-  }
-  if (/rate.?limit|429|too many|limit exceeded/.test(all)) {
-    return { code: 'rate', error: 'TikTok временно ограничил запросы. Подождите минуту и попробуйте снова.' };
-  }
-  if (/enotfound|econn|network|fetch failed|getaddrinfo|socket/.test(all)) {
-    return { code: 'network', error: 'Нет соединения с интернетом или TikTok недоступен. Проверьте сеть и попробуйте снова.' };
-  }
-  return { code: 'other', error: 'Не удалось подключиться: ' + (raw || name || 'неизвестная ошибка') };
-}
+const { explain, explainGoogle } = require('./errors');
 
 async function doConnect(rawName) {
   const username = String(rawName || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?tiktok\.com\/@/i, '').replace(/\/live.*$/i, '');
@@ -105,6 +87,8 @@ async function doConnect(rawName) {
     return { ok: false, code: 'init', error: 'Не удалось запустить подключение к TikTok: ' + String((err && err.message) || err) };
   }
   conn = c;
+  let ready = false;
+  let lastErrAt = 0;
   const alive = () => conn === c;
   const EV = ControlEvent || {};
 
@@ -122,9 +106,10 @@ async function doConnect(rawName) {
   c.on(WebcastEvent.STREAM_END, () => alive() && send('tt:status', { state: 'ended' }));
   c.on(EV.DISCONNECTED || 'disconnected', () => alive() && send('tt:status', { state: 'offline' }));
   c.on(EV.ERROR || 'error', (e) => {
-    if (!alive()) return;
-    const ex = (e && e.exception) || e;
-    send('tt:error', { message: String((ex && ex.message) || (e && e.info) || ex) });
+    if (!alive() || !ready) return; // ошибки подключения показывает сам обработчик ниже — один раз
+    if (Date.now() - lastErrAt < 30000) return;
+    lastErrAt = Date.now();
+    send('tt:error', { message: 'Связь с TikTok нестабильна, пытаемся продолжить…' });
   });
 
   try {
@@ -133,6 +118,7 @@ async function doConnect(rawName) {
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000)),
     ]);
     if (!alive()) return { ok: false, code: 'cancelled', error: 'Подключение отменено.' };
+    ready = true;
     send('tt:status', { state: 'live', username, roomId: state && state.roomId });
     return { ok: true, username };
   } catch (err) {
@@ -220,40 +206,55 @@ async function edgeSynth(text, voice, rate, pitch) {
   throw last;
 }
 
-// Свой или клонированный голос ElevenLabs (нужен ключ и Voice ID)
-async function elevenSynth(text, voiceId, key) {
-  if (!key || !voiceId) throw new Error('Укажите API-ключ и Voice ID ElevenLabs');
+// ---------- Google Cloud Text-to-Speech (живые голоса, бесплатный месячный лимит) ----------
+async function googleFetch(url, key, init) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 20000);
   try {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
-      method: 'POST',
-      signal: ctl.signal,
-      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true },
-      }),
-    });
-    if (!res.ok) {
-      if (res.status === 401) throw new Error('Неверный API-ключ ElevenLabs');
-      if (res.status === 404) throw new Error('Голос с таким Voice ID не найден в ElevenLabs');
-      if (res.status === 402 || res.status === 429) throw new Error('Лимит ElevenLabs исчерпан или тариф не позволяет этот голос');
-      throw new Error('ElevenLabs ответил ' + res.status);
-    }
-    return Buffer.from(await res.arrayBuffer());
+    const res = await fetch(url, { ...init, signal: ctl.signal, headers: { 'X-Goog-Api-Key': key, 'Content-Type': 'application/json', ...(init && init.headers) } });
+    const text = await res.text();
+    if (!res.ok) { const e = new Error(explainGoogle(res.status, text)); e.status = res.status; e.friendly = true; throw e; }
+    return JSON.parse(text);
+  } catch (err) {
+    if (err && err.friendly) throw err;
+    const e = new Error('Нет связи с Google. Проверьте интернет и попробуйте снова.');
+    e.friendly = true;
+    throw e;
   } finally { clearTimeout(timer); }
+}
+
+ipcMain.handle('g:voices', async (_e, key) => {
+  try {
+    if (!key) return { ok: false, error: 'Вставьте API-ключ Google.' };
+    const data = await googleFetch('https://texttospeech.googleapis.com/v1/voices?languageCode=ru-RU', key);
+    const voices = (data.voices || [])
+      .filter((v) => /Chirp3-HD|Neural2|Wavenet|Standard/i.test(v.name) && !/Studio|News|Polyglot|Journey|Casual/i.test(v.name))
+      .map((v) => ({ id: v.name, gender: v.ssmlGender === 'MALE' ? 'M' : 'F' }));
+    if (!voices.length) return { ok: false, error: 'Google не вернул русских голосов для этого ключа.' };
+    return { ok: true, voices };
+  } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
+});
+
+async function googleSynth(text, name, key, rate) {
+  if (!key || !name) throw new Error('Не задан ключ Google или голос.');
+  const audioConfig = { audioEncoding: 'MP3' };
+  if (!/Chirp3-HD/i.test(name)) audioConfig.speakingRate = Math.min(2, Math.max(0.6, Number(rate) || 1));
+  const data = await googleFetch('https://texttospeech.googleapis.com/v1/text:synthesize', key, {
+    method: 'POST',
+    body: JSON.stringify({ input: { text }, voice: { languageCode: 'ru-RU', name }, audioConfig }),
+  });
+  if (!data.audioContent) throw new Error('Google вернул пустой звук.');
+  return Buffer.from(data.audioContent, 'base64');
 }
 
 ipcMain.handle('tts:synth', async (_e, o) => {
   try {
     const text = String(o.text || '').slice(0, 400);
     if (!text.trim()) return { ok: false, error: 'empty text' };
-    const buf = o.provider === 'eleven'
-      ? await elevenSynth(text, o.elVoice, o.elKey)
+    const buf = o.provider === 'google'
+      ? await googleSynth(text, o.gName, o.gKey, o.rate)
       : await edgeSynth(text, o.voice, o.rate, o.pitch);
-    return { ok: true, audio: buf.toString('base64') };
+    return { ok: true, audio: buf.toString('base64'), chars: text.length };
   } catch (err) {
     return { ok: false, error: String((err && err.message) || err) };
   }

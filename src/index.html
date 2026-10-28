@@ -80,14 +80,14 @@
           <div class="col-left">
           <div class="card">
             <h2>Мои голоса</h2>
-            <p class="muted">Нажми на карточку, чтобы выбрать русский голос. ▶ — прослушать.</p>
+            <p class="muted">Нажми на карточку, чтобы выбрать голос. ▶ — прослушать.</p>
             <div class="voices" id="voices"></div>
             <div class="row"><label>Громкость</label><b id="volVal">80%</b></div>
             <input type="range" id="vol" min="0" max="100" value="80" />
-            <div class="row"><label>Скорость выбранного голоса</label><b id="rateVal">0%</b></div>
-            <input type="range" id="rate" min="-30" max="40" value="0" />
-            <div class="row"><label>Тон выбранного голоса</label><b id="pitchVal">0 Гц</b></div>
-            <input type="range" id="pitch" min="-30" max="30" value="0" />
+            <div class="ctl"><div class="row"><label>Скорость выбранного голоса</label><b id="rateVal">0%</b></div>
+            <input type="range" id="rate" min="-30" max="40" value="0" /></div>
+            <div class="ctl"><div class="row"><label>Тон выбранного голоса</label><b id="pitchVal">0 Гц</b></div>
+            <input type="range" id="pitch" min="-30" max="30" value="0" /></div>
             <button class="btn primary" id="btnTest">▶ Проверить голос</button>
           </div>
             <div class="card studio" id="studio">
@@ -106,28 +106,28 @@
           </div>
           <div class="col-right">
             <div class="card" id="addCard">
-              <h2>Добавить свой голос</h2>
-              <label>Источник</label>
-              <select id="newProv">
-                <option value="edge">Microsoft — русские нейро-голоса (бесплатно)</option>
-                <option value="eleven">ElevenLabs — свой или клонированный голос</option>
-              </select>
-              <div id="msBox">
-                <label>Поиск голоса</label>
-                <input id="voiceSearch" placeholder="Например: Светлана, Дмитрий…" spellcheck="false" />
-                <select id="newVoice" size="6"></select>
-              </div>
-              <div id="elBox" hidden>
-                <label>API-ключ ElevenLabs</label>
-                <input id="elKey" type="password" placeholder="sk_…" spellcheck="false" />
-                <label>Voice ID</label>
-                <input id="elVoiceId" placeholder="ID голоса из вашей библиотеки ElevenLabs" spellcheck="false" />
-                <div class="note">Ключ хранится только на вашем компьютере. Нужен аккаунт ElevenLabs; запросы идут напрямую с вашего ПК.</div>
-              </div>
+              <h2>Живые голоса Google</h2>
+              <p class="muted">Бесплатно каждый месяц: живые HD-голоса — 1 млн символов, Neural2 — 1 млн, WaveNet — 4 млн. Для 2–3 стримов в неделю по 2–3 часа обычно хватает: 1 млн символов — это около 16 часов речи. Приложение само считает символы и при 90% лимита переходит на Microsoft-голос.</p>
+              <details class="guide">
+                <summary>Как получить бесплатный ключ (5 шагов)</summary>
+                <ol>
+                  <li>Откройте <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>, войдите в Google и создайте проект.</li>
+                  <li>Включите сервис <b>Cloud Text-to-Speech API</b> (APIs &amp; Services → Library).</li>
+                  <li>Подключите оплату (Billing). Google просит банковскую карту, но пока вы в бесплатном лимите, деньги не списываются. Поставьте бюджет-оповещение на 1 доллар.</li>
+                  <li>APIs &amp; Services → Credentials → Create credentials → <b>API key</b>. Скопируйте ключ.</li>
+                  <li>Вставьте ключ ниже и нажмите «Проверить ключ».</li>
+                </ol>
+              </details>
+              <label>API-ключ Google</label>
+              <input id="gKey" type="password" placeholder="AIza…" spellcheck="false" />
+              <button class="btn ghost wide" id="btnGCheck">Проверить ключ и загрузить голоса</button>
+              <select id="gVoice" size="6"></select>
               <label>Название голоса</label>
               <input id="newName" placeholder="Например: Бодрая Света" />
               <button class="btn primary" id="btnAddVoice">+ Добавить голос</button>
               <div class="vmsg" id="voiceMsg"></div>
+              <div class="usage" id="gUsage"></div>
+              <div class="note">Ключ хранится только на вашем компьютере, запросы идут напрямую в Google.</div>
             </div>
             <div class="card">
               <h2>Что озвучивать</h2>

@@ -8,16 +8,12 @@ window.addEventListener('unhandledrejection', (e) => window.__errors.push('promi
 
 /* ---------- настройки и голоса ---------- */
 const BUILTIN = [
-  { id: 'b-svetlana', name: 'Светлана', desc: 'Женский · тёплый, естественный', voice: 'ru-RU-SvetlanaNeural' },
-  { id: 'b-svetlana-live', name: 'Светлана · бодрая', desc: 'Женский · живая, энергичная подача', voice: 'ru-RU-SvetlanaNeural', rate: 10, pitch: 4 },
-  { id: 'b-svetlana-soft', name: 'Светлана · мягкая', desc: 'Женский · спокойная, уютная', voice: 'ru-RU-SvetlanaNeural', rate: -8, pitch: -3 },
-  { id: 'b-dmitry', name: 'Дмитрий', desc: 'Мужской · уверенный, чёткий', voice: 'ru-RU-DmitryNeural' },
-  { id: 'b-dmitry-live', name: 'Дмитрий · энергичный', desc: 'Мужской · быстрый, заряженный', voice: 'ru-RU-DmitryNeural', rate: 12, pitch: 3 },
-  { id: 'b-dmitry-anchor', name: 'Дмитрий · диктор', desc: 'Мужской · низкий, весомый', voice: 'ru-RU-DmitryNeural', rate: -5, pitch: -6 },
-].map((v) => ({ rate: 0, pitch: 0, ...v, provider: 'edge', pool: true, builtin: true }));
+  { id: 'b-svetlana', name: 'Светлана', desc: 'Женский · тёплый, естественный', voice: 'ru-RU-SvetlanaNeural', gender: 'F' },
+  { id: 'b-dmitry', name: 'Дмитрий', desc: 'Мужской · уверенный, чёткий', voice: 'ru-RU-DmitryNeural', gender: 'M' },
+].map((v) => ({ rate: 0, pitch: 0, ...v, provider: 'edge', builtin: true }));
 
 const DEFAULTS = {
-  selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', elKey: '',
+  selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '', gKey: '', usage: { m: '', hd: 0, n2: 0, std: 0 },
   presets: [],
   chat: true, readName: true, gifts: true, follows: true, subsOnly: false,
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
@@ -25,7 +21,7 @@ const DEFAULTS = {
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
 // встроенные голоса всегда на месте, свои — добавляются после них
-const customs = (S.presets || []).filter((p) => p && !p.builtin);
+const customs = (S.presets || []).filter((p) => p && !p.builtin && p.provider === 'google');
 S.presets = [...BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true })), ...customs];
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
 const save = () => { try { localStorage.setItem('echochat2', JSON.stringify(S)); } catch (_) {} };
@@ -57,6 +53,14 @@ function bindRange(id, label, fmt, get, set) {
 }
 const refreshVol = bindRange('vol', 'volVal', (v) => v + '%', () => S.vol, (v) => { S.vol = v; if (cur) cur.volume = v / 100; });
 const refreshRate = bindRange('rate', 'rateVal', (v) => (v > 0 ? '+' : '') + v + '%', () => selectedPreset().rate, (v) => { selectedPreset().rate = v; });
+function syncControls() {
+  const p = selectedPreset();
+  const hd = p.provider === 'google' && p.gKind === 'hd';
+  $('#rate').disabled = hd;
+  $('#pitch').disabled = p.provider === 'google';
+  $('#rate').closest('.ctl').classList.toggle('off', hd);
+  $('#pitch').closest('.ctl').classList.toggle('off', p.provider === 'google');
+}
 const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
@@ -72,17 +76,17 @@ function renderVoices() {
     d.className = 'voice' + (p.id === S.selected ? ' sel' : '');
     d.dataset.id = p.id;
     d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
-      <div class="vi"><b>${esc(p.name)}${p.provider === 'eleven' ? '<em>свой</em>' : ''}</b><small>${esc(p.desc || p.voice || '')}</small></div>
+      <div class="vi"><b>${esc(p.name)}${p.provider === 'google' ? '<em>Google</em>' : ''}</b><small>${esc(p.desc || p.voice || '')}</small></div>
       <button class="mini play" title="Прослушать">▶</button>
       ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
-    d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); };
+    d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); syncControls(); };
     $('.play', d).onclick = (e) => { e.stopPropagation(); previewPreset(p); };
     const del = $('.del', d);
     if (del) del.onclick = (e) => {
       e.stopPropagation();
       S.presets = S.presets.filter((x) => x.id !== p.id);
       if (S.selected === p.id) S.selected = BUILTIN[0].id;
-      save(); renderVoices(); refreshRate(); refreshPitch();
+      save(); renderVoices(); refreshRate(); refreshPitch(); syncControls();
     };
     voicesBox.appendChild(d);
   });
@@ -94,58 +98,79 @@ function previewPreset(p) {
 }
 $('#btnTest').onclick = () => previewPreset(selectedPreset());
 
-/* ---------- добавление своего голоса ---------- */
-let catalog = [];
-const newProv = $('#newProv'), newVoice = $('#newVoice'), voiceSearch = $('#voiceSearch'), voiceMsg = $('#voiceMsg');
+/* ---------- живые голоса Google (бесплатный месячный лимит) ---------- */
+const LIMIT = { hd: 1000000, n2: 1000000, std: 4000000 };
+const SAFE = 0.9; // при 90% лимита автоматически уходим на Microsoft
+const KIND_NAME = { hd: 'Живые HD', n2: 'Neural2', std: 'WaveNet/Standard' };
+const PERSONA = { Zephyr: 'яркий', Puck: 'бодрый', Charon: 'информативный', Kore: 'уверенный', Fenrir: 'эмоциональный', Leda: 'юный', Orus: 'уверенный', Aoede: 'лёгкий', Callirrhoe: 'непринуждённый', Autonoe: 'яркий', Enceladus: 'мягкий', Iapetus: 'чёткий', Umbriel: 'непринуждённый', Algieba: 'плавный', Despina: 'плавный', Erinome: 'чёткий', Algenib: 'с хрипотцой', Rasalgethi: 'информативный', Laomedeia: 'бодрый', Achernar: 'мягкий', Alnilam: 'уверенный', Schedar: 'ровный', Gacrux: 'зрелый', Pulcherrima: 'напористый', Achird: 'дружелюбный', Zubenelgenubi: 'разговорный', Vindemiatrix: 'нежный', Sadachbia: 'живой', Sadaltager: 'знающий', Sulafat: 'тёплый' };
 
-function renderCatalog() {
-  const q = voiceSearch.value.trim().toLowerCase();
-  const list = catalog
-    .filter((v) => !q || (v.name + ' ' + v.id + ' ' + v.locale + ' ' + v.gender).toLowerCase().includes(q))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  newVoice.innerHTML = '';
-  list.slice(0, 400).forEach((v) => {
-    const o = document.createElement('option');
-    o.value = v.id;
-    o.textContent = `${v.name} · ${v.gender === 'Male' ? 'муж.' : v.gender === 'Female' ? 'жен.' : v.gender}`;
-    newVoice.appendChild(o);
-  });
-  if (newVoice.options.length) newVoice.selectedIndex = 0;
-}
-async function loadCatalog() {
-  try { const r = await window.echo.voices(); catalog = r.voices || []; } catch (_) { catalog = []; }
-  renderCatalog();
-}
-voiceSearch.addEventListener('input', renderCatalog);
-newProv.addEventListener('change', () => {
-  const eleven = newProv.value === 'eleven';
-  $('#msBox').hidden = eleven; $('#elBox').hidden = !eleven;
-});
-$('#elKey').value = S.elKey || '';
+const gKeyEl = $('#gKey'), gVoice = $('#gVoice'), voiceMsg = $('#voiceMsg');
+let gCatalog = [];
+gKeyEl.value = S.gKey || '';
 const say = (t, bad) => { voiceMsg.textContent = t; voiceMsg.className = 'vmsg' + (bad ? ' bad' : ''); };
 
-$('#btnAddVoice').onclick = () => {
-  let name = $('#newName').value.trim();
-  let p;
-  if (newProv.value === 'eleven') {
-    const key = $('#elKey').value.trim(), vid = $('#elVoiceId').value.trim();
-    if (!key || !vid) return say('Укажите API-ключ и Voice ID из ElevenLabs.', true);
-    if (!name) name = 'Мой голос';
-    S.elKey = key;
-    p = { provider: 'eleven', elVoice: vid, desc: 'ElevenLabs · свой голос' };
-  } else {
-    const id = newVoice.value;
-    if (!id) return say('Выберите голос из списка.', true);
-    const meta = catalog.find((v) => v.id === id) || {};
-    if (!name) name = (meta.name || id).split(' · ')[0].replace(/\s*\(.*\)/, '');
-    p = { provider: 'edge', voice: id, desc: 'Microsoft · русский нейро-голос' };
-  }
-  const preset = { id: 'c-' + Date.now().toString(36), name, rate: 0, pitch: 0, pool: true, builtin: false, ...p };
+function gMeta(v) {
+  const n = v.id;
+  let kind = 'std', short = n.replace(/^ru-RU-/, '');
+  if (/Chirp3-HD/i.test(n)) { kind = 'hd'; short = n.split('-').pop(); }
+  else if (/Neural2/i.test(n)) { kind = 'n2'; short = 'Neural2 ' + n.split('-').pop(); }
+  else if (/Wavenet/i.test(n)) short = 'WaveNet ' + n.split('-').pop();
+  else short = 'Standard ' + n.split('-').pop();
+  const gender = v.gender === 'M' ? 'муж.' : 'жен.';
+  const style = kind === 'hd' && PERSONA[short] ? ' · ' + PERSONA[short] : '';
+  return { ...v, kind, short, label: `${KIND_NAME[kind]} · ${short} · ${gender}${style}` };
+}
+function fillGoogleVoices(list) {
+  const order = { hd: 0, n2: 1, std: 2 };
+  gCatalog = list.map(gMeta).sort((a, b) => order[a.kind] - order[b.kind] || a.short.localeCompare(b.short));
+  gVoice.innerHTML = '';
+  gCatalog.forEach((v) => { const o = document.createElement('option'); o.value = v.id; o.textContent = v.label; gVoice.appendChild(o); });
+  if (gVoice.options.length) gVoice.selectedIndex = 0;
+}
+
+// учёт символов за месяц (локально) — чтобы не выйти за бесплатный лимит
+function usage() {
+  const m = new Date().toISOString().slice(0, 7);
+  if (!S.usage || S.usage.m !== m) S.usage = { m, hd: 0, n2: 0, std: 0 };
+  return S.usage;
+}
+function addUsage(kind, n) { usage()[kind] += n; save(); renderUsage(); }
+const overBudget = (kind) => usage()[kind] >= LIMIT[kind] * SAFE;
+function renderUsage() {
+  const u = usage();
+  const f = (k) => `${KIND_NAME[k]}: ${Math.round(u[k] / 1000).toLocaleString('ru-RU')} тыс. из ${(LIMIT[k] / 1000).toLocaleString('ru-RU')} тыс.`;
+  $('#gUsage').textContent = 'Использовано в этом месяце · ' + f('hd') + ' · ' + f('n2') + ' · ' + f('std');
+}
+
+function addGoogleVoice(meta, customName) {
+  const name = (customName || '').trim() || meta.short;
+  const preset = {
+    id: 'g-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name, builtin: false, provider: 'google',
+    gName: meta.id, gKind: meta.kind, gender: meta.gender, rate: 0, pitch: 0,
+    desc: 'Google · ' + (meta.label || meta.id),
+  };
   S.presets.push(preset);
   S.selected = preset.id;
-  save(); renderVoices(); refreshRate(); refreshPitch();
+  save(); renderVoices(); refreshRate(); refreshPitch(); syncControls();
+  return preset;
+}
+
+$('#btnGCheck').onclick = async () => {
+  const key = gKeyEl.value.trim();
+  if (!key) return say('Вставьте API-ключ Google.', true);
+  say('Проверяю ключ…');
+  const r = await window.echo.googleVoices(key).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
+  if (!r.ok) return say(r.error, true);
+  S.gKey = key; save();
+  fillGoogleVoices(r.voices);
+  say(`Ключ работает. Найдено русских голосов: ${r.voices.length}. Выберите голос и нажмите «Добавить».`);
+};
+$('#btnAddVoice').onclick = () => {
+  const meta = gCatalog.find((v) => v.id === gVoice.value);
+  if (!meta) return say('Сначала проверьте ключ — список голосов загрузится автоматически.', true);
+  const p = addGoogleVoice(meta, $('#newName').value);
   $('#newName').value = '';
-  say(`Голос «${name}» добавлен и выбран. Подстрой скорость и тон слева и нажми ▶.`);
+  say(`Голос «${p.name}» добавлен и выбран. Нажмите ▶, чтобы услышать.`);
 };
 
 /* ---------- лента ---------- */
@@ -247,15 +272,28 @@ function fallbackSpeak(text) {
 
 function synthFor(text, p) {
   return window.echo.synth({
-    text, provider: p.provider, voice: p.voice, elVoice: p.elVoice, elKey: S.elKey,
+    text, provider: p.provider, voice: p.voice, gName: p.gName, gKey: S.gKey,
     rate: Math.max(0.5, 1 + (p.rate || 0) / 100),
     pitch: ((p.pitch || 0) >= 0 ? '+' : '') + (p.pitch || 0) + 'Hz',
   }).catch((e) => ({ ok: false, error: String(e && e.message || e) }));
 }
+const fallbackPreset = (p) => BUILTIN.find((b) => b.gender === p.gender) || BUILTIN[0];
+function warnOnce(text) {
+  if (Date.now() - lastWarn > 30000) { lastWarn = Date.now(); sys(text); }
+}
 
 // синтез стартует заранее, пока играет предыдущая фраза — без пауз между сообщениями
 function ensureSynth(item) {
-  if (!item.p) item.p = synthFor(item.say, item.preset);
+  if (!item.p) {
+    const p = item.preset;
+    if (p.provider === 'google' && overBudget(p.gKind)) {
+      item.fallback = true;
+      warnOnce(`Бесплатный лимит Google (${KIND_NAME[p.gKind]}) почти исчерпан — включён голос Microsoft до начала следующего месяца.`);
+      item.p = synthFor(item.say, fallbackPreset(p));
+    } else {
+      item.p = synthFor(item.say, p);
+    }
+  }
   return item.p;
 }
 
@@ -267,9 +305,13 @@ function setVoiceState(ok) {
 
 async function speakItem(item) {
   let r = await ensureSynth(item);
-  if (!(r && r.ok) && item.preset.provider === 'eleven') {
-    if (Date.now() - lastWarn > 30000) { lastWarn = Date.now(); sys('Голос «' + item.preset.name + '»: ' + (r && r.error)); }
-    r = await synthFor(item.say, BUILTIN[0]); // запасной — встроенная Светлана
+  const p = item.preset;
+  if (p.provider === 'google' && !item.fallback) {
+    if (r && r.ok) addUsage(p.gKind, r.chars || item.say.length);
+    else {
+      warnOnce(`Голос «${p.name}»: ${(r && r.error) || 'ошибка'} Включён запасной голос Microsoft.`);
+      r = await synthFor(item.say, fallbackPreset(p));
+    }
   }
   if (r && r.ok) {
     try { setVoiceState(true); await playBlob(r.audio); return; } catch (_) {}
@@ -320,13 +362,19 @@ window.echo.onFollow((f) => {
 });
 window.echo.onLike((l) => { counters.likes = l.total || counters.likes + l.count; bump('#sLikes', counters.likes); });
 window.echo.onViewers((v) => { $('#sViewers').textContent = (v.count ?? 0).toLocaleString('ru-RU'); });
-window.echo.onError((e) => sys('Ошибка: ' + e.message));
+window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false;
-function showAlert(text, warn) {
+function showAlert(text, warn, detail) {
   alertBox.textContent = text;
+  if (text && detail) {
+    const d = document.createElement('div');
+    d.className = 'alert-detail';
+    d.textContent = 'Техническая информация: ' + detail;
+    alertBox.appendChild(d);
+  }
   alertBox.classList.toggle('warn', !!warn);
   alertBox.hidden = !text;
 }
@@ -366,9 +414,8 @@ btn.onclick = async () => {
     if (!r || !r.ok) {
       setStatus(false, 'Не в эфире');
       $('#feedSub').textContent = 'Не удалось подключиться';
-      const msg = (r && r.error) || 'Не удалось подключиться.';
-      showAlert(msg, r && (r.code === 'offline' || r.code === 'empty'));
-      sys(msg);
+      // одно понятное сообщение на русском — без дублей в ленте
+      showAlert((r && r.error) || 'Не удалось подключиться к эфиру. Попробуйте снова.', r && (r.code === 'offline' || r.code === 'empty'), r && r.detail);
     } else {
       showAlert('');
       sys('Подключено! Чат будет озвучен.');
@@ -376,8 +423,7 @@ btn.onclick = async () => {
     }
   } catch (e) {
     setStatus(false, 'Не в эфире');
-    const msg = 'Ошибка подключения: ' + (e && e.message ? e.message : e);
-    showAlert(msg); sys(msg);
+    showAlert('Не удалось подключиться к эфиру. Попробуйте снова.', false, e && e.message ? e.message : String(e));
   } finally {
     connecting = false;
   }
@@ -398,15 +444,15 @@ btnUpd.onclick = async () => {
     btnUpd.textContent = 'Проверяю…';
     const r = await window.echo.checkUpdate();
     btnUpd.classList.remove('busy');
-    if (!r.ok) { btnUpd.textContent = '⟳ Проверить обновления'; sys('Не удалось проверить обновления: ' + r.error); return; }
+    if (!r.ok) { btnUpd.textContent = '⟳ Проверить'; sys('Не удалось проверить обновления: ' + r.error); return; }
     if (r.available) {
       updReady = true;
       btnUpd.classList.add('new');
       btnUpd.textContent = `⬇ Обновить до ${r.version}`;
       sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
     } else {
-      btnUpd.textContent = '✓ Установлена последняя версия';
-      setTimeout(() => { btnUpd.textContent = '⟳ Проверить обновления'; }, 3000);
+      btnUpd.textContent = '✓ Версия актуальна';
+      setTimeout(() => { btnUpd.textContent = '⟳ Проверить'; }, 3000);
     }
     return;
   }
@@ -414,11 +460,11 @@ btnUpd.onclick = async () => {
   const r = await window.echo.installUpdate();
   if (!r.ok) {
     btnUpd.classList.remove('busy');
-    btnUpd.textContent = '⬇ Повторить обновление';
+    btnUpd.textContent = '⬇ Повторить';
     sys('Ошибка обновления: ' + r.error);
   } else if (r.manual) {
     btnUpd.classList.remove('busy');
-    btnUpd.textContent = '⬇ Открыта страница загрузки';
+    btnUpd.textContent = '⬇ Страница загрузки';
   } else {
     btnUpd.textContent = 'Перезапуск…';
   }
@@ -436,6 +482,5 @@ $('#btnStudio').onclick = speakStudio;
 $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textContent; speakStudio(); });
 
 /* ---------- старт ---------- */
-renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen();
-loadCatalog();
-window.__echo = { S, clean, speakName, renderVoices, get presets() { return S.presets; } };
+renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); syncControls(); renderUsage();
+window.__echo = { S, clean, speakName, renderVoices, gMeta, addGoogleVoice, fillGoogleVoices, overBudget, addUsage, usage, get presets() { return S.presets; } };
