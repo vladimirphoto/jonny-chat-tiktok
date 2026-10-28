@@ -25,8 +25,8 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  wAlignTt: 'left', wAlignTw: 'right', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, showTwitch: true, twNick: '',
-  chat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
+  wAlignTt: 'left', wAlignTw: 'right', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, twNick: '',
+  ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
@@ -37,6 +37,10 @@ try { const raw = JSON.parse(localStorage.getItem('echochat2') || '{}'); if (raw
 S.presets = BUILTIN.map((b) => ({ ...b, ...((S.presets || []).find((p) => p.id === b.id) || {}), builtin: true }));
 if (!S.presets.some((p) => p.id === S.selected)) S.selected = BUILTIN[0].id;
 delete S.subsOnly; // режим «только подписчики» убран
+delete S.showTwitch; // чат Twitch всегда показывается в ленте, если канал подключён
+// прежняя общая настройка «озвучивать чат» переносится на обе платформы
+try { const raw = JSON.parse(localStorage.getItem('echochat2') || '{}'); if (typeof raw.chat === 'boolean' && raw.ttChat === undefined) { S.ttChat = raw.chat; S.twChat = raw.chat; } } catch (_) {}
+delete S.chat;
 // голоса платформ: у тех, кто обновился, остаётся прежний голос чата
 const ensureRouteVoices = () => ['ttVoice', 'twVoice'].forEach((k) => { if (!S.presets.some((p) => p.id === S[k])) S[k] = S.presets.some((p) => p.id === S.selected) ? S.selected : BUILTIN[0].id; });
 ensureRouteVoices();
@@ -102,6 +106,13 @@ $$('.nav').forEach((b) => b.addEventListener('click', () => {
 $$('input[data-k]').forEach((el) => {
   el.checked = !!S[el.dataset.k];
   el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); if (el.dataset.k[0] === 'w') pushWidget(); });
+});
+
+// кнопки «озвучивать»: нажата — озвучка включена
+$$('.vbtn[data-k]').forEach((b) => {
+  const paint = () => { const on = !!S[b.dataset.k]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); };
+  paint();
+  b.addEventListener('click', () => { S[b.dataset.k] = !S[b.dataset.k]; save(); paint(); });
 });
 
 function bindRange(id, label, fmt, get, set) {
@@ -298,7 +309,9 @@ const QUEUE_MAX = 8;       // длиннее очередь — больше о�
 const STALE_MS = 25000;    // сообщение старше этого времени уже не озвучиваем
 function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук готовится заранее, пока говорит предыдущая фраза
 
+let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
+  voiceCalls++;
   if ($('#paused').checked && !force) return;
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
@@ -405,14 +418,14 @@ const isBacklog = (m, platform) => !!(m.created && since[platform] && Date.now()
 function handleChat(m, platform) {
   if (!m.text || isBacklog(m, platform)) return; // пустые и старые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub, avatar: m.avatar, platform });
-  if (!S.chat) return;
+  if (platform === 'twitch' ? !S.twChat : !S.ttChat) return; // озвучка этой платформы выключена — сообщение остаётся в ленте
   const t = clean(m.text);
   if (!t) return;
   enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: platform === 'twitch' ? twPreset() : ttPreset() });
 }
 window.echo.onChat((m) => handleChat(m, 'tiktok'));
 // Twitch: сообщения есть только если канал указан и подключён
-window.echo.onTwChat((m) => { if (S.showTwitch) handleChat(m, 'twitch'); });
+window.echo.onTwChat((m) => handleChat(m, 'twitch'));
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
   const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift', avatar: g.avatar, platform: 'tiktok', giftImg: g.image });
@@ -429,6 +442,8 @@ window.echo.onLike((l) => {
   bump('#sLikes', counters.likes);
 });
 window.echo.onViewers((v) => { if (Number.isFinite(v.count)) $('#sViewers').textContent = v.count.toLocaleString('ru-RU'); });
+// онлайн Twitch считается отдельно: пока стрима нет (или канал не подключён) — прочерк
+window.echo.onTwViewers((v) => { $('#sViewersTw').textContent = v && Number.isFinite(v.count) ? v.count.toLocaleString('ru-RU') : '—'; });
 window.echo.onError((e) => sys(e.message));
 
 /* ---------- подключение ---------- */
@@ -465,18 +480,21 @@ function renderPills() {
     el.lastElementChild.textContent = on ? txt : off;
   });
 }
-const connNick = $('#connNick'), connStatus = $('#connStatus'), connTime = $('#connTime');
+const connNick = $('#connNick'), connStatus = $('#connStatus'), connTwStatus = $('#connTwStatus'), connTime = $('#connTime');
+// статус подключения платформы: зелёный — подключена, жёлтый — переподключение
+const setSt = (el, t, tone) => { el.textContent = t; el.classList.toggle('ok', tone === 'ok'); el.classList.toggle('warn', tone === 'warn'); };
 // ник на цветной плашке; «—» — приглушённый
 const setNk = (el, t) => { el.textContent = t; el.classList.toggle('off', !t || t === '—'); };
 let liveSince = 0, timerId = null;
 const fmtTime = (ms) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60]
   .map((n) => String(n).padStart(2, '0')).join(':');
 function startTimer() {
+  if (timerId) return; // идёт с первой подключённой платформы
   liveSince = Date.now(); clearInterval(timerId);
   const tick = () => { connTime.textContent = fmtTime(Date.now() - liveSince); };
   tick(); timerId = setInterval(tick, 1000);
 }
-function stopTimer() { clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
+function stopTimer() { if (connected || twLive) return; clearInterval(timerId); timerId = null; connTime.textContent = '—'; }
 function showAlert(text, warn, detail) {
   // сообщение об ошибке выводим в ленте чата, а не под кнопкой
   if (!text) return;
@@ -495,11 +513,13 @@ function setStatus(live, text) {
   renderPills();
   btn.textContent = live ? 'Отключить' : 'Подключить';
   btn.classList.toggle('connected', live);
-  connStatus.textContent = live ? 'В эфире' : 'Не подключено';
+  setSt(connStatus, live ? 'В эфире' : 'Не подключено', live ? 'ok' : '');
   if (!live) { setNk(connNick, '—'); stopTimer(); }
 }
 window.echo.onTwStatus((s) => {
   twLive = s.state === 'live' || s.state === 'reconnect';
+  setSt(connTwStatus, s.state === 'live' ? 'Чат подключён' : s.state === 'reconnect' ? 'Переподключение…' : 'Не подключено', s.state === 'live' ? 'ok' : s.state === 'reconnect' ? 'warn' : '');
+  if (s.state === 'live') startTimer(); else if (s.state === 'offline') { stopTimer(); $('#sViewersTw').textContent = '—'; }
   setNk(connTw, s.state === 'live' ? '#' + s.channel : s.state === 'reconnect' ? 'переподключение…' : '—');
   if (s.state === 'live') {
     twLive = true; btnTw.textContent = 'Отключить'; btnTw.classList.add('connected');
@@ -669,4 +689,4 @@ $('#wClear').onclick = () => window.echo.widgetClear();
 /* ---------- старт ---------- */
 renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { get voiceCalls() { return voiceCalls; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };

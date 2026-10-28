@@ -251,7 +251,17 @@ ipcMain.handle('tts:synth', async (_e, o) => {
 });
 
 // ---------- Twitch (мультистрим) ----------
-function stopTwitch() { if (tw) { try { tw.close(); } catch (_) {} tw = null; } }
+let twViewersTimer = null;
+function stopTwitch() {
+  clearInterval(twViewersTimer); twViewersTimer = null;
+  if (tw) { try { tw.close(); } catch (_) {} tw = null; }
+  send('tw:viewers', { count: null });
+}
+// онлайн Twitch: опрашиваем раз в 30 секунд, пока канал подключён
+function pollTwitchViewers(t) {
+  const tick = async () => { const n = await twitch.viewersOf(t.channel); if (tw === t) send('tw:viewers', { count: n }); };
+  tick(); twViewersTimer = setInterval(tick, 30000);
+}
 ipcMain.handle('tw:connect', async (_e, name) => {
   stopTwitch();
   let first = true;
@@ -267,6 +277,7 @@ ipcMain.handle('tw:connect', async (_e, name) => {
   });
   if (!t.ok) return t;
   tw = t;
+  pollTwitchViewers(t);
   return { ok: true, channel: t.channel };
 });
 ipcMain.handle('tw:disconnect', () => { stopTwitch(); send('tw:status', { state: 'offline' }); return { ok: true }; });

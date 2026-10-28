@@ -65,8 +65,17 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
-    add('ui', 'карточка «Голоса платформ» первая в правой колонке, студия под «Что озвучивать»', !!$('#voiceRoutes') && $('#voiceRoutes') === $('#tab-voice .col-right').firstElementChild && !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=chat]') !== null);
+    add('ui', 'карточка «Голоса платформ» первая в правой колонке, студия под «Что озвучивать»', !!$('#voiceRoutes') && $('#voiceRoutes') === $('#tab-voice .col-right').firstElementChild && !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=ttChat]') !== null);
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
+    // --- озвучка: отдельные кнопки для TikTok и Twitch ---
+    const vb = (k) => document.querySelector('.vbtn[data-k=' + k + ']');
+    add('ui', 'озвучка: отдельные кнопки TikTok (чат, подарки, подписки), Twitch (чат) и «Читать ник»', ['ttChat', 'gifts', 'follows', 'twChat', 'readName'].every((k) => vb(k)) && !!document.querySelector('.vgroup.tt [data-k=ttChat]') && !!document.querySelector('.vgroup.tw [data-k=twChat]'));
+    add('ui', 'озвучка: старые переключатели «Что озвучивать» убраны', !document.querySelector('input[data-k=chat]') && !/Что озвучивать/.test($('#tab-voice').innerText));
+    const tw0 = E.S.twChat;
+    vb('twChat').click();
+    add('ui', 'кнопка озвучки Twitch переключается отдельно от TikTok', E.S.twChat === !tw0 && vb('twChat').classList.contains('on') === E.S.twChat && E.S.ttChat === true && vb('ttChat').classList.contains('on'), E.S.twChat + ' / ' + E.S.ttChat);
+    vb('twChat').click();
+    add('ui', 'кнопка озвучки: стиль включено/выключено различается', getComputedStyle(vb('ttChat')).backgroundImage !== 'none' && (vb('twChat').click(), getComputedStyle(vb('twChat')).backgroundImage === 'none' && (vb('twChat').click(), true)));
     // --- отдельные голоса для TikTok и Twitch, выпадающие списки ---
     const sels = ['ttVoiceSel', 'twVoiceSel', 'eventVoiceSel'].map((i) => $('#' + i));
     add('ui', 'три выпадающих списка голосов в стиле виджета', sels.every((e) => e && e.classList.contains('csel') && e.querySelector('.csel-val').textContent.length > 0 && e.querySelectorAll('.csel-opt').length >= 2), sels.map((e) => e.querySelector('.csel-val').textContent).join(' | '));
@@ -152,6 +161,8 @@ const PAGE_TEST = `(async () => {
     const b1 = rr($('#btnConnect')), b2 = rr($('#btnTwitch'));
     add('ui', 'поля ников TikTok и Twitch одного размера', Math.abs(f1.width - f2.width) < 1 && Math.abs(f1.height - f2.height) < 1, f1.width + 'x' + f1.height + ' / ' + f2.width + 'x' + f2.height);
     add('ui', 'кнопки TikTok и Twitch одного размера', Math.abs(b1.width - b2.width) < 1 && Math.abs(b1.height - b2.height) < 1, b1.width + 'x' + b1.height + ' / ' + b2.width + 'x' + b2.height);
+    add('ui', 'статусы подключения: отдельно TikTok и Twitch', /Статус TikTok/.test($('#connStatus').previousElementSibling.textContent) && /Статус Twitch/.test($('#connTwStatus').previousElementSibling.textContent) && $('#connTwStatus').textContent.length > 0);
+    add('ui', 'плашка «Зрители сейчас» делится на TikTok и Twitch', !!$('#sViewers') && !!$('#sViewersTw') && $('#sViewers').closest('.vv').classList.contains('tt') && $('#sViewersTw').closest('.vv').classList.contains('tw') && rr($('#sViewersTw')).left > rr($('#sViewers')).left);
     add('ui', 'вкладка «Эфир» без прокрутки', $('#tab-live').scrollHeight <= $('#tab-live').clientHeight + 1, $('#tab-live').scrollHeight + '/' + $('#tab-live').clientHeight);
     const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
     add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
@@ -200,6 +211,34 @@ async function eventTests(win) {
   const feed = await q("document.querySelector('#feed').innerText");
   add('событие: сообщение чата с текстом в ленте', /Вика/.test(feed) && /привет всем/.test(feed), feed.replace(/\n+/g, ' / ').slice(0, 160));
   add('событие: пустое сообщение не попадает в ленту', !/Пустой/.test(feed));
+  // онлайн Twitch отдельно от TikTok
+  send('tw:viewers', { count: 77 });
+  await wait(100);
+  add('событие: онлайн Twitch отдельно от TikTok', (await digits('#sViewersTw')) === '77' && (await digits('#sViewers')) === '1234', (await digits('#sViewersTw')) + ' / ' + (await digits('#sViewers')));
+  send('tw:viewers', { count: null });
+  await wait(100);
+  add('событие: нет стрима на Twitch — прочерк', (await q("document.querySelector('#sViewersTw').textContent")) === '—');
+  // статус каждой платформы в блоке подключения
+  send('tw:status', { state: 'live', channel: 'testchan' });
+  await wait(100);
+  add('событие: статус Twitch «Чат подключён»', (await q("document.querySelector('#connTwStatus').textContent")) === 'Чат подключён' && (await q("document.querySelector('#connTw').textContent")) === '#testchan');
+  send('tw:status', { state: 'offline' });
+  await wait(100);
+  add('событие: после отключения Twitch статус «Не подключено»', (await q("document.querySelector('#connTwStatus').textContent")) === 'Не подключено');
+  // озвучка выключена — чат всё равно остаётся в ленте
+  await q("document.querySelector('#paused').checked = false; window.__echo.S.ttChat = false; window.__echo.S.twChat = false;");
+  const calls0 = await q('window.__echo.voiceCalls');
+  send('tt:chat', { name: 'ТТтихо', text: 'сообщение без озвучки', created: null });
+  send('tw:chat', { name: 'ТВтихо', text: 'сообщение твича без озвучки', created: null, id: 'tv', avatar: '' });
+  await wait(300);
+  const feedQ = await q("document.querySelector('#feed').innerText");
+  add('озвучка выключена: чат TikTok и Twitch остаётся в ленте', /сообщение без озвучки/.test(feedQ) && /сообщение твича без озвучки/.test(feedQ));
+  add('озвучка выключена: сообщения не озвучиваются', (await q('window.__echo.voiceCalls')) === calls0, calls0 + ' → ' + (await q('window.__echo.voiceCalls')));
+  await q("window.__echo.S.twChat = true");
+  send('tw:chat', { name: 'ТВгромко', text: 'твич с озвучкой', created: null, id: 'tl', avatar: '' });
+  await wait(300);
+  add('озвучка Twitch включена отдельно от TikTok', (await q('window.__echo.voiceCalls')) === calls0 + 1);
+  await q("window.__echo.S.ttChat = true; document.querySelector('#paused').checked = true");
   const sysEl = await q("(() => { const t = document.querySelector('#feed .msg.sys .t'); if (!t) return null; const c = getComputedStyle(t); return { fs: parseFloat(c.fontSize), br: parseFloat(c.borderTopLeftRadius), line: getComputedStyle(t.parentElement, '::before').content }; })()");
   add('системные сообщения: крупная «таблетка» без линий', sysEl && sysEl.fs >= 13 && sysEl.br >= 12 && (sysEl.line === 'none' || sysEl.line === 'normal'), JSON.stringify(sysEl));
   await q("document.querySelector('#btnClear').click()");
