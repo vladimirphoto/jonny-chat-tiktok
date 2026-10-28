@@ -27,6 +27,16 @@ for (const f of files) {
   const idx = src.search(/(interface|message|type)\s+WebcastChatMessage\b/);
   if (idx >= 0 && found < 2) { log('--- ' + f + '\n' + src.slice(idx, idx + 1800)); found++; }
 }
+{
+  const dts = fs.readFileSync(path.join(root, 'dist', 'index-DcaLUrMQ.d.ts'), 'utf8');
+  let n = 0, from = 0;
+  while (n < 4) { const i = dts.indexOf('WebcastChatMessage', from); if (i < 0) break; log('d.ts@' + i + ': ' + dts.slice(Math.max(0, i - 150), i + 350).replace(/\s+/g, ' ')); from = i + 400; n++; }
+  const j = dts.search(/interface WebcastChatMessage|type WebcastChatMessage\b|class WebcastChatMessage/);
+  if (j >= 0) log('DEF: ' + dts.slice(j, j + 1500).replace(/\s+/g, ' '));
+  const js = fs.readFileSync(path.join(root, 'dist', 'lib-DWhiWLli.js'), 'utf8');
+  const k = js.search(/WebcastChatMessage\s*=|function\s+WebcastChatMessage|WebcastChatMessage\s*\{/);
+  log('js def idx ' + k + (k >= 0 ? ': ' + js.slice(k, k + 900).replace(/\s+/g, ' ') : ''));
+}
 if (!found) {
   for (const f of files) {
     const src = fs.readFileSync(f, 'utf8');
@@ -48,7 +58,7 @@ const shape = (v, d = 0) => {
 const cands = (process.env.CANDS || 'alishpro0').split(',');
 for (const name of cands) {
   let c;
-  try { c = new TikTokLiveConnection(name); } catch (e) { log('ctor failed: ' + e); emit('probe-ctor'); continue; }
+  try { c = new TikTokLiveConnection(name, { processInitialData: true, fetchRoomInfoOnConnect: true, enableExtendedGiftInfo: false, authenticateWs: false, useMobile: false, webClientOptions: {}, wsClientOptions: {} }); } catch (e) { log('ctor failed: ' + e); emit('probe-ctor'); continue; }
   c.on('error', (e) => log('error event: ' + String((e && (e.info || e.message)) || e).slice(0, 200)));
   let total = 0, withComment = 0, withEmotes = 0, samples = 0;
   const events = {};
