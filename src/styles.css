@@ -86,12 +86,15 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;b
 .msg.speaking{border-color:var(--a1);background:rgba(139,92,246,.12)}
 .msg.gift{background:linear-gradient(135deg,rgba(236,72,153,.14),rgba(251,191,36,.08))}
 .msg.follow{background:rgba(52,211,153,.09)}
-.msg.sys{background:transparent!important;border:none!important;padding:4px 0!important;align-items:center;gap:0;margin:2px 0}
-.msg.sys .av{display:none}
-.msg.sys .b{display:flex;align-items:center;width:100%;gap:8px}
-.msg.sys .b::before,.msg.sys .b::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
-.msg.sys .n{display:none}
-.msg.sys .t{color:var(--muted);font-size:11px;white-space:nowrap;padding:0 8px;font-style:italic}
+.msg.sys{background:transparent!important;border:none!important;padding:3px 0!important;justify-content:center;gap:0;margin:3px 0}
+.msg.sys .av,.msg.sys .n{display:none}
+.msg.sys .b{display:flex;justify-content:center;width:100%}
+.msg.sys .t{display:inline-flex;align-items:center;gap:10px;max-width:94%;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);color:#d6d4e6;font-size:14px;font-weight:500;line-height:1.35;font-style:normal;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.msg.sys .t::before{content:"";width:9px;height:9px;border-radius:50%;flex:none;background:var(--a3);box-shadow:0 0 0 4px rgba(34,211,238,.16)}
+.msg.sys.ok .t{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#b6f5d8}
+.msg.sys.ok .t::before{background:var(--ok);box-shadow:0 0 0 4px rgba(52,211,153,.2)}
+.msg.sys.bad .t{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.32);color:#fecaca}
+.msg.sys.bad .t::before{background:var(--bad);box-shadow:0 0 0 4px rgba(248,113,113,.2)}
 .empty{margin:auto;color:var(--muted);text-align:center}
 
 .alert{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fecaca;animation:fade .25s}

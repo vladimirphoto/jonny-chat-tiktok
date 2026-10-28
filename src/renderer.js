@@ -250,7 +250,9 @@ function addMsg({ name, text, kind = '', sub = false, color, avatar = '', platfo
   feed.scrollTop = feed.scrollHeight;
   return el;
 }
-const sys = (text) => addMsg({ name: 'Система', text, kind: 'sys', color: '#475569' });
+// цвет точки в «таблетке»: зелёный — подключились, красный — завершилось или ошибка, голубой — остальное
+const sysTone = (t) => (/завершена|ошибк|не удалось|не работает|нестабильн|отклон|отмен|не найден|не в эфире/i.test(t) ? 'bad' : /подключено!|подключён\./i.test(t) ? 'ok' : '');
+const sys = (text) => addMsg({ name: 'Система', text, kind: ('sys ' + sysTone(text)).trim(), color: '#475569' });
 const resetEmpty = () => { feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
 resetEmpty();
 $('#btnClear').onclick = resetEmpty;

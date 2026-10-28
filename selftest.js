@@ -190,6 +190,8 @@ async function eventTests(win) {
   const feed = await q("document.querySelector('#feed').innerText");
   add('событие: сообщение чата с текстом в ленте', /Вика/.test(feed) && /привет всем/.test(feed), feed.replace(/\n+/g, ' / ').slice(0, 160));
   add('событие: пустое сообщение не попадает в ленту', !/Пустой/.test(feed));
+  const sysEl = await q("(() => { const t = document.querySelector('#feed .msg.sys .t'); if (!t) return null; const c = getComputedStyle(t); return { fs: parseFloat(c.fontSize), br: parseFloat(c.borderTopLeftRadius), line: getComputedStyle(t.parentElement, '::before').content }; })()");
+  add('системные сообщения: крупная «таблетка» без линий', sysEl && sysEl.fs >= 13 && sysEl.br >= 12 && (sysEl.line === 'none' || sysEl.line === 'normal'), JSON.stringify(sysEl));
   await q("document.querySelector('#btnClear').click()");
   send('tt:chat', { name: 'Миша', text: 'после очистки', created: null });
   await wait(300);
