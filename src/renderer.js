@@ -25,7 +25,7 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  chat: true, readName: true, gifts: true, follows: true, subsOnly: false,
+  chat: true, readName: true, gifts: true, follows: true, subsOnly: false, eventVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
 let S = { ...DEFAULTS };
@@ -84,7 +84,7 @@ function renderVoices() {
     d.dataset.id = p.id;
     d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
       <div class="vi"><b>${esc(p.name)}</b><small>${esc(p.desc || p.voice || '')}</small></div>
-      <button class="mini play" title="Прослушать">▶</button>
+      <button class="mini play" title="Прослушать">${ICON_PLAY}</button>
       ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
     d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); syncControls(); };
     $('.play', d).onclick = (e) => { e.stopPropagation(); previewPreset(p); };
@@ -97,7 +97,22 @@ function renderVoices() {
     };
     voicesBox.appendChild(d);
   });
+  refreshPreviewUi();
+  fillEventVoice();
 }
+
+// голос для подарков и подписок: «как у чата» или любой из списка
+const eventVoiceEl = $('#eventVoice');
+function fillEventVoice() {
+  eventVoiceEl.innerHTML = '';
+  const add = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; eventVoiceEl.appendChild(o); };
+  add('', 'Как у чата');
+  S.presets.forEach((p) => add(p.id, p.name + ' · ' + (p.gender === 'M' ? 'муж.' : 'жен.')));
+  if (!S.presets.some((p) => p.id === S.eventVoice)) S.eventVoice = '';
+  eventVoiceEl.value = S.eventVoice;
+}
+eventVoiceEl.onchange = () => { S.eventVoice = eventVoiceEl.value; save(); };
+const eventPreset = () => S.presets.find((p) => p.id === S.eventVoice) || selectedPreset();
 
 // Оставляем только голоса, которые реально есть у сервиса Microsoft
 const BASE_IDS = ['b-svetlana', 'b-dmitry'];
@@ -109,9 +124,43 @@ function applyCatalog(all) {
   renderVoices(); refreshRate(); refreshPitch(); syncControls();
 }
 
-function previewPreset(p) {
+/* ---------- прослушивание голоса: ▶ превращается в паузу и останавливает ---------- */
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+let previewItem = null; // { id, item } — фраза, которая сейчас звучит или готовится
+
+function refreshPreviewUi() {
+  const pid = previewItem && previewItem.id;
+  $$('#voices .play').forEach((b) => {
+    const on = b.closest('.voice').dataset.id === pid;
+    b.innerHTML = on ? ICON_PAUSE : ICON_PLAY;
+    b.title = on ? 'Остановить' : 'Прослушать';
+    b.classList.toggle('active', on);
+  });
+  const t = $('#btnTest'), tOn = !!pid && pid === S.selected;
+  t.innerHTML = (tOn ? ICON_PAUSE : ICON_PLAY) + (tOn ? 'Остановить' : 'Проверить голос');
+  t.classList.toggle('stop', tOn);
+}
+
+function stopPreview() {
+  if (!previewItem) return;
+  previewItem.item.cancelled = true;
+  previewItem = null;
   queue.length = 0; stopCurrent();
-  enqueue({ el: null, say: `Привет! Меня зовут ${p.name}. Я буду читать чат твоего эфира.`, preset: p }, true);
+  refreshPreviewUi();
+}
+
+function previewPreset(p) {
+  if (previewItem && previewItem.id === p.id) return stopPreview(); // повторное нажатие — пауза
+  stopPreview();
+  queue.length = 0; stopCurrent();
+  const item = {
+    el: null, say: `Привет! Меня зовут ${p.name}. Я буду читать чат твоего эфира.`, preset: p,
+    onEnd: () => { if (previewItem && previewItem.item === item) { previewItem = null; refreshPreviewUi(); } },
+  };
+  previewItem = { id: p.id, item };
+  refreshPreviewUi();
+  enqueue(item, true);
 }
 $('#btnTest').onclick = () => previewPreset(selectedPreset());
 
@@ -238,6 +287,7 @@ function ensureSynth(item) {
 
 async function speakItem(item) {
   const r = await ensureSynth(item);
+  if (item.cancelled) return; // нажали паузу, пока звук готовился
   if (r && r.ok) {
     try { await playBlob(r.audio); return; } catch (_) {}
   } else {
@@ -253,10 +303,12 @@ async function pump() {
   try {
     while (queue.length) {
       const it = queue.shift();
+      if (it.cancelled) { it.onEnd && it.onEnd(); continue; }
       if (!it.force && Date.now() - it.t > STALE_MS) continue; // устарело — пропускаем, чтобы догнать эфир
       curEl = it.el; curEl?.classList.add('speaking'); document.body.classList.add('talking');
       prefetch();
       try { await speakItem(it); } catch (_) {}
+      it.onEnd && it.onEnd();
       curEl?.classList.remove('speaking'); curEl = null;
       stopCurrent();
       if (!queue.length) document.body.classList.remove('talking');
@@ -272,12 +324,16 @@ const counters = { likes: 0, gifts: 0, follows: 0 };
 const bump = (id, v) => { $(id).textContent = v.toLocaleString('ru-RU'); };
 
 let connectedAt = 0;
+// подписчик = подписан на канал (признак из TikTok) либо подписался в этом эфире либо платный подписчик
+const followedNow = new Set();
+const isFollowerMsg = (m) => m.isFollower === true || m.isSub || followedNow.has(String(m.name).toLowerCase());
 // сразу после подключения TikTok присылает «хвост» старых сообщений — не читаем их
 const isBacklog = (m) => m.created && connectedAt && Date.now() - connectedAt < 6000 && m.created < connectedAt - 10000;
 window.echo.onChat((m) => {
   if (!m.text || isBacklog(m)) return; // пустые и старые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub });
-  if (!S.chat || (S.subsOnly && !m.isSub)) return;
+  if (!S.chat) return;
+  if (S.subsOnly && !isFollowerMsg(m)) { el.classList.add('skip'); el.title = 'Пропущено: не подписчик канала'; return; }
   const t = clean(m.text);
   if (!t) return;
   enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: selectedPreset() });
@@ -285,14 +341,19 @@ window.echo.onChat((m) => {
 window.echo.onGift((g) => {
   counters.gifts += g.count; bump('#sGifts', counters.gifts);
   const el = addMsg({ name: g.name, text: `🎁 отправил(а) «${g.gift}» ×${g.count}`, kind: 'gift' });
-  if (S.gifts) enqueue({ el, say: g.count > 1 ? `${speakName(g.name)}, спасибо за подарки ${g.gift}, ${g.count} штук` : `${speakName(g.name)}, спасибо за подарок ${g.gift}` });
+  if (S.gifts) enqueue({ el, say: g.count > 1 ? `${speakName(g.name)}, спасибо за подарки ${g.gift}, ${g.count} штук` : `${speakName(g.name)}, спасибо за подарок ${g.gift}`, preset: eventPreset() });
 });
 window.echo.onFollow((f) => {
   counters.follows++; bump('#sFollows', counters.follows);
+  followedNow.add(String(f.name).toLowerCase());
   const el = addMsg({ name: f.name, text: '➕ подписался(ась) на канал', kind: 'follow' });
-  if (S.follows) enqueue({ el, say: `${speakName(f.name)}, спасибо за подписку` });
+  if (S.follows) enqueue({ el, say: `${speakName(f.name)}, спасибо за подписку`, preset: eventPreset() });
 });
-window.echo.onLike((l) => { counters.likes = l.total > counters.likes ? l.total : counters.likes + (l.count || 1); bump('#sLikes', counters.likes); });
+// итог от TikTok (total) надёжнее суммы событий; если итога нет (или 0) — копим сами
+window.echo.onLike((l) => {
+  counters.likes = l.total > 0 ? Math.max(counters.likes, l.total) : counters.likes + (l.count || 1);
+  bump('#sLikes', counters.likes);
+});
 window.echo.onViewers((v) => { if (Number.isFinite(v.count)) $('#sViewers').textContent = v.count.toLocaleString('ru-RU'); });
 window.echo.onError((e) => sys(e.message));
 
@@ -354,7 +415,7 @@ btn.onclick = async () => {
     showAlert('');
     btn.textContent = 'Подключаюсь…';
     $('#feedSub').textContent = 'Ищем эфир @' + nick;
-    counters.likes = counters.gifts = counters.follows = 0;
+    counters.likes = counters.gifts = counters.follows = 0; followedNow.clear();
     ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
     $('#sViewers').textContent = '—';
     resetEmpty();

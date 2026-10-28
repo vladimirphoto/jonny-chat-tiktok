@@ -51,3 +51,17 @@ test('подписка из social', () => {
   assert.equal(E.isFollowSocial({ displayType: 'pm_main_share_message' }), false);
   assert.equal(E.isFollowSocial({ common: { displayText: { key: 'pm_main_follow_message_viewer_2' } } }), true);
 });
+
+test('подписчик канала: followInfo, followRole, isFollower, неизвестно', () => {
+  assert.equal(E.userOf({ user: { nickname: 'А', followInfo: { followStatus: 1 } } }).isFollower, true);
+  assert.equal(E.userOf({ user: { nickname: 'А', followInfo: { followStatus: 2 } } }).isFollower, true);
+  assert.equal(E.userOf({ user: { nickname: 'А', followInfo: { followStatus: 0 } } }).isFollower, false);
+  assert.equal(E.userOf({ nickname: 'А', followRole: 1 }).isFollower, true);
+  assert.equal(E.userOf({ nickname: 'А', followRole: 0 }).isFollower, false);
+  assert.equal(E.userOf({ user: { nickname: 'А', isFollower: true } }).isFollower, true);
+  assert.equal(E.userOf({ user: { nickname: 'А' } }).isFollower, null);
+});
+
+test('лайки: total 0 означает «итога нет»', () => {
+  assert.deepEqual(E.likesOf({ count: 4, total: 0 }), { count: 4, total: null });
+});

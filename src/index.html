@@ -94,21 +94,8 @@
             <input type="range" id="rate" min="-30" max="40" value="0" /></div>
             <div class="ctl"><div class="row"><label>Тон выбранного голоса</label><b id="pitchVal">0 Гц</b></div>
             <input type="range" id="pitch" min="-30" max="30" value="0" /></div>
-            <button class="btn primary" id="btnTest">▶ Проверить голос</button>
+            <button class="btn primary" id="btnTest"></button>
           </div>
-            <div class="card studio" id="studio">
-              <h2>Студия озвучки</h2>
-              <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
-              <div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-              <textarea id="studioText" rows="3" maxlength="200" placeholder="Например: Всем привет! Спасибо, что вы с нами в эфире!"></textarea>
-              <div class="chips" id="chips">
-                <button class="chip">Всем привет в эфире!</button>
-                <button class="chip">Спасибо за подарок!</button>
-                <button class="chip">Не забудьте подписаться</button>
-                <button class="chip">Отличный вопрос!</button>
-              </div>
-              <button class="btn ghost wide" id="btnStudio">▶ Озвучить фразу</button>
-            </div>
           </div>
           <div class="col-right">
             <div class="card">
@@ -121,7 +108,22 @@
                 <label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label>
                 <label class="sw"><input type="checkbox" data-k="subsOnly" /><i></i><span>Только подписчики</span></label>
               </div>
+              <label>Голос для подарков и подписок</label>
+              <select id="eventVoice"></select>
               <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Нейро-голоса требуют интернет.</div>
+            </div>
+            <div class="card studio" id="studio">
+              <h2>Студия озвучки</h2>
+              <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
+              <div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <textarea id="studioText" rows="3" maxlength="200" placeholder="Например: Всем привет! Спасибо, что вы с нами в эфире!"></textarea>
+              <div class="chips" id="chips">
+                <button class="chip">Всем привет в эфире!</button>
+                <button class="chip">Спасибо за подарок!</button>
+                <button class="chip">Не забудьте подписаться</button>
+                <button class="chip">Отличный вопрос!</button>
+              </div>
+              <button class="btn ghost wide" id="btnStudio">▶ Озвучить фразу</button>
             </div>
           </div>
         </div>

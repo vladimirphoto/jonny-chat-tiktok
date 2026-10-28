@@ -27,6 +27,18 @@ function pick(...vals) {
 
 const str = (v) => (typeof v === 'string' ? v : v == null ? '' : String(v));
 
+// Подписан ли автор на канал: true / false, либо null, если TikTok не сообщил
+function followerOf(u, d) {
+  for (const k of ['isFollower', 'is_follower']) if (typeof u[k] === 'boolean') return u[k];
+  const info = u.followInfo || u.follow_info || (d && (d.followInfo || d.follow_info));
+  let st = info ? pick(info.followStatus, info.follow_status) : null;
+  if (st === null) st = pick(u.followStatus, u.follow_status);
+  if (st !== null) return st !== 0; // 0 — нет; 1 — подписан; 2 — взаимная подписка
+  const role = pick(u.followRole, d && d.followRole);
+  if (role !== null) return role >= 1;
+  return null;
+}
+
 function userOf(d) {
   d = d || {};
   const u = d.user || d;
@@ -36,6 +48,7 @@ function userOf(d) {
     id: str(u.uniqueId || u.userId || ''),
     isSub: !!(u.isSubscriber || u.subscriber || badges.includes('subscriber') || badges.includes('sub_')),
     isMod: !!(u.isModerator || u.moderator),
+    isFollower: followerOf(u, d),
   };
 }
 
@@ -59,7 +72,8 @@ function viewersOf(d) {
 
 function likesOf(d) {
   d = d || {};
-  return { count: pick(d.likeCount, d.count) ?? 1, total: pick(d.totalLikeCount, d.total) };
+  const total = pick(d.totalLikeCount, d.total);
+  return { count: pick(d.likeCount, d.count) ?? 1, total: total > 0 ? total : null }; // 0 — «итога нет», а не «лайков нет»
 }
 
 // done=false — серия подарков ещё идёт: озвучиваем один раз, когда она закончилась

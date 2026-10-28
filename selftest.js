@@ -57,6 +57,13 @@ const PAGE_TEST = `(async () => {
     $('.nav[data-tab=voice]').click();
     const names = [...document.querySelectorAll('#voices .voice b')].map((b) => b.textContent.trim());
     add('ui', 'голоса: Светлана и Дмитрий первыми, есть мультиязычные', names.length >= 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
+    const pb = $('#voices .voice .play');
+    pb.click(); await sleep(150);
+    add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
+    pb.click(); await sleep(150);
+    add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
+    add('ui', 'студия озвучки под «Что озвучивать»', !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=subsOnly]') !== null);
+    add('ui', 'выбор голоса для подарков и подписок', $('#eventVoice').options.length >= 3, $('#eventVoice').options.length);
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 
     // --- кнопка обновления не меняет размер ---
@@ -118,6 +125,8 @@ async function eventTests(win) {
   send('tt:viewers', { count: 1234 });
   send('tt:like', { count: 3, total: 100 });
   send('tt:like', { count: 2, total: null });
+  send('tt:like', { count: 1, total: 0 });
+  send('tt:like', { count: 5, total: 50 });
   send('tt:gift', { name: 'Аня', gift: 'Rose', count: 3 });
   send('tt:follow', { name: 'Боря' });
   send('tt:chat', { name: 'Вика', text: 'привет всем', created: null });
@@ -125,7 +134,7 @@ async function eventTests(win) {
   await wait(400);
   const digits = async (sel) => (await q(`document.querySelector('${sel}').textContent`)).replace(/\D/g, '');
   add('событие: зрители отображаются', (await digits('#sViewers')) === '1234', await digits('#sViewers'));
-  add('событие: лайки отображаются и копятся', (await digits('#sLikes')) === '102', await digits('#sLikes'));
+  add('событие: лайки отображаются и копятся', (await digits('#sLikes')) === '103', await digits('#sLikes'));
   add('событие: подарки считаются', (await digits('#sGifts')) === '3', await digits('#sGifts'));
   add('событие: подписки считаются', (await digits('#sFollows')) === '1', await digits('#sFollows'));
   const feed = await q("document.querySelector('#feed').innerText");
@@ -136,7 +145,17 @@ async function eventTests(win) {
   await wait(300);
   const feed2 = await q("document.querySelector('#feed').innerText");
   add('после очистки ленты новые сообщения появляются', /после очистки/.test(feed2), feed2.replace(/\n+/g, ' / ').slice(0, 120));
-  await q("document.querySelector('#paused').checked = false");
+  // только подписчики: чужие помечаются как пропущенные, свои и подписавшиеся в эфире проходят
+  await q("window.__echo.S.subsOnly = true");
+  send('tt:chat', { name: 'Чужой', text: 'сообщение чужого', isFollower: false, created: null });
+  send('tt:chat', { name: 'Свой', text: 'сообщение своего', isFollower: true, created: null });
+  send('tt:chat', { name: 'Боря', text: 'подписался в эфире', isFollower: null, created: null });
+  await wait(300);
+  const skipped = (n) => q(`[...document.querySelectorAll('#feed .msg')].find((m) => m.textContent.includes('${n}')).classList.contains('skip')`);
+  add('только подписчики: не подписчик пропущен', (await skipped('Чужой')) === true);
+  add('только подписчики: подписчик проходит', (await skipped('Свой')) === false);
+  add('только подписчики: подписавшийся в эфире проходит', (await skipped('Боря')) === false);
+  await q("window.__echo.S.subsOnly = false; document.querySelector('#paused').checked = false");
   return R;
 }
 
