@@ -385,19 +385,22 @@ let twLive = false, twConnecting = false;
 const connTw = $('#connTw');
 const btnTw = $('#btnTwitch');
 
-async function doTwitch() {
-  if (twConnecting) return;
-  if (twLive) { await window.echo.twDisconnect(); btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); return; }
+async function connectTwitch() {
   const nick = $('#twNick').value.trim();
-  if (!nick) { $('#twNick').focus(); return; }
+  if (!nick || twConnecting) return false;
   twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true;
   const r = await window.echo.twConnect(nick);
   btnTw.disabled = false; twConnecting = false;
-  if (!r || !r.ok) { btnTw.textContent = 'Подключить'; showAlert((r && r.error) || 'Не удалось подключить Twitch.', true); }
-  else { sys('Twitch: подключаемся к ' + r.channel + '…'); }
+  if (!r || !r.ok) { btnTw.textContent = 'Подключить'; sys('Twitch: ' + ((r && r.error) || 'ошибка подключения')); return false; }
+  sys('Twitch: подключаемся к ' + r.channel + '…');
+  return true;
 }
-btnTw && (btnTw.onclick = doTwitch);
-$('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter') doTwitch(); });
+async function disconnectTwitch() {
+  await window.echo.twDisconnect();
+  btnTw.textContent = 'Подключить'; btnTw.classList.remove('connected'); twLive = false;
+}
+btnTw && (btnTw.onclick = async () => { twLive ? disconnectTwitch() : connectTwitch(); });
+$('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !twLive) connectTwitch(); });
 
 const btn = $('#btnConnect'), status = $('#status'), alertBox = $('#alert');
 let connected = false, connecting = false, alertTimer = null;
@@ -461,8 +464,7 @@ btn.onclick = async () => {
   if (connecting) return;
   connecting = true;
   try {
-    if (connected) { await window.echo.disconnect(); return; }
-    if (twLive && !connected) { await window.echo.twDisconnect(); return; }
+    if (connected || twLive) { await window.echo.disconnect(); await disconnectTwitch(); return; }
     const nick = $('#nick').value.trim().replace(/^@/, '');
     if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); $('#nick').focus(); return; }
     S.nick = nick; save();
@@ -474,6 +476,8 @@ btn.onclick = async () => {
     $('#sViewers').textContent = '—';
     resetEmpty();
     sys(`Ищем активный эфир @${nick}…`);
+    const twNick2 = $('#twNick').value.trim();
+    if (twNick2 && !twLive) { S.twNick = twNick2; save(); connectTwitch(); }
     const r = await window.echo.connect(nick);
     if (!r || !r.ok) {
       setStatus(false, 'Не в эфире');

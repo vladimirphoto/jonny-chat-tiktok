@@ -38,7 +38,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^http:\\/\\/localhost:\\d+\\/chat$/.test($('#wUrl').value) && !!$('#wAlign') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^http:\\/\\/localhost:\\d+\\/chat$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);

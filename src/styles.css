@@ -86,7 +86,12 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;b
 .msg.speaking{border-color:var(--a1);background:rgba(139,92,246,.12)}
 .msg.gift{background:linear-gradient(135deg,rgba(236,72,153,.14),rgba(251,191,36,.08))}
 .msg.follow{background:rgba(52,211,153,.09)}
-.msg.sys .t{color:var(--muted)}
+.msg.sys{background:transparent!important;border:none!important;padding:4px 0!important;align-items:center;gap:0;margin:2px 0}
+.msg.sys .av{display:none}
+.msg.sys .b{display:flex;align-items:center;width:100%;gap:8px}
+.msg.sys .b::before,.msg.sys .b::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
+.msg.sys .n{display:none}
+.msg.sys .t{color:var(--muted);font-size:11px;white-space:nowrap;padding:0 8px;font-style:italic}
 .empty{margin:auto;color:var(--muted);text-align:center}
 
 .alert{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fecaca;animation:fade .25s}
