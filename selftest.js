@@ -8,6 +8,8 @@ function mainTests() {
   const add = (name, ok, detail) => R.push({ group: 'logic', name, ok: !!ok, detail: detail === undefined ? '' : String(detail) });
   const e1 = explain(new Error("The requested user isn't online :("));
   add('«isn\'t online» → понятный русский', e1.code === 'offline' && /не в эфире/i.test(e1.error) && !/[a-z]{4,}/i.test(e1.error.replace(/TikTok|LIVE/g, '')), e1.error);
+  const e2 = explain(new Error('Failed to retrieve Room ID from alternative source'));
+  add('«Failed to retrieve Room ID» → понятный русский', e2.code === 'offline' && /не найден|не в эфире/i.test(e2.error) && !/Failed|Room/.test(e2.error), e2.error);
   const err = new Error('boom'); err.name = 'UserOfflineError';
   add('UserOfflineError → offline', explain(err).code === 'offline');
   add('сеть → русский текст', explain(new Error('getaddrinfo ENOTFOUND')).code === 'network');
@@ -118,7 +120,7 @@ const PAGE_TEST = `(async () => {
     const alertText = $('#alert').textContent;
     const feedText = $('#feed').innerText;
     add('ui', 'ошибка подключения без технического мусора', !/TypeError|invoking remote|undefined|Cannot read|isn.?t online/i.test(alertText + feedText), alertText);
-    add('net', 'текст «Вы не в эфире…»', /не в эфире/i.test(alertText), alertText);
+    add('net', 'текст ошибки об эфире по-русски', /не в эфире|эфир не найден/i.test(alertText) && !/Technical|Failed|Room/i.test(alertText), alertText);
     add('ui', 'сообщение об офлайне показано один раз (не дублируется в ленте)', !/не в эфире|не удалось подключиться|ошибка/i.test(feedText), feedText.replace(/\\n+/g, ' / '));
     add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
     add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));

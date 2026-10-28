@@ -8,6 +8,12 @@ function explain(err) {
   if (/useroffline|isn.?t online|not online|is offline|\boffline\b|not live|isn.?t live|not currently live|has ended|room_?id|not found|404/.test(all)) {
     return { code: 'offline', error: 'Вы не в эфире. Запустите трансляцию в TikTok LIVE, подключитесь и попробуйте снова. Также проверьте, что ник введён правильно.' };
   }
+  if (/failed to retrieve room|room\s?_?id|initialfetch|webcast.*not|no live|user not found|usernotfound|invalid (user|username)/.test(all)) {
+    return { code: 'offline', error: 'Эфир не найден. Проверьте ник и убедитесь, что трансляция уже идёт: запустите TikTok LIVE, подключитесь и попробуйте снова.' };
+  }
+  if (/signapi|sign server|signature|euler|captcha|blocked|\b403\b|forbidden/.test(all)) {
+    return { code: 'blocked', error: 'TikTok временно ограничил подключение (слишком много попыток или сервис недоступен). Подождите 1–2 минуты и попробуйте снова.' };
+  }
   if (/rate.?limit|429|too many|limit exceeded/.test(all)) {
     return { code: 'rate', error: 'TikTok временно ограничил запросы. Подождите минуту и попробуйте снова.' };
   }
