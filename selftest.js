@@ -38,7 +38,7 @@ const PAGE_TEST = `(async () => {
     }
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 3);
-    add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length === 2, document.querySelectorAll('#voices .voice').length);
+    add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
     add('ui', 'версия в сайдбаре', /\\d+\\.\\d+/.test($('#verLine').textContent), $('#verLine').textContent);
 
     // --- фильтры (критично) ---
@@ -54,7 +54,7 @@ const PAGE_TEST = `(async () => {
     // --- голоса: только Светлана и Дмитрий + Google ---
     $('.nav[data-tab=voice]').click();
     const names = [...document.querySelectorAll('#voices .voice b')].map((b) => b.textContent.trim());
-    add('ui', 'встроенные голоса: только Светлана и Дмитрий', names.length === 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
+    add('ui', 'голоса: Светлана и Дмитрий первыми, есть мультиязычные', names.length >= 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 
     // --- кнопка обновления не меняет размер ---

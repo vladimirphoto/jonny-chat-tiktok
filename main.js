@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+const ev = require('./events');
 
 // Пакеты могут быть ESM-only — подключаем через динамический import()
 const load = async (name) => {
@@ -26,6 +27,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      autoplayPolicy: 'no-user-gesture-required', // озвучка стартует без клика в окне
     },
   });
   win.setMenu(null);
@@ -39,17 +41,6 @@ function createWindow() {
 const send = (channel, payload) => {
   if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
 };
-
-function userOf(d) {
-  const u = d.user || {};
-  const badges = JSON.stringify(u.badges || u.badgeList || []).toLowerCase();
-  return {
-    name: u.nickname || u.uniqueId || 'Гость',
-    id: u.uniqueId || '',
-    isSub: !!(u.isSubscriber || u.subscriber || badges.includes('subscriber') || badges.includes('sub_')),
-    isMod: !!(u.isModerator || u.moderator),
-  };
-}
 
 async function disconnect() {
   if (conn) {
@@ -92,17 +83,32 @@ async function doConnect(rawName) {
   const alive = () => conn === c;
   const EV = ControlEvent || {};
 
-  c.on(WebcastEvent.CHAT || 'chat', (d) => alive() && send('tt:chat', { ...userOf(d), text: d.comment || d.content || '' }));
+  c.on(WebcastEvent.CHAT || 'chat', (d) => alive() && send('tt:chat', ev.chatOf(d)));
   c.on(WebcastEvent.GIFT || 'gift', (d) => {
     if (!alive()) return;
-    const det = d.giftDetails || {};
-    // серия подарков (giftType 1) считается один раз — когда она закончилась
-    if (det.giftType === 1 && !d.repeatEnd) return;
-    send('tt:gift', { ...userOf(d), gift: det.giftName || d.giftName || 'подарок', count: d.repeatCount || 1 });
+    const g = ev.giftOf(d);
+    if (!g.done) return; // серия подарков идёт — считаем один раз, когда она закончилась
+    send('tt:gift', g);
   });
-  c.on(WebcastEvent.FOLLOW || 'follow', (d) => alive() && send('tt:follow', userOf(d)));
-  c.on(WebcastEvent.LIKE || 'like', (d) => alive() && send('tt:like', { total: d.totalLikeCount, count: d.likeCount || 1 }));
-  c.on(WebcastEvent.ROOM_USER || 'roomUser', (d) => alive() && send('tt:viewers', { count: d.viewerCount }));
+  // подписка: событие follow, а если его нет в версии библиотеки — social с признаком подписки
+  const seenFollow = new Map();
+  const onFollow = (d) => {
+    if (!alive()) return;
+    const u = ev.userOf(d);
+    const key = u.id || u.name, now = Date.now();
+    if (seenFollow.has(key) && now - seenFollow.get(key) < 10000) return; // follow и social приходят парой
+    seenFollow.set(key, now);
+    if (seenFollow.size > 500) seenFollow.clear();
+    send('tt:follow', u);
+  };
+  c.on(WebcastEvent.FOLLOW || 'follow', onFollow);
+  c.on(WebcastEvent.SOCIAL || 'social', (d) => { if (ev.isFollowSocial(d)) onFollow(d); });
+  c.on(WebcastEvent.LIKE || 'like', (d) => alive() && send('tt:like', ev.likesOf(d)));
+  c.on(WebcastEvent.ROOM_USER || 'roomUser', (d) => {
+    if (!alive()) return;
+    const count = ev.viewersOf(d);
+    if (count !== null) send('tt:viewers', { count });
+  });
   c.on(WebcastEvent.STREAM_END || 'streamEnd', () => alive() && send('tt:status', { state: 'ended' }));
   c.on(EV.DISCONNECTED || 'disconnected', () => alive() && send('tt:status', { state: 'offline' }));
   c.on(EV.ERROR || 'error', (e) => {
@@ -155,17 +161,18 @@ ipcMain.handle('tts:voices', async () => {
       tts.getVoices(),
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000)),
     ]);
+    const all = (list || []).map((v) => v && v.ShortName).filter(Boolean);
     const voices = (list || []).filter((v) => v && v.ShortName && /^ru-/i.test(v.Locale || v.ShortName) && !/Dariya/i.test(v.ShortName)).map((v) => ({
       id: v.ShortName,
       name: String(v.FriendlyName || v.ShortName).replace(/^Microsoft\s+/, '').replace(/\s*Online \(Natural\)\s*-?\s*/, ' · '),
       locale: v.Locale || '',
       gender: v.Gender || '',
     }));
-    if (voices.length >= 2) return (voicesCache = { ok: true, voices });
+    if (voices.length >= 2) return (voicesCache = { ok: true, voices, all });
   } catch (_) { /* берём встроенный список */ } finally {
     try { tts && tts.close && tts.close(); } catch (_) {}
   }
-  return { ok: false, voices: FALLBACK_VOICES };
+  return { ok: false, voices: FALLBACK_VOICES, all: [] };
 });
 
 async function edgeSynthOnce(text, voice, rate, pitch) {
@@ -194,13 +201,13 @@ async function edgeSynthOnce(text, voice, rate, pitch) {
   }
 }
 
-// Сервер Microsoft иногда обрывает поток — повторяем до 3 раз
+// Сервер Microsoft иногда обрывает поток — повторяем до 3 раз (короткие паузы, чтобы не копить задержку)
 async function edgeSynth(text, voice, rate, pitch) {
   let last;
   for (let i = 0; i < 3; i++) {
     try { return await edgeSynthOnce(text, voice, rate, pitch); } catch (err) {
       last = err;
-      await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 150 * (i + 1)));
     }
   }
   throw last;
@@ -228,6 +235,7 @@ ipcMain.handle('upd:install', async () => {
 
 app.whenReady().then(() => {
   createWindow();
+  load('msedge-tts').catch(() => {}); // модуль озвучки грузится заранее — первая фраза не ждёт
   if (SELFTEST) require('./selftest').run(win, app);
 });
 app.on('window-all-closed', async () => {
