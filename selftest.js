@@ -34,12 +34,13 @@ const PAGE_TEST = `(async () => {
   try {
     // --- интерфейс (критично) ---
     add('ui', 'preload API', window.echo && ['connect','disconnect','synth','voices','checkUpdate'].every((k) => typeof window.echo[k] === 'function'));
-    for (const t of ['voice', 'filters', 'live']) {
+    for (const t of ['voice', 'filters', 'widgets', 'live']) {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^http:\\/\\/localhost:\\d+\\/chat$/.test($('#wUrl').value) && !!$('#wAlign') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
-    add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 3);
+    add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
     add('ui', 'версия в сайдбаре', /\\d+\\.\\d+/.test($('#verLine').textContent), $('#verLine').textContent);
 
