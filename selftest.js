@@ -95,8 +95,9 @@ const PAGE_TEST = `(async () => {
     add('ui', 'вкладки: полоса прокрутки сдвинута вправо', parseFloat(tb.paddingRight) >= 8 && parseFloat(tb.marginRight) < 0, tb.paddingRight + ' / ' + tb.marginRight);
     // --- формат ссылки виджета ---
     add('ui', 'вариантов формата ссылки нет — одна рабочая ссылка', !$('#wHostSel'));
-    for (let i = 0; i < 40 && /Проверяю/.test($('#wStat').textContent); i++) await sleep(250);
-    add('ui', 'статус страницы виджета показан (доступна / Pages не включён / нет сети)', $('#wStat').textContent.length > 10 && !/Проверяю/.test($('#wStat').textContent), $('#wStat').className + ' | ' + $('#wStat').textContent.slice(0, 80));
+    for (let i = 0; i < 40 && $('#wStat').dataset.state === 'checking'; i++) await sleep(250);
+    add('ui', 'проверка страницы виджета завершилась; при успехе подпись не показывается', $('#wStat').dataset.state !== 'checking' && ($('#wStat').dataset.state !== 'ok' || $('#wStat').textContent === ''), $('#wStat').dataset.state + ' | ' + $('#wStat').textContent.slice(0, 60));
+    add('ui', 'инструкции для OBS под ссылкой нет', !/OBS: Источники/.test($('#tab-widgets').innerText));
     add('ui', 'выбор голоса для подарков и подписок', !!$('#eventVoiceSel') && $('#eventVoiceSel').querySelectorAll('.csel-opt').length >= 3, $('#eventVoiceSel') ? $('#eventVoiceSel').querySelectorAll('.csel-opt').length : 'нет списка');
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 

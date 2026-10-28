@@ -635,10 +635,10 @@ async function refreshLink() {
 const PAGES_SETTINGS = 'https://github.com/vladimirphoto/jonny-chat-tiktok/settings/pages';
 async function checkPage() {
   const el = $('#wStat');
-  el.className = 'wstat'; el.textContent = 'Проверяю страницу виджета…';
+  el.className = 'wstat'; el.textContent = ''; el.dataset.state = 'checking';
   const r = await window.echo.widgetCheck().catch(() => ({ ok: false, status: 0 }));
-  if (r.ok) { el.className = 'wstat ok'; el.textContent = '✓ Страница виджета на GitHub Pages доступна'; return; }
-  el.className = 'wstat bad';
+  if (r.ok) { el.dataset.state = 'ok'; return; } // всё в порядке — ничего не показываем
+  el.dataset.state = 'bad'; el.className = 'wstat bad';
   el.innerHTML = r.status === 404
     ? 'Страница виджета ещё не опубликована: в репозитории не включён GitHub Pages. Откройте Settings → Pages, выберите ветку <b>main</b> и папку <b>/docs</b>, нажмите Save и подождите минуту.<br><a href="' + PAGES_SETTINGS + '" target="_blank">Открыть настройки Pages</a><a id="wRecheck">Проверить снова</a>'
     : 'Не удалось проверить страницу виджета (нет доступа к интернету или GitHub).<br><a id="wRecheck">Проверить снова</a>';
