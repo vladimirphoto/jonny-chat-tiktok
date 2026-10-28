@@ -1,0 +1,16 @@
+name: Probe TikTok library
+on:
+  push:
+    branches: [probe]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install tiktok-live-connector@^2 --no-save --ignore-scripts
+      - run: node probe/probe.mjs
+        env:
+          CANDS: alishpro0
