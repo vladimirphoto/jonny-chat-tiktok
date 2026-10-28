@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('echo', {
   onTwChat: on('tw:chat'),
   onTwStatus: on('tw:status'),
   widgetUrl: () => ipcRenderer.invoke('widget:url'),
+  widgetLink: (mode) => ipcRenderer.invoke('widget:link', mode),
   widgetSet: (s) => ipcRenderer.invoke('widget:set', s),
   widgetTest: () => ipcRenderer.invoke('widget:test'),
   widgetClear: () => ipcRenderer.invoke('widget:clear'),

@@ -39,7 +39,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^http:\\/\\/localhost:\\d+\\/chat$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^http:\\/\\/127\\.0\\.0\\.1:\\d+\\/chat$/.test($('#wUrl').value) && !!$('#wAlignSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
@@ -65,17 +65,47 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
-    add('ui', 'студия озвучки под «Что озвучивать»', !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=subsOnly]') !== null);
+    add('ui', 'карточка «Голоса платформ» первая в правой колонке, студия под «Что озвучивать»', !!$('#voiceRoutes') && $('#voiceRoutes') === $('#tab-voice .col-right').firstElementChild && !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=chat]') !== null);
+    add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
+    // --- отдельные голоса для TikTok и Twitch, выпадающие списки ---
+    const sels = ['ttVoiceSel', 'twVoiceSel', 'eventVoiceSel'].map((i) => $('#' + i));
+    add('ui', 'три выпадающих списка голосов в стиле виджета', sels.every((e) => e && e.classList.contains('csel') && e.querySelector('.csel-val').textContent.length > 0 && e.querySelectorAll('.csel-opt').length >= 2), sels.map((e) => e.querySelector('.csel-val').textContent).join(' | '));
+    add('ui', 'старый <select> голоса подарков убран', !document.querySelector('select'));
+    sels[1].click(); await sleep(50);
+    const opened = sels[1].classList.contains('open') && !sels[0].classList.contains('open');
+    const dmitry = [...sels[1].querySelectorAll('.csel-opt')].find((o) => /Дмитрий/.test(o.textContent));
+    dmitry.click(); await sleep(50);
+    sels[0].click(); await sleep(50);
+    [...sels[0].querySelectorAll('.csel-opt')].find((o) => /Светлана/.test(o.textContent)).click(); await sleep(50);
+    add('ui', 'список открывается по клику, выбор сохраняется отдельно для Twitch и TikTok', opened && E.S.twVoice === 'b-dmitry' && E.S.ttVoice === 'b-svetlana' && E.twPreset().voice !== E.ttPreset().voice, E.S.ttVoice + ' / ' + E.S.twVoice);
+    add('ui', 'на карточках голосов видны метки платформ', !!document.querySelector('#voices .vtags em.tt') && !!document.querySelector('#voices .vtags em.tw'));
+    sels[2].click(); await sleep(50); document.body.click(); await sleep(50);
+    add('ui', 'список закрывается кликом вне него', !document.querySelector('.csel.open'));
+    // --- шапка: обе платформы «не в эфире» до подключения ---
+    add('ui', 'плашки: «Не в эфире TikTok» и «Не в эфире Twitch»', /Не в эфире TikTok/.test($('#pillTt').textContent) && /Не в эфире Twitch/.test($('#pillTw').textContent) && !$('#pillTt').hidden && !$('#pillTw').hidden, $('#pillTt').textContent.trim() + ' | ' + $('#pillTw').textContent.trim());
+    add('ui', 'вместо «Подключённый ник» — «TikTok», ники на цветных плашках', !/Подключённый ник/.test(document.body.innerText) && /^TikTok$/.test($('#connNick').previousElementSibling.textContent.trim()) && $('#connNick').classList.contains('nk') && $('#connTw').classList.contains('nk'));
+    E.setNk($('#connNick'), '@test');
+    const nk = getComputedStyle($('#connNick'));
+    add('ui', 'ник TikTok выделен цветом и фоном', !$('#connNick').classList.contains('off') && nk.backgroundColor !== 'rgba(0, 0, 0, 0)' && nk.color !== getComputedStyle($('#connStatus')).color, nk.color + ' / ' + nk.backgroundColor);
+    E.setNk($('#connNick'), '—');
+    // --- полоса прокрутки не вплотную к контенту ---
+    const fd = getComputedStyle($('#feed'));
+    add('ui', 'лента: полоса прокрутки отстоит от сообщений', parseFloat(fd.paddingRight) >= 8 && parseFloat(fd.marginRight) < 0, fd.paddingRight + ' / ' + fd.marginRight);
+    const tb = getComputedStyle($('#tab-voice'));
+    add('ui', 'вкладки: полоса прокрутки сдвинута вправо', parseFloat(tb.paddingRight) >= 8 && parseFloat(tb.marginRight) < 0, tb.paddingRight + ' / ' + tb.marginRight);
+    // --- формат ссылки виджета ---
+    add('ui', 'выбор формата ссылки виджета', !!$('#wHostSel') && $('#wHostSel').querySelectorAll('.csel-opt').length === 3);
     add('ui', 'выбор голоса для подарков и подписок', $('#eventVoice').options.length >= 3, $('#eventVoice').options.length);
     add('ui', 'ElevenLabs и Microsoft-каталог убраны', !$('#newProv') && !$('#elKey') && !document.body.innerText.includes('ElevenLabs'));
 
     // --- кнопка обновления не меняет размер ---
     const ub = $('#btnUpdate');
     const h0 = ub.getBoundingClientRect().height, w0 = ub.getBoundingClientRect().width;
-    const labels = ['✓ Версия актуальна', '⬇ Обновить до 10.20.30', 'Скачиваю… 100%', '⬇ Страница загрузки', 'Проверяю…', '⟳ Проверить обновления', 'Перезапуск…'];
+    add('ui', 'кнопка обновления: SVG-иконка вместо символа', !!ub.querySelector('svg') && !/[⟳⬇✓👁]/.test(ub.textContent), ub.textContent);
+    const labels = ['Версия актуальна', 'Обновить до 10.20.30', 'Скачиваю… 100%', 'Страница загрузки', 'Проверяю…', 'Проверить обновления', 'Перезапуск…'];
     const bad = labels.filter((l) => { ub.textContent = l; const r = ub.getBoundingClientRect(); return Math.abs(r.height - h0) > 0.5 || Math.abs(r.width - w0) > 0.5; });
     add('ui', 'кнопка обновления не меняет размер', bad.length === 0, 'h=' + h0 + ' w=' + w0 + (bad.length ? ' плохие: ' + bad.join(' | ') : ''));
-    ub.textContent = '⟳ Проверить обновления';
+    ub.innerHTML = '<span>Проверить обновления</span>';
 
     // --- сеть: голоса Microsoft ---
     for (const b of E.builtin) {
@@ -165,17 +195,20 @@ async function eventTests(win) {
   await wait(300);
   const feed2 = await q("document.querySelector('#feed').innerText");
   add('после очистки ленты новые сообщения появляются', /после очистки/.test(feed2), feed2.replace(/\n+/g, ' / ').slice(0, 120));
-  // только подписчики: чужие помечаются как пропущенные, свои и подписавшиеся в эфире проходят
-  await q("window.__echo.S.subsOnly = true");
-  send('tt:chat', { name: 'Чужой', text: 'сообщение чужого', isFollower: false, created: null });
-  send('tt:chat', { name: 'Свой', text: 'сообщение своего', isFollower: true, created: null });
-  send('tt:chat', { name: 'Боря', text: 'подписался в эфире', isFollower: null, created: null });
+  // старые сообщения (хвост чата при подключении) не показываются и не озвучиваются, новые — проходят
+  await q("window.__echo.since.tiktok = Date.now()");
+  send('tt:chat', { name: 'Старый', text: 'сообщение до подключения', created: Date.now() - 120000 });
+  send('tt:chat', { name: 'Новый', text: 'сообщение после подключения', created: Date.now() + 500 });
   await wait(300);
-  const skipped = (n) => q(`[...document.querySelectorAll('#feed .msg')].find((m) => m.textContent.includes('${n}')).classList.contains('skip')`);
-  add('только подписчики: не подписчик пропущен', (await skipped('Чужой')) === true);
-  add('только подписчики: подписчик проходит', (await skipped('Свой')) === false);
-  add('только подписчики: подписавшийся в эфире проходит', (await skipped('Боря')) === false);
-  await q("window.__echo.S.subsOnly = false; document.querySelector('#paused').checked = false");
+  const feed3 = await q("document.querySelector('#feed').innerText");
+  add('подключение: старое сообщение пропущено', !/до подключения/.test(feed3), feed3.replace(/\n+/g, ' / ').slice(0, 160));
+  add('подключение: новое сообщение показано', /после подключения/.test(feed3));
+  await q("window.__echo.since.tiktok = 0");
+  // озвучка идёт с голосом своей платформы
+  await q("document.querySelector('#paused').checked = false; window.__echo.S.ttVoice = 'b-svetlana'; window.__echo.S.twVoice = 'b-dmitry'");
+  const pre = await q("[window.__echo.ttPreset().voice, window.__echo.twPreset().voice].join(',')");
+  add('озвучка: у TikTok и Twitch разные голоса', pre === 'ru-RU-SvetlanaNeural,ru-RU-DmitryNeural', pre);
+  await q("document.querySelector('#paused').checked = false");
   return R;
 }
 

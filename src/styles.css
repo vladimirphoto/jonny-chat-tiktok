@@ -285,3 +285,47 @@ body.t-widgets .stats{display:none}
 .pill.tt{border-color:rgba(254,44,85,.4)}
 .pill.tw{border-color:rgba(145,70,255,.45)}
 .pill.idle s{background:var(--muted)}
+
+/* ===== v1.8.0 ===== */
+
+/* Полоса прокрутки: отступ от контента и чуть правее (в поле окна, а не вплотную к карточкам) */
+.tab.show{margin-right:-16px;padding-right:10px;scrollbar-gutter:stable}
+.feed{overflow-y:auto;scrollbar-gutter:stable;padding-right:8px;margin-right:-14px}
+textarea{padding-right:16px}
+textarea::-webkit-scrollbar-track{margin:6px 0}
+
+/* Выпадающие списки: варианты не липнут к полосе прокрутки, список прокручивается */
+label+.csel{margin-top:0}
+.csel-drop{max-height:240px;overflow-y:auto;overscroll-behavior:contain}
+.csel-drop.sc{padding-right:10px}
+.csel.up .csel-drop{top:auto;bottom:calc(100% + 4px);transform:translateY(6px)}
+.csel.up.open .csel-drop{transform:none}
+.csel-drop::-webkit-scrollbar-track{margin:6px 0}
+/* список поверх соседних карточек (у карточек backdrop-filter создаёт свой слой) */
+.card:has(.csel.open){position:relative;z-index:50}
+
+/* Метки платформ на карточках голосов */
+.vtags{display:flex;gap:4px;flex:none}
+.vtags em{font-style:normal;font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;color:#fff;line-height:1.3}
+.vtags em.tt{background:#fe2c55}
+.vtags em.tw{background:#9146ff}
+
+/* Ники платформ — на цветных плашках, чтобы не сливались с текстом */
+.conn-row b.nk{padding:3px 11px;border-radius:8px;font-weight:700;border:1px solid transparent;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conn-row b.nk.tt{color:#ff7d93;background:rgba(254,44,85,.15);border-color:rgba(254,44,85,.45)}
+.conn-row b.nk.tw{color:#c9a8ff;background:rgba(145,70,255,.18);border-color:rgba(145,70,255,.5)}
+.conn-row b.nk.off{color:var(--muted);background:transparent;border-color:transparent;font-weight:600;padding-right:0}
+
+/* Плашки статуса в шапке: обе видны всегда */
+.pill.idle{border-color:var(--line);color:var(--muted)}
+.pill.idle .pi{opacity:.55}
+.pill.idle.tt .pi,.pill.idle.tw .pi{color:var(--muted)}
+.pill.on.tt{border-color:rgba(254,44,85,.5)}
+.pill.on.tw{border-color:rgba(145,70,255,.55)}
+
+/* Кнопка обновления: иконка вместо символа */
+.btn.upd{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 6px}
+.btn.upd svg{width:15px;height:15px;flex:none}
+.btn.upd span{overflow:hidden;text-overflow:ellipsis}
+.btn.upd.spin svg{animation:updspin 1s linear infinite}
+@keyframes updspin{to{transform:rotate(360deg)}}

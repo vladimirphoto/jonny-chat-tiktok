@@ -1,11 +1,13 @@
 'use strict';
-// Локальный сервер виджета чата: http://localhost:PORT/chat — ссылка для OBS / TikTok LIVE Studio.
+// Локальный сервер виджета чата: http://127.0.0.1:PORT/chat — ссылка для OBS / TikTok LIVE Studio.
+// По умолчанию слушает только этот компьютер; режим «IP локальной сети» включается по выбору пользователя.
 const http = require('http');
 const PAGE = require('./widget-page');
 
 function start(getSettings, port = 7878) {
   const clients = new Set();
   const history = [];
+  let host = '127.0.0.1';
   const server = http.createServer((req, res) => {
     const u = req.url.split('?')[0];
     if (u === '/' || u === '/chat') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(PAGE); }
@@ -25,17 +27,35 @@ function start(getSettings, port = 7878) {
     clients.forEach((c) => c.write(s));
   };
   return new Promise((resolve) => {
-    let p = port, tries = 0;
-    server.on('error', (e) => {
-      if (e.code === 'EADDRINUSE' && tries++ < 20) server.listen(++p, '127.0.0.1');
-      else resolve({ port: 0, broadcast() {}, close() {} });
-    });
-    server.on('listening', () => resolve({
-      port: p,
+    let p = port, tries = 0, ready = false;
+    const api = {
+      port: 0,
       broadcast(event, data) { if (event === 'msg') { history.push(data); if (history.length > 50) history.shift(); } broadcast(event, data); },
       close() { clearInterval(ping); clients.forEach((c) => { try { c.end(); } catch (_) {} }); server.close(); },
-    }));
-    server.listen(p, '127.0.0.1');
+      // Переключает прослушивание между «только этот компьютер» и «вся локальная сеть». Порт тот же;
+      // открытые страницы виджета переподключаются сами (retry: 2000).
+      setLan(on) {
+        const want = on ? '0.0.0.0' : '127.0.0.1';
+        if (want === host) return Promise.resolve(true);
+        return new Promise((done) => {
+          clients.forEach((c) => { try { c.end(); } catch (_) {} });
+          clients.clear();
+          try { server.closeAllConnections && server.closeAllConnections(); } catch (_) {}
+          server.close(() => {
+            const onErr = () => { server.listen(api.port, host); done(false); }; // не вышло — возвращаем как было
+            server.once('error', onErr);
+            server.listen(api.port, want, () => { server.removeListener('error', onErr); host = want; done(true); });
+          });
+        });
+      },
+    };
+    server.on('error', (e) => {
+      if (ready) return;
+      if (e.code === 'EADDRINUSE' && tries++ < 20) server.listen(++p, host);
+      else resolve({ port: 0, broadcast() {}, close() {}, setLan: () => Promise.resolve(false) });
+    });
+    server.on('listening', () => { if (!ready) { ready = true; api.port = p; resolve(api); } });
+    server.listen(p, host);
   });
 }
 module.exports = { start };
