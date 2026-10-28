@@ -484,6 +484,12 @@ function showAlert(text, warn, detail) {
   feed.appendChild(el);
   feed.scrollTop = feed.scrollHeight;
 }
+// после отключения статистика эфира обнуляется (онлайн Twitch сбрасывается при отключении Twitch)
+function resetStats() {
+  counters.likes = counters.gifts = counters.follows = 0;
+  ['#sLikes', '#sGifts', '#sFollows'].forEach((i) => bump(i, 0));
+  $('#sViewers').textContent = '—';
+}
 function setStatus(live, text) {
   connected = live;
   if (live) _ttText = text;
@@ -491,7 +497,7 @@ function setStatus(live, text) {
   btn.textContent = live ? 'Отключить' : 'Подключить';
   btn.classList.toggle('connected', live);
   setSt(connStatus, live ? 'В эфире' : 'Не подключено', live ? 'ok' : '');
-  if (!live) { setNk(connNick, '—'); stopTimer(); }
+  if (!live) { setNk(connNick, '—'); stopTimer(); resetStats(); }
 }
 window.echo.onTwStatus((s) => {
   twLive = s.state === 'live' || s.state === 'reconnect';

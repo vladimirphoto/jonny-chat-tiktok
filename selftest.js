@@ -211,7 +211,17 @@ async function eventTests(win) {
   const feed = await q("document.querySelector('#feed').innerText");
   add('событие: сообщение чата с текстом в ленте', /Вика/.test(feed) && /привет всем/.test(feed), feed.replace(/\n+/g, ' / ').slice(0, 160));
   add('событие: пустое сообщение не попадает в ленту', !/Пустой/.test(feed));
+  // после отключения статистика обнуляется
+  send('tt:status', { state: 'live', username: 'resettest' });
+  send('tt:viewers', { count: 10 }); send('tt:like', { count: 4, total: 4 }); send('tt:gift', { name: 'Я', gift: 'Rose', count: 2 }); send('tt:follow', { name: 'Я' });
+  await wait(150);
+  const before = [await digits('#sViewers'), await digits('#sLikes'), await digits('#sGifts'), await digits('#sFollows')].join(',');
+  send('tt:status', { state: 'offline' });
+  await wait(150);
+  const afterTxt = [await q("document.querySelector('#sViewers').textContent"), await digits('#sLikes'), await digits('#sGifts'), await digits('#sFollows')].join(',');
+  add('отключение: зрители, лайки, подарки и подписки обнуляются', before !== '' && /^\d+,\d+,\d+,\d+$/.test(before) && afterTxt === '—,0,0,0', before + ' → ' + afterTxt);
   // онлайн Twitch отдельно от TikTok
+  send('tt:viewers', { count: 1234 });
   send('tw:viewers', { count: 77 });
   await wait(100);
   add('событие: онлайн Twitch отдельно от TikTok', (await digits('#sViewersTw')) === '77' && (await digits('#sViewers')) === '1234', (await digits('#sViewersTw')) + ' / ' + (await digits('#sViewers')));
