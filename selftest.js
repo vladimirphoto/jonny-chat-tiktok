@@ -2,7 +2,8 @@
 // Запуск: electron . --selftest --out=result.json
 const fs = require('fs');
 
-const { explain, explainGoogle } = require('./errors');
+const { explain } = require('./errors');
+const ev = require('./events');
 function mainTests() {
   const R = [];
   const add = (name, ok, detail) => R.push({ group: 'logic', name, ok: !!ok, detail: detail === undefined ? '' : String(detail) });
@@ -15,10 +16,11 @@ function mainTests() {
   add('сеть → русский текст', explain(new Error('getaddrinfo ENOTFOUND')).code === 'network');
   const o = explain(new Error('weird failure xyz'));
   add('неизвестная ошибка — русский текст без английского', o.code === 'other' && !/weird|xyz/.test(o.error), o.error);
-  add('Google: неверный ключ', /ключ/i.test(explainGoogle(400, '{"error":{"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT"}}')));
-  add('Google: нет Billing', /оплат/i.test(explainGoogle(403, 'This API method requires billing to be enabled')));
-  add('Google: API не включён', /не включён/i.test(explainGoogle(403, 'Cloud Text-to-Speech API has not been used in project 123 before or it is disabled')));
-  add('Google: лимит', /лимит/i.test(explainGoogle(429, 'RESOURCE_EXHAUSTED quota')));
+  const ch = ev.chatOf({ content: 'привет', user: { nickname: 'Аня' } });
+  add('событие чата: текст из content', ch.text === 'привет' && ch.name === 'Аня', JSON.stringify(ch));
+  add('событие зрителей: total', ev.viewersOf({ total: 42 }) === 42 && ev.viewersOf({ viewerCount: 7 }) === 7);
+  add('событие лайков: count/total', ev.likesOf({ count: 2, total: 55 }).total === 55);
+  add('событие подарка: серия не считается, пока идёт', ev.giftOf({ giftDetails: { giftName: 'Rose', giftType: 1 }, repeatEnd: false }).done === false && ev.giftOf({ giftDetails: { giftName: 'Rose', giftType: 1 }, repeatEnd: true }).done === true);
   return R;
 }
 
@@ -51,7 +53,7 @@ const PAGE_TEST = `(async () => {
     add('logic', 'нерусский пропускается', f('hello world') === null);
     add('logic', 'упоминания вырезаются', f('@vasya привет') === 'привет', f('@vasya привет'));
     add('logic', 'озвучка ника', E.speakName('Вася_Pro😎') === 'Вася Pro', E.speakName('Вася_Pro😎'));
-    // --- голоса: только Светлана и Дмитрий + Google ---
+    // --- голоса ---
     $('.nav[data-tab=voice]').click();
     const names = [...document.querySelectorAll('#voices .voice b')].map((b) => b.textContent.trim());
     add('ui', 'голоса: Светлана и Дмитрий первыми, есть мультиязычные', names.length >= 2 && names[0] === 'Светлана' && names[1] === 'Дмитрий', names.join(','));
@@ -66,10 +68,14 @@ const PAGE_TEST = `(async () => {
     ub.textContent = '⟳ Проверить обновления';
 
     // --- сеть: голоса Microsoft ---
-    for (const id of ['ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural']) {
-      const r = await window.echo.synth({ text: 'Привет, это проверка голоса.', voice: id, rate: 1, pitch: '+0Hz' });
-      add('net', 'голос ' + id, r.ok && r.audio.length > 3000, r.ok ? ('base64 ' + r.audio.length) : r.error);
+    for (const b of E.builtin) {
+      const t0 = Date.now();
+      const r = await window.echo.synth({ text: 'Привет, как у вас дела?', voice: b.voice, rate: 1, pitch: '+0Hz' });
+      add('net', 'голос ' + b.name + ' (' + b.voice + ')', r.ok && r.audio.length > 3000, r.ok ? ((Date.now() - t0) + ' мс, base64 ' + r.audio.length) : r.error);
     }
+    const tw = Date.now();
+    const w2 = await window.echo.synth({ text: 'Всем привет!', voice: 'ru-RU-SvetlanaNeural', rate: 1, pitch: '+0Hz' });
+    add('net', 'задержка синтеза короткой фразы до 3 с', w2.ok && Date.now() - tw < 3000, (Date.now() - tw) + ' мс');
     const slow = await window.echo.synth({ text: 'Скорость и тон.', voice: 'ru-RU-SvetlanaNeural', rate: 1.3, pitch: '+10Hz' });
     add('net', 'скорость и тон принимаются', slow.ok, slow.ok ? slow.audio.length : slow.error);
     const cat = await window.echo.voices();
@@ -101,6 +107,39 @@ const PAGE_TEST = `(async () => {
   return R;
 })()`;
 
+// Имитация событий TikTok: главный процесс шлёт их окну так же, как это делает библиотека
+async function eventTests(win) {
+  const R = [];
+  const add = (name, ok, detail) => R.push({ group: 'ui', name, ok: !!ok, detail: detail === undefined ? '' : String(detail) });
+  const send = (c, p) => win.webContents.send(c, p);
+  const q = (js) => win.webContents.executeJavaScript(js, true);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  await q("document.querySelector('.nav[data-tab=live]').click(); document.querySelector('#paused').checked = true; window.__echo.S.noRepeat = false;");
+  send('tt:viewers', { count: 1234 });
+  send('tt:like', { count: 3, total: 100 });
+  send('tt:like', { count: 2, total: null });
+  send('tt:gift', { name: 'Аня', gift: 'Rose', count: 3 });
+  send('tt:follow', { name: 'Боря' });
+  send('tt:chat', { name: 'Вика', text: 'привет всем', created: null });
+  send('tt:chat', { name: 'Пустой', text: '', created: null });
+  await wait(400);
+  const digits = async (sel) => (await q(`document.querySelector('${sel}').textContent`)).replace(/\D/g, '');
+  add('событие: зрители отображаются', (await digits('#sViewers')) === '1234', await digits('#sViewers'));
+  add('событие: лайки отображаются и копятся', (await digits('#sLikes')) === '102', await digits('#sLikes'));
+  add('событие: подарки считаются', (await digits('#sGifts')) === '3', await digits('#sGifts'));
+  add('событие: подписки считаются', (await digits('#sFollows')) === '1', await digits('#sFollows'));
+  const feed = await q("document.querySelector('#feed').innerText");
+  add('событие: сообщение чата с текстом в ленте', /Вика/.test(feed) && /привет всем/.test(feed), feed.replace(/\n+/g, ' / ').slice(0, 160));
+  add('событие: пустое сообщение не попадает в ленту', !/Пустой/.test(feed));
+  await q("document.querySelector('#btnClear').click()");
+  send('tt:chat', { name: 'Миша', text: 'после очистки', created: null });
+  await wait(300);
+  const feed2 = await q("document.querySelector('#feed').innerText");
+  add('после очистки ленты новые сообщения появляются', /после очистки/.test(feed2), feed2.replace(/\n+/g, ' / ').slice(0, 120));
+  await q("document.querySelector('#paused').checked = false");
+  return R;
+}
+
 async function run(win, app) {
   const guard = setTimeout(() => finish([{ group: 'ui', name: 'таймаут автотеста', ok: false, detail: '' }]), 200000);
   const finish = (results) => {
@@ -115,7 +154,8 @@ async function run(win, app) {
   try {
     await new Promise((resolve) => (win.webContents.isLoading() ? win.webContents.once('did-finish-load', resolve) : resolve()));
     await new Promise((r) => setTimeout(r, 800));
-    finish([...mainTests(), ...(await win.webContents.executeJavaScript(PAGE_TEST, true))]);
+    const page = await win.webContents.executeJavaScript(PAGE_TEST, true);
+    finish([...mainTests(), ...page, ...(await eventTests(win))]);
   } catch (e) {
     finish([{ group: 'ui', name: 'автотест не смог запуститься', ok: false, detail: String(e && e.stack || e) }]);
   }

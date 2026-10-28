@@ -30,18 +30,4 @@ function explain(err) {
   };
 }
 
-// Ошибки Google Cloud Text-to-Speech → понятный русский текст
-function explainGoogle(status, bodyText) {
-  const t = String(bodyText || '');
-  const low = t.toLowerCase();
-  if (/api key not valid|api_key_invalid|invalid api key|api key expired/.test(low)) return 'Неверный API-ключ Google. Скопируйте ключ заново целиком.';
-  if (/billing/.test(low)) return 'В проекте Google не включена оплата (Billing). Google требует привязать карту, но в рамках бесплатного лимита списаний нет.';
-  if (/has not been used|is disabled|service_disabled|accessnotconfigured/.test(low)) return 'В проекте Google не включён сервис Cloud Text-to-Speech API. Включите его (шаг 2 в инструкции).';
-  if (/api_key_service_blocked|api_key_http_referrer|restricted|are blocked/.test(low)) return 'Ключ Google ограничен и не разрешает Text-to-Speech API. Создайте ключ без ограничений или разрешите этот API.';
-  if (status === 429 || /quota|resource_exhausted|rate/.test(low)) return 'Лимит Google исчерпан. Включён запасной голос Microsoft.';
-  if (status === 400 && /voice|language/.test(low)) return 'Этот голос недоступен в Google. Выберите другой.';
-  if (status === 401 || status === 403) return 'Google отклонил запрос. Проверьте ключ и что в проекте включены Billing и Text-to-Speech API.';
-  return 'Google не ответил (код ' + status + '). Проверьте интернет и попробуйте снова.';
-}
-
-module.exports = { explain, explainGoogle };
+module.exports = { explain };

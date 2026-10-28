@@ -433,4 +433,4 @@ $$('#chips .chip').forEach((c) => c.onclick = () => { studioText.value = c.textC
 /* ---------- старт ---------- */
 renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); syncControls();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { S, clean, speakName, renderVoices, get presets() { return S.presets; } };
+window.__echo = { S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; } };
