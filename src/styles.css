@@ -171,7 +171,7 @@ select::-webkit-scrollbar-button{display:none}
 .msg .gi{width:28px;height:28px;vertical-align:middle;margin-left:6px}
 
 /* --- виджет: кнопки --- */
-.wbtn-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:12px;align-items:stretch}
+.wbtn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;align-items:stretch}
 .wbtn{display:flex!important;align-items:center;justify-content:center;gap:7px;width:100%!important;margin:0!important;white-space:nowrap}
 .wbtn svg{width:15px;height:15px;flex:none}
 .wbtn.primary{width:100%}

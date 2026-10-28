@@ -564,7 +564,7 @@ $('#wCopy').onclick = async () => {
   const u = $('#wUrl').value;
   try { await navigator.clipboard.writeText(u); } catch (_) { $('#wUrl').select(); document.execCommand('copy'); }
   const b = $('#wCopy'), svg = b.querySelector('svg').outerHTML;
-  b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Скопировать ссылку'; }, 1500);
+  b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Копировать'; }, 1500);
 };
 $('#wTest').onclick = () => window.echo.widgetTest();
 $('#wClear').onclick = () => window.echo.widgetClear();
