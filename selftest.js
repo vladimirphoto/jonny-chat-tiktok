@@ -68,14 +68,13 @@ const PAGE_TEST = `(async () => {
     add('ui', 'карточка «Голоса платформ» первая в правой колонке, студия под «Что озвучивать»', !!$('#voiceRoutes') && $('#voiceRoutes') === $('#tab-voice .col-right').firstElementChild && !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=ttChat]') !== null);
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
     // --- озвучка: отдельные кнопки для TikTok и Twitch ---
-    const vb = (k) => document.querySelector('.vbtn[data-k=' + k + ']');
-    add('ui', 'озвучка: отдельные кнопки TikTok (чат, подарки, подписки), Twitch (чат) и «Читать ник»', ['ttChat', 'gifts', 'follows', 'twChat', 'readName'].every((k) => vb(k)) && !!document.querySelector('.vgroup.tt [data-k=ttChat]') && !!document.querySelector('.vgroup.tw [data-k=twChat]'));
-    add('ui', 'озвучка: старые переключатели «Что озвучивать» убраны', !document.querySelector('input[data-k=chat]') && !/Что озвучивать/.test($('#tab-voice').innerText));
+    const vb = (k) => document.querySelector('input[data-k=' + k + ']');
+    add('ui', 'озвучка: отдельные переключатели TikTok (чат, подарки, подписки), Twitch (чат) и «Читать ник»', ['ttChat', 'gifts', 'follows', 'twChat', 'readName'].every((k) => vb(k)) && !!document.querySelector('.vgroup.tt [data-k=ttChat]') && !!document.querySelector('.vgroup.tw [data-k=twChat]'));
+    add('ui', 'озвучка: старые переключатели «Что озвучивать» убраны', !document.querySelector('input[data-k=chat]') && /Что озвучивать/.test($('#tab-voice').innerText));
     const tw0 = E.S.twChat;
     vb('twChat').click();
-    add('ui', 'кнопка озвучки Twitch переключается отдельно от TikTok', E.S.twChat === !tw0 && vb('twChat').classList.contains('on') === E.S.twChat && E.S.ttChat === true && vb('ttChat').classList.contains('on'), E.S.twChat + ' / ' + E.S.ttChat);
+    add('ui', 'переключатель озвучки Twitch переключается отдельно от TikTok', E.S.twChat === !tw0 && vb('twChat').checked === E.S.twChat && E.S.ttChat === true && vb('ttChat').checked, E.S.twChat + ' / ' + E.S.ttChat);
     vb('twChat').click();
-    add('ui', 'кнопка озвучки: стиль включено/выключено различается', getComputedStyle(vb('ttChat')).backgroundImage !== 'none' && (vb('twChat').click(), getComputedStyle(vb('twChat')).backgroundImage === 'none' && (vb('twChat').click(), true)));
     // --- отдельные голоса для TikTok и Twitch, выпадающие списки ---
     const sels = ['ttVoiceSel', 'twVoiceSel', 'eventVoiceSel'].map((i) => $('#' + i));
     add('ui', 'три выпадающих списка голосов в стиле виджета', sels.every((e) => e && e.classList.contains('csel') && e.querySelector('.csel-val').textContent.length > 0 && e.querySelectorAll('.csel-opt').length >= 2), sels.map((e) => e.querySelector('.csel-val').textContent).join(' | '));
@@ -119,6 +118,10 @@ const PAGE_TEST = `(async () => {
 
     // --- кнопка обновления не меняет размер ---
     const ub = $('#btnUpdate');
+    ub.style.setProperty('--p', 40); ub.classList.add('dl');
+    const bf = getComputedStyle(ub, '::before');
+    add('ui', 'кнопка обновления: яркая полоса прогресса под текстом', parseFloat(bf.width) > 0 && parseFloat(bf.width) < ub.getBoundingClientRect().width && /gradient/.test(bf.backgroundImage) && getComputedStyle(ub.firstElementChild).zIndex === '1', bf.width);
+    ub.classList.remove('dl'); ub.style.removeProperty('--p');
     const h0 = ub.getBoundingClientRect().height, w0 = ub.getBoundingClientRect().width;
     add('ui', 'кнопка обновления: SVG-иконка вместо символа', !!ub.querySelector('svg') && !/[⟳⬇✓👁]/.test(ub.textContent), ub.textContent);
     const labels = ['Версия актуальна', 'Обновить до 10.20.30', 'Скачиваю… 100%', 'Страница загрузки', 'Проверяю…', 'Проверить обновления', 'Перезапуск…'];

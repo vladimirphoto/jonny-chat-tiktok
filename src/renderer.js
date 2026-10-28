@@ -108,13 +108,6 @@ $$('input[data-k]').forEach((el) => {
   el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); if (el.dataset.k[0] === 'w') pushWidget(); });
 });
 
-// кнопки «озвучивать»: нажата — озвучка включена
-$$('.vbtn[data-k]').forEach((b) => {
-  const paint = () => { const on = !!S[b.dataset.k]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); };
-  paint();
-  b.addEventListener('click', () => { S[b.dataset.k] = !S[b.dataset.k]; save(); paint(); });
-});
-
 function bindRange(id, label, fmt, get, set) {
   const el = $('#' + id), lb = $('#' + label);
   const refresh = () => { const v = get(); el.value = v; lb.textContent = fmt(v); };
@@ -576,7 +569,10 @@ function setUpd(icon, label, spin) {
   btnUpd.classList.toggle('spin', !!spin);
 }
 window.echo.version().then((v) => { $('#verLine').textContent = 'Версия ' + v; });
-window.echo.onUpdateProgress((p) => { setUpd('down', `Скачиваю… ${p}%`, true); });
+// полоска прогресса заполняется цветом под текстом кнопки
+const setProgress = (p) => { btnUpd.classList.add('dl'); btnUpd.style.setProperty('--p', Math.max(0, Math.min(100, Number(p) || 0))); };
+const clearProgress = () => { btnUpd.classList.remove('dl'); btnUpd.style.removeProperty('--p'); };
+window.echo.onUpdateProgress((p) => { setProgress(p); setUpd('down', `Скачиваю… ${p}%`, false); });
 
 btnUpd.onclick = async () => {
   if (btnUpd.classList.contains('busy')) return;
@@ -597,17 +593,18 @@ btnUpd.onclick = async () => {
     }
     return;
   }
-  setUpd('down', 'Скачиваю… 0%', true);
+  btnUpd.classList.remove('new'); setProgress(0);
+  setUpd('down', 'Скачиваю… 0%', false);
   const r = await window.echo.installUpdate();
   if (!r.ok) {
-    btnUpd.classList.remove('busy');
+    btnUpd.classList.remove('busy'); clearProgress(); btnUpd.classList.add('new');
     setUpd('down', 'Повторить');
     sys('Ошибка обновления: ' + r.error);
   } else if (r.manual) {
-    btnUpd.classList.remove('busy');
+    btnUpd.classList.remove('busy'); clearProgress(); btnUpd.classList.add('new');
     setUpd('open', 'Страница загрузки');
   } else {
-    setUpd('sync', 'Перезапуск…', true);
+    setProgress(100); setUpd('sync', 'Перезапуск…', false);
   }
 };
 
