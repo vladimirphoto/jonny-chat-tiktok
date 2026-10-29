@@ -20,6 +20,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 </style></head><body class="sh">
 <div id="wh" style="display:none;position:fixed;left:0;right:0;pointer-events:none;z-index:9999;box-sizing:border-box;border-top:2px solid rgba(139,92,246,.85);background:rgba(139,92,246,.07)"><div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(139,92,246,.85);color:#fff;font:700 11px/1 sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">граница чата</div></div><div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"></div>
 <script>
+var PV=false;
 var S={alignTt:'left',alignTw:'left',icons:true,avatars:true,gifts:true,scale:100,height:100,fade:true,fadeSec:20,shadow:true};
 var root=document.getElementById('root');
 var TT='<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>';
@@ -43,7 +44,7 @@ function apply(){
   root.style.height=(Math.max(10,Math.min(100,+S.height||100))/sc)+'vh';
   root.style.maxHeight=(100/sc)+'vh';
   Array.prototype.forEach.call(root.children,restyle);
-  applyPreviewHeight(S._previewHeight);
+  applyPreviewHeight(PV);
 }
 function sideOf(m){return (m.dataset.p==='twitch'?S.alignTw:S.alignTt)==='right'?'right':'left';}
 function restyle(m){
@@ -81,8 +82,24 @@ var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.pus
 var nc=document.getElementById('nc'),ncT=null;
 function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
 function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
+// Настройки у каждого виджета свои: приложение присылает их списком, страница берёт свои по ?w=id.
+// У старых ссылок без w берётся виджет с таким же выравниванием, иначе первый; старые приложения шлют плоские настройки.
+var MYID=Q.get('w')||'';
+function mine(d){
+  var out={},k;for(k in d)if(k!=='widgets'&&k!=='_previewHeight')out[k]=d[k];
+  var L=d.widgets;if(!Array.isArray(L)||!L.length)return out;
+  var w=null,i;
+  if(MYID)for(i=0;i<L.length;i++)if(L[i].id===MYID){w=L[i];break;}
+  if(!w&&!MYID&&(OV.alignTt||OV.alignTw))for(i=0;i<L.length;i++)if((!OV.alignTt||L[i].tt===OV.alignTt)&&(!OV.alignTw||L[i].tw===OV.alignTw)){w=L[i];break;}
+  if(!w)w=L[0];
+  for(k in w)if(k!=='id'&&k!=='tt'&&k!=='tw')out[k]=w[k];
+  return out;
+}
+var told=false;
+// «готово» для предпросмотра в приложении: настройки получены и применены
+function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'ready'},'*');}catch(_){}}
 function bind(es){
-  es.addEventListener('settings',function(e){var d=JSON.parse(e.data);var prev=d._previewHeight;delete d._previewHeight;S=Object.assign(S,d,OV);apply();applyPreviewHeight(prev);});
+  es.addEventListener('settings',function(e){var d=JSON.parse(e.data),pv=d._previewHeight;PV=pv===true||(!!pv&&pv===MYID);S=Object.assign(S,mine(d),OV);apply();if(d.widgets||d.scale!==undefined)tellReady();});
   es.addEventListener('msg',function(e){add(JSON.parse(e.data));});
   es.addEventListener('clear',function(){root.innerHTML='';});
 }
@@ -100,5 +117,6 @@ function connect(){
     bind(es);
   })();
 }
+window.addEventListener('resize',apply);
 S=Object.assign(S,OV);apply();connect();
 </script></body></html>`;

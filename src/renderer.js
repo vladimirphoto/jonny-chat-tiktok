@@ -25,7 +25,7 @@ const BUILTIN = [
 const DEFAULTS = {
   selected: 'b-svetlana', vol: 80, maxLen: 140, nick: '',
   presets: [],
-  widgets: [], wSel: '', wIcons: true, wAvatars: true, wGifts: true, wShadow: true, wFade: true, wScale: 100, wHeight: 100, wFadeSec: 20, twNick: '',
+  widgets: [], wSel: '', twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
 };
@@ -42,8 +42,27 @@ try {
   }
 } catch (_) {}
 delete S.wAlignTt; delete S.wAlignTw;
-S.widgets = S.widgets.filter((w) => w && w.id).map((w) => ({ id: String(w.id), name: String(w.name || 'Виджет').slice(0, 20), tt: w.tt === 'right' ? 'right' : 'left', tw: w.tw === 'right' ? 'right' : 'left' }));
-if (!S.widgets.length) S.widgets = [{ id: 'w1', name: 'OBS', tt: 'left', tw: 'left' }];
+// у каждого виджета свои настройки (иконки, аватарки, подарки, тень, исчезновение, масштаб, высота, время жизни).
+// Прежние общие настройки переносятся в каждый виджет, так что внешний вид после обновления не меняется.
+const WDEF = { icons: true, avatars: true, gifts: true, shadow: true, fade: true, scale: 100, height: 100, fadeSec: 20 };
+const WKEYS = { wIcons: 'icons', wAvatars: 'avatars', wGifts: 'gifts', wShadow: 'shadow', wFade: 'fade' };
+const clampInt = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : d; };
+let legacyW = {};
+try {
+  const r = JSON.parse(localStorage.getItem('echochat2') || '{}');
+  legacyW = { icons: r.wIcons, avatars: r.wAvatars, gifts: r.wGifts, shadow: r.wShadow, fade: r.wFade, scale: r.wScale, height: r.wHeight, fadeSec: r.wFadeSec };
+} catch (_) {}
+const normWidget = (w, base = legacyW) => {
+  const g = (k) => (w[k] !== undefined && w[k] !== null ? w[k] : base[k] !== undefined && base[k] !== null ? base[k] : WDEF[k]);
+  return {
+    id: String(w.id), name: String(w.name || 'Виджет').slice(0, 20), tt: w.tt === 'right' ? 'right' : 'left', tw: w.tw === 'right' ? 'right' : 'left',
+    icons: !!g('icons'), avatars: !!g('avatars'), gifts: !!g('gifts'), shadow: !!g('shadow'), fade: !!g('fade'),
+    scale: clampInt(g('scale'), 50, 200, WDEF.scale), height: clampInt(g('height'), 20, 100, WDEF.height), fadeSec: clampInt(g('fadeSec'), 3, 120, WDEF.fadeSec),
+  };
+};
+S.widgets = S.widgets.filter((w) => w && w.id).map((w) => normWidget(w));
+['wIcons', 'wAvatars', 'wGifts', 'wShadow', 'wFade', 'wScale', 'wHeight', 'wFadeSec'].forEach((k) => delete S[k]);
+if (!S.widgets.length) S.widgets = [normWidget({ id: 'w1', name: 'OBS', tt: 'left', tw: 'left' })];
 if (!S.widgets.some((w) => w.id === S.wSel)) S.wSel = S.widgets[0].id;
 const curW = () => S.widgets.find((w) => w.id === S.wSel) || S.widgets[0];
 // встроенные голоса всегда на месте, свои — добавляются после них
@@ -111,14 +130,18 @@ $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $$('.nav').forEach((x) => x.classList.toggle('active', x === b));
   $$('.tab').forEach((t) => t.classList.toggle('show', t.id === 'tab-' + b.dataset.tab));
   document.body.classList.toggle('t-widgets', b.dataset.tab === 'widgets');
-  if (b.dataset.tab === 'widgets') initPreview();
+  if (b.dataset.tab === 'widgets') requestAnimationFrame(initPreview);
   $('#title').textContent = TITLES[b.dataset.tab][0];
   $('#subtitle').textContent = TITLES[b.dataset.tab][1];
 }));
 
+// переключатели виджета (data-k=w...) хранятся в выбранном виджете, остальные — общие
 $$('input[data-k]').forEach((el) => {
-  el.checked = !!S[el.dataset.k];
-  el.addEventListener('change', () => { S[el.dataset.k] = el.checked; save(); if (el.dataset.k[0] === 'w') pushWidget(); });
+  const wk = WKEYS[el.dataset.k];
+  el.checked = wk ? !!curW()[wk] : !!S[el.dataset.k];
+  el.addEventListener('change', () => {
+    if (wk) { curW()[wk] = el.checked; save(); pushWidget(); } else { S[el.dataset.k] = el.checked; save(); }
+  });
 });
 
 function bindRange(id, label, fmt, get, set) {
@@ -136,15 +159,28 @@ function syncControls() {
   $('#pitch').closest('.ctl').classList.remove('off');
 }
 const refreshPitch = bindRange('pitch', 'pitchVal', (v) => (v > 0 ? '+' : '') + v + ' Гц', () => selectedPreset().pitch, (v) => { selectedPreset().pitch = v; });
-const refreshWScale = bindRange('wScale', 'wScaleVal', (v) => v + '%', () => S.wScale, (v) => { S.wScale = v; pushWidget(); });
-const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => S.wHeight, (v) => { S.wHeight = v; pushWidget(); window.echo.widgetSet({ ...getWSet(), _previewHeight: true }); });
-$('#wHeight').addEventListener('mousedown', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }));
-$('#wHeight').addEventListener('touchstart', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: true }), { passive: true });
-$('#wHeight').addEventListener('mouseup', () => { window.echo.widgetSet({ ...getWSet(), _previewHeight: false }); });
-$('#wHeight').addEventListener('touchend', () => window.echo.widgetSet({ ...getWSet(), _previewHeight: false }));
-const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => S.wFadeSec, (v) => { S.wFadeSec = v; pushWidget(); });
-function getWSet() { return { icons: S.wIcons, avatars: S.wAvatars, gifts: S.wGifts, shadow: S.wShadow, fade: S.wFade, scale: S.wScale, height: S.wHeight, fadeSec: S.wFadeSec }; }
-function pushWidget() { window.echo.widgetSet(getWSet()); }
+const refreshWScale = bindRange('wScale', 'wScaleVal', (v) => v + '%', () => curW().scale, (v) => { curW().scale = v; pushWidget(); });
+// пока двигают ползунок высоты, в предпросмотре (и только в выбранном виджете) видна граница чата
+const refreshWHeight = bindRange('wHeight', 'wHeightVal', (v) => v + '%', () => curW().height, (v) => { curW().height = v; pushWidget(true); });
+$('#wHeight').addEventListener('mousedown', () => pushWidget(true));
+$('#wHeight').addEventListener('touchstart', () => pushWidget(true), { passive: true });
+$('#wHeight').addEventListener('mouseup', () => pushWidget(false));
+$('#wHeight').addEventListener('touchend', () => pushWidget(false));
+$('#wHeight').addEventListener('change', () => pushWidget(false));
+const refreshWFade = bindRange('wFadeSec', 'wFadeSecVal', (v) => v + ' с', () => curW().fadeSec, (v) => { curW().fadeSec = v; pushWidget(); });
+const widgetFields = (w) => ({ icons: w.icons, avatars: w.avatars, gifts: w.gifts, shadow: w.shadow, fade: w.fade, scale: w.scale, height: w.height, fadeSec: w.fadeSec });
+// на сервер уходят настройки всех виджетов: каждая ссылка (?w=id) берёт свои. Плоские поля — настройки выбранного виджета (для старых страниц)
+function getWSet(preview) {
+  const w = curW();
+  return { ...widgetFields(w), widgets: S.widgets.map((x) => ({ id: x.id, tt: x.tt, tw: x.tw, ...widgetFields(x) })), _previewHeight: preview ? w.id : false };
+}
+function pushWidget(preview) { window.echo.widgetSet(getWSet(preview)); }
+// показать в правой панели настройки выбранного виджета
+function refreshWidgetUi() {
+  alignRenders.forEach((r) => r());
+  refreshWScale(); refreshWHeight(); refreshWFade();
+  $$('#tab-widgets input[data-k]').forEach((el) => { if (WKEYS[el.dataset.k]) el.checked = !!curW()[WKEYS[el.dataset.k]]; });
+}
 const refreshLen = bindRange('maxLen', 'lenVal', (v) => v, () => S.maxLen, (v) => { S.maxLen = v; });
 $('#nick').value = S.nick;
 $('#twNick').value = S.twNick || '';
@@ -650,7 +686,7 @@ function renderWTabs() {
     b.className = 'wtab' + (w.id === S.wSel ? ' sel' : '');
     b.dataset.id = w.id; b.title = 'Двойной щелчок — переименовать';
     const nm = document.createElement('span'); nm.textContent = w.name; b.appendChild(nm);
-    b.onclick = () => { if (S.wSel === w.id) return; S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
+    b.onclick = () => { if (S.wSel === w.id) return; S.wSel = w.id; save(); renderWTabs(); refreshWidgetUi(); onWidgetChanged(); };
     nm.ondblclick = (e) => {
       e.stopPropagation(); nm.contentEditable = 'true'; nm.focus();
       document.getSelection().selectAllChildren(nm);
@@ -659,7 +695,7 @@ function renderWTabs() {
     };
     if (S.widgets.length > 1 && w.id === S.wSel) {
       const x = document.createElement('i'); x.className = 'wdel'; x.textContent = '✕'; x.title = 'Удалить виджет';
-      x.onclick = (e) => { e.stopPropagation(); S.widgets = S.widgets.filter((q) => q.id !== w.id); S.wSel = S.widgets[0].id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged(); };
+      x.onclick = (e) => { e.stopPropagation(); S.widgets = S.widgets.filter((q) => q.id !== w.id); S.wSel = S.widgets[0].id; save(); renderWTabs(); refreshWidgetUi(); onWidgetChanged(); };
       b.appendChild(x);
     }
     box.appendChild(b);
@@ -667,15 +703,17 @@ function renderWTabs() {
   if (S.widgets.length < MAX_WIDGETS) {
     const add = document.createElement('button'); add.className = 'wtab add'; add.textContent = '+'; add.title = 'Добавить виджет со своим выравниванием';
     add.onclick = () => {
-      const n = S.widgets.length + 1, w = { id: 'w' + Date.now().toString(36), name: 'Виджет ' + n, tt: curW().tt, tw: curW().tw };
-      S.widgets.push(w); S.wSel = w.id; save(); renderWTabs(); alignRenders.forEach((r) => r()); onWidgetChanged();
+      // новый виджет получает настройки по умолчанию (выравнивание — как у текущего), а не копию чужих
+      const n = S.widgets.length + 1, w = normWidget({ id: 'w' + Date.now().toString(36), name: 'Виджет ' + n, tt: curW().tt, tw: curW().tw }, {});
+      S.widgets.push(w); S.wSel = w.id; save(); renderWTabs(); refreshWidgetUi(); onWidgetChanged();
     };
     box.appendChild(add);
   }
 }
 // ссылка и предпросмотр зависят от выбранного виджета
-function onWidgetChanged() { refreshLink(); reloadPreview(); }
-const widgetQuery = () => '?tt=' + curW().tt + '&tw=' + curW().tw;
+function onWidgetChanged() { pushWidget(); refreshLink(); reloadPreview(); }
+// w — id виджета: по нему страница находит именно его настройки
+const widgetQuery = () => '?tt=' + curW().tt + '&tw=' + curW().tw + '&w=' + encodeURIComponent(curW().id);
 let pageChecked = false;
 async function refreshLink() {
   const r = await window.echo.widgetLink().catch(() => null);
@@ -703,20 +741,42 @@ $('#wCopy').onclick = async () => {
   const b = $('#wCopy'), svg = b.querySelector('svg').outerHTML;
   b.innerHTML = svg + '✓'; setTimeout(() => { b.innerHTML = svg + 'Копировать'; }, 1500);
 };
-$('#pvTest').onclick = () => window.echo.widgetTest();
-let pvInit = false, pvBase = '';
+// Предпросмотр. Страница виджета грузится в iframe сразу при запуске приложения (а не при первом открытии вкладки),
+// а сообщает «готово» только когда уже получила настройки от приложения. Тестовые сообщения показываются
+// после этого сигнала и когда вкладка видна, поэтому первое открытие больше не бывает пустым или недорисованным.
+const PV_H = 210; // высота «виртуального экрана» предпросмотра: всё содержимое помещается без обрезания
+let pvInit = false, pvBase = '', pvReady = false, pvTested = false;
+const pvVisible = () => $('#tab-widgets').classList.contains('show');
+const pvTest = () => { if (pvReady && pvVisible() && !pvTested) { pvTested = true; window.echo.widgetTest(); } };
+// iframe — это виртуальный экран PV_H по высоте, пропорциональный блоку; он целиком масштабируется под размер блока
+function fitPreview() {
+  const box = $('.prev-box'), fr = $('#pvFrame');
+  const w = box.clientWidth, h = box.clientHeight;
+  if (!w || !h) return; // вкладка скрыта — подгоним, когда появится
+  const k = Math.min(1, h / PV_H);
+  fr.style.width = Math.ceil(w / k) + 'px'; fr.style.height = Math.ceil(h / k) + 'px';
+  fr.style.transform = k === 1 ? '' : 'scale(' + k + ')';
+}
 async function initPreview() {
-  if (pvInit) return; pvInit = true;
+  if (pvInit) { fitPreview(); pvTest(); return; }
+  pvInit = true;
   pvBase = await window.echo.widgetUrl();
   if (!pvBase) return;
-  $('#pvFrame').addEventListener('load', () => { pushWidget(); setTimeout(() => window.echo.widgetTest(), 500); });
+  window.addEventListener('message', (e) => {
+    if (e.source !== $('#pvFrame').contentWindow || !e.data || e.data.echochat !== 'ready') return;
+    pvReady = true; pushWidget(); fitPreview(); pvTest();
+  });
+  $('#pvFrame').addEventListener('load', () => { pushWidget(); fitPreview(); });
+  if (window.ResizeObserver) new ResizeObserver(fitPreview).observe($('.prev-box'));
+  window.addEventListener('resize', fitPreview);
   reloadPreview();
 }
-// предпросмотр показывает выбранный виджет: страница читает выравнивание из адреса
-function reloadPreview() { if (pvBase) $('#pvFrame').src = pvBase + widgetQuery(); }
+// предпросмотр показывает выбранный виджет: страница читает выравнивание и настройки по адресу
+function reloadPreview() { if (pvBase) { pvReady = false; pvTested = false; $('#pvFrame').src = pvBase + widgetQuery(); } }
+$('#pvTest').onclick = () => { if (pvReady) { pvTested = true; window.echo.widgetTest(); } };
 $('#wClear').onclick = () => window.echo.widgetClear();
 
 /* ---------- старт ---------- */
-renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget();
+renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
 window.__echo = { get voiceCalls() { return voiceCalls; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };

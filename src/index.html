@@ -180,28 +180,28 @@
               <div class="wstat" id="wStat"></div>
               <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
             </div>
+          </div>
+          <div class="col-right">
+            <div class="card">
+              <h2>Настройки виджета</h2>
+              <p class="muted">Свои для каждого виджета: переключай вкладки слева</p>
+              <div class="toggles two wtog" style="margin-top:8px">
+                <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ</span></label>
+                <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
+                <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Тень за сообщениями</span></label>
+                <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
+              </div>
+              <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleVal">100%</b></div><input type="range" id="wScale" min="50" max="200" value="100" /></div>
+              <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightVal">100%</b></div><input type="range" id="wHeight" min="20" max="100" value="100" /></div>
+              <div class="ctl"><div class="row"><label>Исчезать через</label><b id="wFadeSecVal">20 с</b></div><input type="range" id="wFadeSec" min="3" max="120" value="20" /></div>
+            </div>
             <div class="card preview-card">
               <div class="prev-head">
                 <div><h2>Предпросмотр</h2><small>Так виджет выглядит в OBS. Настройки применяются сразу</small></div>
                 <button class="btn ghost" id="pvTest">Тест</button>
               </div>
               <div class="prev-box"><iframe id="pvFrame" title="Предпросмотр чата" tabindex="-1"></iframe></div>
-            </div>
-          </div>
-          <div class="col-right">
-            <div class="card">
-              <h2>Общие настройки</h2>
-              <p class="muted">Применяются ко всем виджетам</p>
-              <div class="toggles" style="margin-top:8px">
-                <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
-                <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
-                <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
-                <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Лёгкая тень за сообщениями</span></label>
-                <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
-              </div>
-              <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleVal">100%</b></div><input type="range" id="wScale" min="50" max="200" value="100" /></div>
-              <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightVal">100%</b></div><input type="range" id="wHeight" min="20" max="100" value="100" /></div>
-              <div class="ctl"><div class="row"><label>Исчезать через</label><b id="wFadeSecVal">20 с</b></div><input type="range" id="wFadeSec" min="3" max="120" value="20" /></div>
             </div>
           </div>
         </div>

@@ -39,7 +39,7 @@ const PAGE_TEST = `(async () => {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
-    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/\\?tt=(left|right)&tw=(left|right)$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
+    add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/\\?tt=(left|right)&tw=(left|right)&w=\\w+$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
     add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
@@ -107,16 +107,35 @@ const PAGE_TEST = `(async () => {
     const pick2 = async (id, re) => { $('#' + id).click(); await sleep(40); [...$('#' + id).querySelectorAll('.csel-opt')].find((o) => re.test(o.textContent)).click(); await sleep(40); };
     const cw = () => E.S.widgets.find((w) => w.id === E.S.wSel);
     await pick2('wAlignTtSel', /Справа/); await pick2('wAlignTwSel', /Слева/);
-    const alOk1 = cw().tt === 'right' && cw().tw === 'left' && /\\?tt=right&tw=left$/.test($('#wUrl').value);
+    const alOk1 = cw().tt === 'right' && cw().tw === 'left' && /\\?tt=right&tw=left&w=\\w+$/.test($('#wUrl').value);
     await pick2('wAlignTtSel', /Слева/); await pick2('wAlignTwSel', /Слева/);
-    add('ui', 'выравнивание задаётся отдельно для TikTok и Twitch, ссылка меняется', alOk1 && cw().tt === 'left' && cw().tw === 'left' && /\\?tt=left&tw=left$/.test($('#wUrl').value), cw().tt + ' / ' + cw().tw + ' | ' + $('#wUrl').value);
+    add('ui', 'выравнивание задаётся отдельно для TikTok и Twitch, ссылка меняется', alOk1 && cw().tt === 'left' && cw().tw === 'left' && /\\?tt=left&tw=left&w=\\w+$/.test($('#wUrl').value), cw().tt + ' / ' + cw().tw + ' | ' + $('#wUrl').value);
     // несколько виджетов: у каждого своя ссылка
     const tabs0 = document.querySelectorAll('#wTabs .wtab:not(.add)').length;
     const url1 = $('#wUrl').value;
     document.querySelectorAll('#wTabs .wtab:not(.add)')[1].click(); await sleep(60);
     const url2 = $('#wUrl').value;
-    add('ui', 'два виджета с отдельными ссылками и выравниванием', tabs0 >= 2 && url1 !== url2 && /\\?tt=right&tw=right$/.test(url2), url1 + ' | ' + url2);
+    add('ui', 'два виджета с отдельными ссылками и выравниванием', tabs0 >= 2 && url1 !== url2 && /\\?tt=right&tw=right&w=\\w+$/.test(url2), url1 + ' | ' + url2);
     document.querySelectorAll('#wTabs .wtab:not(.add)')[0].click(); await sleep(60);
+    // у каждого виджета свои настройки: масштаб, высота, время жизни и переключатели
+    {
+      const setR = (id, v) => { const el = $('#' + id); el.value = v; el.dispatchEvent(new Event('input')); };
+      const wt = (i) => document.querySelectorAll('#wTabs .wtab:not(.add)')[i];
+      const rd = () => [$('#wScale').value, $('#wHeight').value, $('#wFadeSec').value].join('/');
+      wt(0).click(); await sleep(60);
+      setR('wScale', 150); setR('wHeight', 60); setR('wFadeSec', 45);
+      const tg = $('#tab-widgets input[data-k=wAvatars]'); tg.checked = false; tg.dispatchEvent(new Event('change'));
+      wt(1).click(); await sleep(60);
+      const second = rd(), secondAv = $('#tab-widgets input[data-k=wAvatars]').checked;
+      setR('wScale', 80);
+      wt(0).click(); await sleep(60);
+      const first = rd(), firstAv = $('#tab-widgets input[data-k=wAvatars]').checked;
+      const w0 = E.S.widgets[0], w1 = E.S.widgets[1];
+      add('ui', 'настройки виджета у каждого свои', first === '150/60/45' && second === '100/100/20' && !firstAv && secondAv && w0.scale === 150 && w1.scale === 80 && w0.avatars === false && w1.avatars === true, first + ' | ' + second + ' | ' + firstAv + '/' + secondAv);
+      tg.checked = true; tg.dispatchEvent(new Event('change'));
+      setR('wScale', 100); setR('wHeight', 100); setR('wFadeSec', 20);
+      wt(1).click(); await sleep(60); setR('wScale', 100); wt(0).click(); await sleep(60);
+    }
     add('ui', 'кнопки «Тест» в карточке виджета нет, в предпросмотре есть', !$('#wTest') && !!$('#pvTest'));
     add('ui', 'старого общего выбора выравнивания нет', !$('#wAlignSel'));
     for (let i = 0; i < 40 && $('#wStat').dataset.state === 'checking'; i++) await sleep(250);
@@ -180,6 +199,8 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
     $('.nav[data-tab=widgets]').click(); await sleep(400);
     add('ui', 'вкладка «Виджеты» без прокрутки', $('#tab-widgets').scrollHeight <= $('#tab-widgets').clientHeight + 1, $('#tab-widgets').scrollHeight + '/' + $('#tab-widgets').clientHeight);
+    { const fb = rr($('#pvFrame')), bb = rr($('.prev-box'));
+      add('ui', 'предпросмотр целиком помещается в своём блоке', fb.left >= bb.left - 1 && fb.right <= bb.right + 1 && fb.top >= bb.top - 1 && fb.bottom <= bb.bottom + 1 && bb.height >= 60, JSON.stringify([fb.width, fb.height, bb.width, bb.height].map(Math.round))); }
     add('ui', 'предпросмотр виджета под карточкой виджета', !!$('#pvFrame') && rr($('#pvFrame')).top > rr($('#wCopy')).bottom, '');
     const wc = rr($('#wClear')), wcard = rr($('#wClear').closest('.card'));
     add('ui', 'кнопки виджета не вылезают за карточку', wc.right <= wcard.right && wc.left >= wcard.left, JSON.stringify([wc.right, wcard.right]));
