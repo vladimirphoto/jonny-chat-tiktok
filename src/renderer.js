@@ -28,9 +28,11 @@ const DEFAULTS = {
   widgets: [], wSel: '', twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
+  kaspi: { enabled: false, token: '', strict: true, minAmount: 0, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true, voice: true },
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
+S.kaspi = { ...DEFAULTS.kaspi, ...(S.kaspi && typeof S.kaspi === 'object' ? S.kaspi : {}) };
 // виджеты: у каждого своё выравнивание TikTok и Twitch и своя ссылка. Первый — для OBS, второй — для TikTok LIVE Studio.
 // Прежнее выравнивание (одно на всё приложение) переносится на первый виджет.
 try {
@@ -125,12 +127,14 @@ const TITLES = {
   voice: ['Голос', 'Живые голоса, свои пресеты и события для озвучки'],
   filters: ['Фильтры', 'Что голос читает вслух, а что пропускает'],
   widgets: ['Виджеты', 'Чат TikTok и Twitch для OBS и TikTok LIVE Studio'],
+  kaspi: ['Донаты Каспи', 'Донаты на экран стрима: имя, сумма и картинка'],
 };
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $$('.nav').forEach((x) => x.classList.toggle('active', x === b));
   $$('.tab').forEach((t) => t.classList.toggle('show', t.id === 'tab-' + b.dataset.tab));
   document.body.classList.toggle('t-widgets', b.dataset.tab === 'widgets');
   if (b.dataset.tab === 'widgets') requestAnimationFrame(initPreview);
+  if (b.dataset.tab === 'kaspi') requestAnimationFrame(() => initDonatePreview());
   $('#title').textContent = TITLES[b.dataset.tab][0];
   $('#subtitle').textContent = TITLES[b.dataset.tab][1];
 }));
@@ -512,15 +516,21 @@ $('#twNick').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !twLi
 
 const btn = $('#btnConnect'), status = $('#status');
 const pillTt = $('#pillTt'), pillTw = $('#pillTw');
-let connected = false, connecting = false;
+let connected = false, connecting = false, netOnline = true;
 let _ttText = '', _twText = '';
 // обе плашки видны всегда: «Не в эфире TikTok» / «Не в эфире Twitch» до подключения
 function renderPills() {
   [[pillTt, connected, _ttText, 'Не в эфире TikTok'], [pillTw, twLive, _twText, 'Не в эфире Twitch']].forEach(([el, on, txt, off]) => {
     el.classList.toggle('on', on); el.classList.toggle('idle', !on);
-    el.lastElementChild.textContent = on ? txt : off;
+    el.classList.toggle('net', !netOnline); // нет интернета — точка и рамка жёлтые
+    el.lastElementChild.textContent = !netOnline ? (on ? txt + ' · нет сети' : 'Нет интернета') : on ? txt : off;
   });
 }
+function setNetOnline(v) { if (netOnline === v) return; netOnline = v; renderPills(); if (v) autoCheckUpdate(); }
+window.echo.onNet((n) => setNetOnline(!!(n && n.online)));
+window.addEventListener('offline', () => setNetOnline(false));
+window.addEventListener('online', async () => setNetOnline(await window.echo.netCheck().catch(() => true)));
+window.echo.netState().then((v) => setNetOnline(v !== false)).catch(() => {});
 const connNick = $('#connNick'), connStatus = $('#connStatus'), connTwStatus = $('#connTwStatus'), connTime = $('#connTime');
 // статус подключения платформы: зелёный — подключена, жёлтый — переподключение
 const setSt = (el, t, tone) => { el.textContent = t; el.classList.toggle('ok', tone === 'ok'); el.classList.toggle('warn', tone === 'warn'); };
@@ -645,6 +655,24 @@ const setProgress = (p) => { btnUpd.classList.add('dl'); btnUpd.style.setPropert
 const clearProgress = () => { btnUpd.classList.remove('dl'); btnUpd.style.removeProperty('--p'); };
 window.echo.onUpdateProgress((p) => { setProgress(p); setUpd('down', `Скачиваю… ${p}%`, false); });
 
+// автопроверка: через полминуты после запуска и дальше раз в 6 часов. Устанавливает только по нажатию кнопки
+const UPD_EVERY_MS = 6 * 60 * 60 * 1000;
+let updChecked = false;
+async function autoCheckUpdate() {
+  if (updReady || updChecked || btnUpd.classList.contains('busy')) return;
+  let r = null;
+  try { r = await window.echo.checkUpdate(); } catch (_) {}
+  if (!r || !r.ok) return; // нет сети — попробуем снова, когда появится интернет, или через 6 часов
+  updChecked = true;
+  if (!r.available || updReady) return;
+  updReady = true;
+  btnUpd.classList.add('new');
+  setUpd('down', `Обновить до ${r.version}`);
+  sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
+}
+setTimeout(autoCheckUpdate, 30000);
+setInterval(() => { updChecked = false; autoCheckUpdate(); }, UPD_EVERY_MS);
+
 btnUpd.onclick = async () => {
   if (btnUpd.classList.contains('busy')) return;
   btnUpd.classList.add('busy');
@@ -653,6 +681,7 @@ btnUpd.onclick = async () => {
     const r = await window.echo.checkUpdate();
     btnUpd.classList.remove('busy');
     if (!r.ok) { setUpd('sync', 'Проверить обновления'); sys('Не удалось проверить обновления: ' + r.error); return; }
+    updChecked = true;
     if (r.available) {
       updReady = true;
       btnUpd.classList.add('new');
@@ -798,7 +827,98 @@ function reloadPreview() { if (pvBase) { pvReady = false; pvTested = false; $('#
 $('#pvTest').onclick = () => { if (pvReady) { pvTested = true; window.echo.widgetTest(); } };
 $('#wClear').onclick = () => window.echo.widgetClear();
 
+/* ---------- донаты Каспи ---------- */
+const K = S.kaspi;
+const newToken = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
+if (!K.token) { K.token = newToken(); save(); }
+const kmoney = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₸';
+let kState = { running: false, port: 0, ips: [] };
+async function pushDonate() {
+  save();
+  const r = await window.echo.donateSet({ ...K }).catch(() => null);
+  if (r && r.ok) { kState = r; refreshKaspiUi(); }
+}
+$$('input[data-kk]').forEach((el) => {
+  el.checked = !!K[el.dataset.kk];
+  el.addEventListener('change', () => { K[el.dataset.kk] = el.checked; pushDonate(); });
+});
+bindRange('kDur', 'kDurVal', (v) => v + ' с', () => K.duration, (v) => { K.duration = v; pushDonate(); })();
+bindRange('kScale', 'kScaleVal', (v) => v + '%', () => K.scale, (v) => { K.scale = v; pushDonate(); })();
+bindRange('kMin', 'kMinVal', (v) => kmoney(v), () => K.minAmount, (v) => { K.minAmount = v; pushDonate(); })();
+makeSelect('kAlignSel', { options: () => [{ v: 'left', label: 'Слева' }, { v: 'center', label: 'По центру' }, { v: 'right', label: 'Справа' }], get: () => K.align, set: (v) => { K.align = v; pushDonate(); } });
+makeSelect('kVposSel', { options: () => [{ v: 'top', label: 'Сверху' }, { v: 'center', label: 'По центру' }, { v: 'bottom', label: 'Снизу' }], get: () => K.vpos, set: (v) => { K.vpos = v; pushDonate(); } });
+
+async function refreshDonateLink() {
+  const r = await window.echo.donateLink().catch(() => null);
+  $('#dUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
+}
+const kaspiAddr = () => `http://${kState.ips[0] || 'IP-компьютера'}:${kState.port || '…'}/kaspi/${K.token}`;
+function setKStat(text, tone) { const e = $('#kStat'); e.textContent = text; e.className = 'kstat' + (tone ? ' ' + tone : ''); }
+function refreshKaspiUi() {
+  $('#kBox').hidden = !K.enabled;
+  if (!K.enabled) return;
+  $('#kUrl').value = kaspiAddr();
+  if (!kState.running) setKStat('Запускаю приём…', '');
+  else if (!kState.ips.length) setKStat('Не найдено подключение к локальной сети: подключи компьютер к Wi-Fi или кабелю', 'bad');
+  else setKStat('Приём включён' + (kState.ips.length > 1 ? '. Другие адреса компьютера: ' + kState.ips.slice(1).join(', ') : ''), 'ok');
+}
+async function copyFrom(inputSel, btn, label) {
+  const inp = $(inputSel);
+  try { await navigator.clipboard.writeText(inp.value); } catch (_) { inp.select(); document.execCommand('copy'); }
+  btn.textContent = '✓ Скопировано'; setTimeout(() => { btn.textContent = label; }, 1500);
+}
+$('#dUrl').onfocus = (e) => e.target.select();
+$('#kUrl').onfocus = (e) => e.target.select();
+$('#dCopy').onclick = () => copyFrom('#dUrl', $('#dCopy'), 'Копировать');
+$('#kCopy').onclick = () => copyFrom('#kUrl', $('#kCopy'), 'Копировать адрес');
+$('#btnDonateTest').onclick = () => window.echo.donateTest();
+$('#kProbe').onclick = async () => {
+  setKStat('Проверяю…', '');
+  const r = await window.echo.kaspiProbe().catch((e) => ({ ok: false, error: String(e && e.message || e) }));
+  if (r && r.ok && r.accepted) setKStat('Приём работает: пробное уведомление дошло, донат показан в виджете', 'ok');
+  else if (r && r.ok) setKStat('Приём работает, но уведомление пропущено: ' + (r.reason || 'не распознано'), 'bad');
+  else setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
+};
+$('#kToken').onclick = () => {
+  if (!confirm('Старый адрес перестанет работать, и телефон придётся настроить заново. Сменить?')) return;
+  K.token = newToken(); pushDonate();
+};
+// журнал уведомлений: видно, что пришло с телефона и как приложение это поняло
+const klog = $('#kLog');
+window.echo.onKaspiLog((l) => {
+  $('.empty', klog)?.remove();
+  const d = new Date(l.t), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const it = document.createElement('div'); it.className = 'it ' + (l.accepted ? 'ok' : 'no');
+  it.innerHTML = `<b>${hm} · ${l.accepted ? esc(l.name) + ' · ' + kmoney(l.amount) : 'Пропущено: ' + esc(l.reason || 'не распознано')}</b><small>${esc(l.raw)}</small>`;
+  klog.prepend(it);
+  while (klog.children.length > 6) klog.lastChild.remove();
+});
+// донат пришёл (или нажат тест): строка в ленте и голос
+window.echo.onDonate((d) => {
+  const el = addMsg({ name: d.name, text: `💸 донат ${kmoney(d.amount)}${d.message ? ' · ' + d.message : ''}`, kind: 'gift', color: '#f14635' });
+  if (K.voice) enqueue({ el, say: `${speakName(d.name)}, спасибо за донат ${d.amount} тенге`, preset: eventPreset() });
+});
+// предпросмотр виджета донатов
+let dvInit = false;
+function fitDonate() {
+  const box = $('#dvBox'), fr = $('#dvFrame'), w = box.clientWidth, h = box.clientHeight;
+  if (!w || !h) return;
+  const k = Math.min(1, w / 560, h / 200);
+  fr.style.width = Math.ceil(w / k) + 'px'; fr.style.height = Math.ceil(h / k) + 'px';
+  fr.style.transform = k === 1 ? '' : 'scale(' + k + ')';
+}
+async function initDonatePreview() {
+  if (dvInit) { fitDonate(); return; }
+  dvInit = true;
+  const base = await window.echo.donateUrl();
+  if (!base) return;
+  $('#dvFrame').addEventListener('load', () => { pushDonate(); fitDonate(); });
+  if (window.ResizeObserver) new ResizeObserver(fitDonate).observe($('#dvBox'));
+  window.addEventListener('resize', fitDonate);
+  $('#dvFrame').src = base;
+}
+
 /* ---------- старт ---------- */
-renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview();
+renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { get voiceCalls() { return voiceCalls; }, get held() { return held.length; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, get held() { return held.length; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };

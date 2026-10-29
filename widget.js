@@ -4,9 +4,11 @@
 // к этому серверу из браузера на этом же компьютере. Поэтому разрешаем запросы только с адреса страницы.
 const http = require('http');
 const PAGE = require('./widget-page');
+const DONATE_PAGE = require('./widget-donate-page');
 
 const PAGES_ORIGIN = 'https://vladimirphoto.github.io';
 const PAGES_URL = PAGES_ORIGIN + '/jonny-chat-tiktok/chat/';
+const DONATE_PAGES_URL = PAGES_ORIGIN + '/jonny-chat-tiktok/donate/';
 
 function start(getSettings, port = 7878, opts = {}) {
   const origins = opts.origins || [PAGES_ORIGIN];
@@ -24,10 +26,12 @@ function start(getSettings, port = 7878, opts = {}) {
       return res.end();
     }
     if (u === '/' || u === '/chat') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(PAGE); }
+    if (u === '/donate') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(DONATE_PAGE); }
     if (u === '/events') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive', ...cors });
       res.write('retry: 2000\n\n');
       res.write('event: settings\ndata: ' + JSON.stringify(getSettings()) + '\n\n');
+      if (opts.getDonate) res.write('event: dsettings\ndata: ' + JSON.stringify(opts.getDonate()) + '\n\n');
       clients.add(res);
       req.on('close', () => clients.delete(res));
       return;
@@ -55,4 +59,4 @@ function start(getSettings, port = 7878, opts = {}) {
     server.listen(p, host);
   });
 }
-module.exports = { start, PAGES_URL, PAGES_ORIGIN };
+module.exports = { start, PAGES_URL, DONATE_PAGES_URL, PAGES_ORIGIN };

@@ -20,6 +20,11 @@ function mainTests() {
   add('событие чата: текст из content', ch.text === 'привет' && ch.name === 'Аня', JSON.stringify(ch));
   add('событие зрителей: total', ev.viewersOf({ total: 42 }) === 42 && ev.viewersOf({ viewerCount: 7 }) === 7);
   add('событие лайков: count/total', ev.likesOf({ count: 2, total: 55 }).total === 55);
+  const kp = require('./kaspi');
+  const kr = kp.parse('Перевод. Айдос А. отправил(а) вам 1 000 ₸');
+  add('донаты: уведомление Каспи разбирается', kr.ok && kr.amount === 1000 && kr.name === 'Айдос А.', JSON.stringify(kr));
+  add('донаты: покупка и баланс не считаются донатом', kp.parse('Покупка 4 500 ₸ Magnum').ok === false && kp.parse('Баланс: 90 000 ₸. Перевод от Аня Б. 700 ₸').amount === 700);
+  add('донаты: страница виджета входит в сборку', /addEventListener\('donate'/.test(require('./widget-donate-page')));
   add('событие подарка: серия не считается, пока идёт', ev.giftOf({ giftDetails: { giftName: 'Rose', giftType: 1 }, repeatEnd: false }).done === false && ev.giftOf({ giftDetails: { giftName: 'Rose', giftType: 1 }, repeatEnd: true }).done === true);
   return R;
 }
@@ -35,13 +40,13 @@ const PAGE_TEST = `(async () => {
   try {
     // --- интерфейс (критично) ---
     add('ui', 'preload API', window.echo && ['connect','disconnect','synth','voices','checkUpdate'].every((k) => typeof window.echo[k] === 'function'));
-    for (const t of ['voice', 'filters', 'widgets', 'live']) {
+    for (const t of ['voice', 'filters', 'widgets', 'kaspi', 'live']) {
       $('.nav[data-tab=' + t + ']').click();
       add('ui', 'вкладка ' + t, $('#tab-' + t).classList.contains('show') && $('#title').textContent.length > 0);
     }
     add('ui', 'вкладка «Виджеты»: ссылка и настройки', /^https:\\/\\/vladimirphoto\\.github\\.io\\/jonny-chat-tiktok\\/chat\\/\\?tt=(left|right)&tw=(left|right)&w=\\w+$/.test($('#wUrl').value) && !!$('#wAlignTtSel') && !!$('#wAlignTwSel') && document.querySelectorAll('#tab-widgets input[data-k]').length >= 5, $('#wUrl').value);
     add('ui', 'иконки в 4 плашках', document.querySelectorAll('.stat .ic').length === 4);
-    add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 4);
+    add('ui', 'иконки в меню', document.querySelectorAll('.nav .ic').length === 5);
     add('ui', 'карточки голосов', document.querySelectorAll('#voices .voice').length >= 2, document.querySelectorAll('#voices .voice').length);
     add('ui', 'версия в сайдбаре', /\\d+\\.\\d+/.test($('#verLine').textContent), $('#verLine').textContent);
 
@@ -319,6 +324,46 @@ async function eventTests(win) {
   await q("document.querySelector('#paused').checked = false; window.__echo.S.ttVoice = 'b-svetlana'; window.__echo.S.twVoice = 'b-dmitry'");
   const pre = await q("[window.__echo.ttPreset().voice, window.__echo.twPreset().voice].join(',')");
   add('озвучка: у TikTok и Twitch разные голоса', pre === 'ru-RU-SvetlanaNeural,ru-RU-DmitryNeural', pre);
+  // интернет: нет связи — обе плашки жёлтые, связь вернулась — обычные
+  const pillNet = () => q("[...document.querySelectorAll('#status .pill')].map((p) => p.classList.contains('net')).join()");
+  send('net:status', { online: false });
+  await wait(150);
+  const nOff = await pillNet(), nTxt = await q("document.querySelector('#pillTw .pt').textContent");
+  const nDot = await q("getComputedStyle(document.querySelector('#pillTt s')).backgroundColor");
+  add('интернет: нет связи — обе плашки жёлтые', nOff === 'true,true' && /Нет интернета/.test(nTxt) && /250, 204, 21/.test(nDot), nOff + ' / ' + nTxt + ' / ' + nDot);
+  send('net:status', { online: true });
+  await wait(150);
+  add('интернет: связь вернулась — плашки обычные', (await pillNet()) === 'false,false', await pillNet());
+  add('обновления: автопроверка раз в 6 часов', (await q('window.__echo.UPD_EVERY_MS')) === 21600000);
+  // донаты Каспи: приёмник, разбор, виджет и тест-кнопка
+  await q("window.__echo.K.voice = false");
+  const dj = JSON.parse(await q("window.echo.donateSet({ ...window.__echo.K, enabled: true, token: 'selftesttoken', strict: true }).then((r) => JSON.stringify({ ok: r.ok, running: r.running, port: r.port }))"));
+  add('донаты: приёмник уведомлений запускается', dj.ok && dj.running && dj.port >= 7899, JSON.stringify(dj));
+  const pj = JSON.parse(await q("window.echo.kaspiProbe().then(JSON.stringify)"));
+  add('донаты: пробное уведомление принято и разобрано', pj.ok && pj.accepted, JSON.stringify(pj));
+  await wait(300);
+  const feedD = await q("document.querySelector('#feed').innerText");
+  add('донаты: донат из уведомления появился в ленте', /Тест Т\./.test(feedD) && /₸/.test(feedD), feedD.replace(/\n+/g, ' / ').slice(-120));
+  await q("document.querySelector('#btnDonateTest').click()");
+  await wait(300);
+  const feedT = await q("document.querySelector('#feed').innerText");
+  add('донаты: кнопка «Тест доната» работает', /Айдос А\./.test(feedT) && /500/.test(feedT), feedT.replace(/\n+/g, ' / ').slice(-100));
+  const logTxt = await q("document.querySelector('#kLog').innerText");
+  add('донаты: журнал показывает пришедшее уведомление', /Тест Т\./.test(logTxt), logTxt.replace(/\n+/g, ' / ').slice(0, 100));
+  const get = (url, sse) => new Promise((resolve) => {
+    let d = '';
+    const rq = require('http').get(url, (res) => { res.on('data', (c) => { d += c; if (sse && d.includes('dsettings')) { rq.destroy(); resolve(d); } }); res.on('end', () => resolve(d)); });
+    rq.on('error', () => resolve(d));
+    setTimeout(() => { rq.destroy(); resolve(d); }, 4000);
+  });
+  const durl = await q('window.echo.donateUrl()');
+  const dpage = await get(durl);
+  add('донаты: приложение отдаёт страницу виджета', /addEventListener\('donate'/.test(dpage) && /Донат/.test(dpage), dpage.length);
+  const dsse = await get(durl.replace('/donate', '/events'), true);
+  add('донаты: виджет получает настройки по SSE', /event: dsettings/.test(dsse) && /"duration":8/.test(dsse), dsse.replace(/\n+/g, ' ').slice(0, 140));
+  const dl = JSON.parse(await q('window.echo.donateLink().then(JSON.stringify)'));
+  add('донаты: ссылка для OBS ведёт на страницу донатов', dl.ok && /\/jonny-chat-tiktok\/donate\/$/.test(dl.url), dl.url);
+  await q("window.echo.donateSet({ ...window.__echo.K, enabled: false })");
   await q("document.querySelector('#paused').checked = false");
   return R;
 }

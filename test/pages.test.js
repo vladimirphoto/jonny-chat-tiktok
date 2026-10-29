@@ -15,3 +15,15 @@ test('страница берёт адрес приложения из пара�
   assert.match(PAGE, /\.get\('port'\)/);
   assert.match(PAGE, /127\.0\.0\.1:'\+port\+'\/events/); // страница сама перебирает порты 7878-7898
 });
+
+const DONATE = require('../widget-donate-page');
+test('страница донатов для GitHub Pages совпадает с виджетом приложения (npm run pages)', () => {
+  const f = path.join(__dirname, '..', 'docs', 'donate', 'index.html');
+  assert.equal(fs.readFileSync(f, 'utf8'), DONATE);
+});
+
+test('страница донатов подключается к приложению и слушает события донатов', () => {
+  assert.match(DONATE, /127\.0\.0\.1:'\+port\+'\/events/);
+  assert.match(DONATE, /addEventListener\('donate'/);
+  assert.match(DONATE, /addEventListener\('dsettings'/);
+});

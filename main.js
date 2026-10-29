@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, net } = require('electron');
 const path = require('path');
 const ev = require('./events');
 const twitch = require('./twitch');
@@ -304,6 +304,92 @@ ipcMain.handle('widget:test', () => {
 });
 ipcMain.handle('widget:clear', () => { wsrv && wsrv.broadcast('clear', {}); return { ok: true }; });
 
+// ---------- Интернет: проверяем связь, чтобы плашки в шапке горели жёлтым без сети ----------
+let netOnline = true, netFails = 0;
+async function pingNet() {
+  const one = async (u) => {
+    const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 4000);
+    try { await fetch(u, { method: 'HEAD', signal: ac.signal, cache: 'no-store' }); return true; } catch (_) { return false; } finally { clearTimeout(t); }
+  };
+  // любой ответ (даже ошибка сервера) значит, что интернет есть
+  const rs = await Promise.all(['https://www.gstatic.com/generate_204', 'https://www.cloudflare.com/cdn-cgi/trace', 'https://api.github.com'].map(one));
+  return rs.some(Boolean);
+}
+const setNet = (v) => { if (v !== netOnline) { netOnline = v; send('net:status', { online: v }); } };
+async function netTick() {
+  let ok = false;
+  try { ok = net.isOnline() && await pingNet(); } catch (_) { ok = false; }
+  if (ok) { netFails = 0; setNet(true); } else if (++netFails >= 2 || !net.isOnline()) setNet(false); // два промаха подряд — связи нет
+  return netOnline;
+}
+ipcMain.handle('net:check', () => netTick());
+ipcMain.handle('net:state', () => netOnline);
+
+// ---------- Донаты Каспи ----------
+const kaspi = require('./kaspi');
+let dset = { enabled: false, token: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
+let krx = null, krxP = null;
+const donateWidgetSettings = () => ({ duration: dset.duration, scale: dset.scale, align: dset.align, vpos: dset.vpos, showMessage: dset.showMessage });
+let lastDon = { key: '', t: 0 };
+function handleDonation(d, test = false) {
+  const don = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: String(d.name || 'Аноним').slice(0, 40), amount: Math.round(Number(d.amount) || 0), message: String(d.message || '').slice(0, 140), test };
+  if (don.amount <= 0) return { accepted: false, reason: 'нет суммы' };
+  if (!test) {
+    if (don.amount < (Number(dset.minAmount) || 0)) return { accepted: false, reason: `сумма меньше минимальной (${dset.minAmount} ₸)` };
+    const key = don.name + '|' + don.amount, now = Date.now();
+    if (lastDon.key === key && now - lastDon.t < 20000) return { accepted: false, reason: 'повтор: то же уведомление уже было' }; // уведомление и СМС об одном переводе
+    lastDon = { key, t: now };
+  }
+  wsrv && wsrv.broadcast('donate', don);
+  send('kaspi:donate', don);
+  return { accepted: true, donation: don };
+}
+function onKaspiText(text) {
+  const p = kaspi.parse(text, { strict: dset.strict !== false });
+  const r = p.ok ? handleDonation(p) : { accepted: false, reason: p.reason };
+  send('kaspi:log', { t: Date.now(), raw: String(text).slice(0, 220), accepted: !!r.accepted, reason: r.reason || '', name: p.name || '', amount: p.amount || 0 });
+  return r;
+}
+async function applyKaspi() {
+  const want = !!dset.enabled && !!dset.token;
+  if (want && !krx) {
+    if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText }).then((r) => { krx = r; krxP = null; return r; });
+    await krxP;
+  }
+  if (!want && krx) { krx.close(); krx = null; }
+}
+const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses() });
+ipcMain.handle('donate:set', async (_e, s) => {
+  dset = { ...dset, ...(s || {}) };
+  wsrv && wsrv.broadcast('dsettings', donateWidgetSettings());
+  try { await applyKaspi(); } catch (_) {}
+  return { ok: true, ...kaspiState() };
+});
+ipcMain.handle('kaspi:state', () => kaspiState());
+ipcMain.handle('donate:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/donate` : ''));
+ipcMain.handle('donate:link', () => (wsrv && wsrv.port ? { ok: true, url: widget.DONATE_PAGES_URL } : { ok: false, url: '' }));
+// тест: по кругу показывает донаты разной суммы, чтобы увидеть все картинки
+const SAMPLES = [
+  { name: 'Айдос А.', amount: 500, message: 'Привет из Алматы!' }, { name: 'Анна К.', amount: 1500 },
+  { name: 'Марат С.', amount: 3000, message: 'Спасибо за стрим!' }, { name: 'Дина Н.', amount: 7500 },
+  { name: 'Тимур Б.', amount: 15000, message: 'Ракета для тебя!' },
+];
+let sampleI = 0;
+ipcMain.handle('donate:test', () => { handleDonation(SAMPLES[sampleI++ % SAMPLES.length], true); return { ok: true }; });
+// проверка приёма целиком: приложение само отправляет «уведомление» на свой приёмник, как это сделает телефон
+ipcMain.handle('kaspi:probe', () => new Promise((resolve) => {
+  if (!krx || !krx.port) return resolve({ ok: false, error: 'Приём выключен. Включи переключатель выше' });
+  const amount = 100 * (5 + Math.floor(Math.random() * 40));
+  const body = `Перевод. Тест Т. отправил(а) вам ${String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₸`;
+  const rq = require('http').request({ host: '127.0.0.1', port: krx.port, path: '/kaspi/' + dset.token, method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, timeout: 4000 }, (res) => {
+    let d = ''; res.on('data', (c) => (d += c));
+    res.on('end', () => { let j = {}; try { j = JSON.parse(d); } catch (_) {} resolve({ ok: res.statusCode === 200, status: res.statusCode, accepted: !!j.accepted, reason: j.reason || '' }); });
+  });
+  rq.on('error', (e) => resolve({ ok: false, error: String(e && e.message || e) }));
+  rq.on('timeout', () => { rq.destroy(); resolve({ ok: false, error: 'нет ответа' }); });
+  rq.end(body);
+}));
+
 const updater = require('./updater');
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('upd:check', async () => {
@@ -314,8 +400,9 @@ ipcMain.handle('upd:install', async () => {
 });
 
 app.whenReady().then(async () => {
-  try { wsrv = await widget.start(() => wset); } catch (_) { wsrv = null; }
+  try { wsrv = await widget.start(() => wset, 7878, { getDonate: () => donateWidgetSettings() }); } catch (_) { wsrv = null; }
   createWindow();
+  if (!SELFTEST) { netTick(); setInterval(netTick, 8000); }
   // прогрев: модуль, DNS и TLS-соединение готовы до первой фразы эфира
   edgeSynth('Привет', 'ru-RU-SvetlanaNeural', 1, '+0Hz').catch(() => {});
   if (SELFTEST) require('./selftest').run(win, app);
@@ -324,5 +411,6 @@ app.on('window-all-closed', async () => {
   await disconnect();
   stopTwitch();
   try { wsrv && wsrv.close(); } catch (_) {}
+  try { krx && krx.close(); } catch (_) {}
   app.quit();
 });
