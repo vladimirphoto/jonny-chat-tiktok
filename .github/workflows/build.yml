@@ -73,9 +73,13 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - run: npm run dist:mac
+      - name: Build dmg
+        shell: bash
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          set -o pipefail
+          npm run dist:mac 2>&1 | tee build.log || { echo "::error title=MACBUILD::$(tail -30 build.log | tr '\n' ' ' | cut -c1-1800)"; exit 1; }
       - name: Read version
         id: ver
         run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
