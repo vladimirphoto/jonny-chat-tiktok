@@ -63,3 +63,24 @@ jobs:
           target_commitish: ${{ github.sha }}
           body_path: selftest.md
           files: dist/*.exe
+
+  build-mac:
+    needs: build
+    runs-on: macos-latest   # Apple Silicon (M1 и новее)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run dist:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Read version
+        id: ver
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Attach dmg to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          files: dist/*.dmg
