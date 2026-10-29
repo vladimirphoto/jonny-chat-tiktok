@@ -661,7 +661,7 @@ window.echo.onUpdateProgress((p) => { setProgress(p); setUpd('down', `Скачи
 
 // автопроверка: через полминуты после запуска и дальше раз в 6 часов. Устанавливает только по нажатию кнопки
 const UPD_EVERY_MS = 6 * 60 * 60 * 1000;
-let updChecked = false;
+let updChecked = false, autoUpdTried = false;
 async function autoCheckUpdate() {
   if (updReady || updChecked || btnUpd.classList.contains('busy')) return;
   let r = null;
@@ -673,8 +673,9 @@ async function autoCheckUpdate() {
   btnUpd.classList.add('new');
   setUpd('down', `Обновить до ${r.version}`);
   sys(`Доступна новая версия ${r.version}. Нажми кнопку слева внизу, чтобы обновиться.`);
+  if (r.portable && !autoUpdTried) { autoUpdTried = true; btnUpd.click(); } // при запуске обновляемся сразу
 }
-setTimeout(autoCheckUpdate, 30000);
+setTimeout(autoCheckUpdate, 1500);
 setInterval(() => { updChecked = false; autoCheckUpdate(); }, UPD_EVERY_MS);
 
 btnUpd.onclick = async () => {
@@ -942,3 +943,29 @@ async function initDonatePreview() {
 renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
 window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+
+/* ---------- «Что нового» после обновления ---------- */
+const CHANGES = {
+  '1.11.0': ['Донаты Каспи: готовая команда для iPhone — QR-код вместо ручной настройки', 'Токен подключения: копирование и перевыпуск одной кнопкой', 'Тестовые уведомления Каспи без настоящих переводов', 'Кнопка «Очистить» в журнале уведомлений', 'Блок подключения теперь сверху, настройки виджета ниже', 'Стрелка-подсказка прокрутки на странице озвучки', 'Обновление запускается сразу при старте программы'],
+};
+(async () => {
+  try {
+    const v = await window.echo.version(), list = CHANGES[v];
+    let seen = ''; try { seen = localStorage.getItem('echo.seenVer') || ''; } catch (_) {}
+    if (!list || seen === v) return;
+    $('#wnVer').textContent = 'Версия ' + v;
+    $('#wnList').innerHTML = list.map((t) => `<li>${esc(t)}</li>`).join('');
+    $('#wnBack').hidden = false;
+    $('#wnClose').onclick = () => { $('#wnBack').hidden = true; try { localStorage.setItem('echo.seenVer', v); } catch (_) {} };
+  } catch (_) {}
+})();
+$('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока ничего не приходило</div>'; };
+/* ---------- стрелка «можно листать» на странице озвучки ---------- */
+(() => {
+  const hint = $('#scrollHint'), tab = $('#tab-voice');
+  const upd = () => { const more = tab.classList.contains('show') && tab.scrollHeight - tab.scrollTop - tab.clientHeight > 40; hint.classList.toggle('on', more); };
+  tab.addEventListener('scroll', upd, { passive: true });
+  window.addEventListener('resize', upd);
+  setInterval(upd, 400);
+  upd();
+})();

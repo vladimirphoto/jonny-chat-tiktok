@@ -31,7 +31,7 @@ async function check() {
   const version = String(rel.tag_name || '').replace(/^v/i, '');
   const available = !!asset && isNewer(version, app.getVersion());
   found = available ? { version, url: asset.browser_download_url, size: asset.size } : null;
-  return { ok: true, available, current: app.getVersion(), version, notes: rel.body || '' };
+  return { ok: true, available, current: app.getVersion(), version, notes: rel.body || '', portable: !!process.env.PORTABLE_EXECUTABLE_FILE };
 }
 
 async function install(onProgress) {

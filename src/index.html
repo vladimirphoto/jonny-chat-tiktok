@@ -192,6 +192,31 @@
           </div>
           <div class="col-right">
             <div class="card">
+              <h2>Подключение Каспи</h2>
+              <p class="muted">Каспи не даёт приложениям читать переводы напрямую, поэтому о донате сообщает телефон: он пересылает уведомление о переводе на этот компьютер по Wi-Fi</p>
+              <div class="toggles"><label class="sw"><input type="checkbox" data-kk="enabled" /><i></i><span>Принимать уведомления с телефона</span></label></div>
+              <div id="kBox" hidden>
+                <label>Адрес для телефона (телефон и компьютер — в одной Wi-Fi сети)</label>
+                <div class="nick-field"><input id="kUrl" readonly spellcheck="false" /></div>
+                <div class="kstat" id="kStat"></div>
+                <div class="wbtn-row"><button class="btn wbtn primary" id="kCopy">Копировать адрес</button><button class="btn wbtn ghost" id="kProbe">Проверить приём</button></div>
+                <div class="toggles" style="margin-top:10px"><label class="sw"><input type="checkbox" data-kk="strict" checked /><i></i><span>Пропускать покупки и исходящие<small>Выключи, если настоящие донаты не проходят. Тогда донатом считается любой текст с суммой в тенге</small></span></label></div>
+                <div class="card-sub"><label>iPhone: готовая команда (без ручной настройки JSON)</label>
+                  <div class="wbtn-row"><button class="btn wbtn primary" id="kShortcut">Показать QR команды</button><button class="btn wbtn ghost" id="kTokCopy">Копировать токен</button><button class="btn wbtn ghost" id="kSamples">Тестовые уведомления</button></div>
+                  <div id="kScBox" hidden><div id="kQr" style="width:180px;background:#fff;padding:4px;border-radius:8px;margin:8px 0"></div>
+                  <div class="nick-field"><input id="kScUrl" readonly spellcheck="false" /></div>
+                  <ol class="ksteps">
+                    <li>Наведи камеру iPhone на QR (телефон в той же Wi-Fi) → открой ссылку в Safari → «Загрузить» → «Команды» → <b>«Добавить команду»</b>. Если iOS пишет, что файл недействителен: открой ссылку в Safari и сохрани файл в «Файлы», затем в Настройки → Команды включи «Ненадёжные команды» (на iOS 15+ подписанный файл даёт сборка для Mac).</li>
+                    <li>Один раз создай триггер (iOS не даёт его импортировать): «Команды» → Автоматизация → + → <b>Уведомление</b> → приложение Kaspi.kz → «Немедленно» → действие «Выполнить команду» → <b>EchoChat Kaspi</b>.</li>
+                    <li>Нажми «Проверить приём» или «Тестовые уведомления»: приложение пошлёт пробное уведомление на себя без настоящих переводов.</li>
+                  </ol></div></div>
+                <ol class="ksteps" style="display:none"></ol>
+                <div class="row" style="display:flex;justify-content:space-between;align-items:center"><label>Последние уведомления</label><button class="btn ghost" id="kLogClear" style="padding:4px 12px;font-size:12px">Очистить</button></div>
+                <div class="klog" id="kLog"><div class="empty">Пока ничего не приходило</div></div>
+                <button class="btn ghost" id="kToken" style="margin-top:10px">Сгенерировать новый токен</button>
+              </div>
+            </div>
+<div class="card">
               <h2>Настройки виджета</h2>
               <p class="muted">Свои для каждого виджета: переключай вкладки слева</p>
               <div class="toggles" style="margin-top:8px">
@@ -240,35 +265,12 @@
                 <div><label>По вертикали</label><div class="csel" id="kVposSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
               </div>
             </div>
-            <div class="card">
-              <h2>Подключение Каспи</h2>
-              <p class="muted">Каспи не даёт приложениям читать переводы напрямую, поэтому о донате сообщает телефон: он пересылает уведомление о переводе на этот компьютер по Wi-Fi</p>
-              <div class="toggles"><label class="sw"><input type="checkbox" data-kk="enabled" /><i></i><span>Принимать уведомления с телефона</span></label></div>
-              <div id="kBox" hidden>
-                <label>Адрес для телефона (телефон и компьютер — в одной Wi-Fi сети)</label>
-                <div class="nick-field"><input id="kUrl" readonly spellcheck="false" /></div>
-                <div class="kstat" id="kStat"></div>
-                <div class="wbtn-row"><button class="btn wbtn primary" id="kCopy">Копировать адрес</button><button class="btn wbtn ghost" id="kProbe">Проверить приём</button></div>
-                <div class="toggles" style="margin-top:10px"><label class="sw"><input type="checkbox" data-kk="strict" checked /><i></i><span>Пропускать покупки и исходящие<small>Выключи, если настоящие донаты не проходят. Тогда донатом считается любой текст с суммой в тенге</small></span></label></div>
-                <div class="card-sub"><label>iPhone: готовая команда (без ручной настройки JSON)</label>
-                  <div class="wbtn-row"><button class="btn wbtn primary" id="kShortcut">Показать QR команды</button><button class="btn wbtn ghost" id="kTokCopy">Копировать токен</button><button class="btn wbtn ghost" id="kSamples">Тестовые уведомления</button></div>
-                  <div id="kScBox" hidden><div id="kQr" style="width:180px;background:#fff;padding:4px;border-radius:8px;margin:8px 0"></div>
-                  <div class="nick-field"><input id="kScUrl" readonly spellcheck="false" /></div>
-                  <ol class="ksteps">
-                    <li>Наведи камеру iPhone на QR (телефон в той же Wi-Fi) → открой ссылку в Safari → «Загрузить» → «Команды» → <b>«Добавить команду»</b>. Если iOS пишет, что файл недействителен: открой ссылку в Safari и сохрани файл в «Файлы», затем в Настройки → Команды включи «Ненадёжные команды» (на iOS 15+ подписанный файл даёт сборка для Mac).</li>
-                    <li>Один раз создай триггер (iOS не даёт его импортировать): «Команды» → Автоматизация → + → <b>Уведомление</b> → приложение Kaspi.kz → «Немедленно» → действие «Выполнить команду» → <b>EchoChat Kaspi</b>.</li>
-                    <li>Нажми «Проверить приём» или «Тестовые уведомления»: приложение пошлёт пробное уведомление на себя без настоящих переводов.</li>
-                  </ol></div></div>
-                <ol class="ksteps" style="display:none"></ol>
-                <label>Последние уведомления</label>
-                <div class="klog" id="kLog"><div class="empty">Пока ничего не приходило</div></div>
-                <button class="btn ghost" id="kToken" style="margin-top:10px">Сгенерировать новый токен</button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
     </main>
+  <div class="scrollhint" id="scrollHint" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+  <div class="wn-back" id="wnBack" hidden><div class="wn-box"><div class="wn-badge" id="wnVer"></div><h2>Что нового</h2><ul id="wnList"></ul><button class="btn primary" id="wnClose">Закрыть</button></div></div>
   </div>
   <script src="renderer.js"></script>
 </body>
