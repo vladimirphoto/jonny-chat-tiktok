@@ -78,7 +78,7 @@
             <div class="feed-head">
               <div><h2>Лента чата</h2><small id="feedSub">Ожидание подключения</small></div>
               <div class="feed-actions">
-                <label class="sw"><input type="checkbox" id="paused" /><i></i><span>Пауза</span></label>
+                <label class="sw" title="Заморозить ленту и озвучку. Новые сообщения копятся и появятся в ленте, когда снимешь паузу (озвучены не будут)"><input type="checkbox" id="paused" /><i></i><span id="pausedLbl">Пауза</span></label>
                 <button class="btn ghost" id="btnSkip">Пропустить</button>
                 <button class="btn ghost" id="btnClear">Очистить</button>
               </div>
@@ -147,19 +147,20 @@
       <!-- ФИЛЬТРЫ -->
       <section class="tab" id="tab-filters">
         <div class="card">
-          <h2>Фильтры чата</h2>
-          <p class="muted">Убери команды, повторы и неподходящий текст</p>
+          <h2>Фильтры озвучки</h2>
+          <p class="muted">Решают, что голос прочитает вслух. В ленте приложения и в виджете для OBS остаются все сообщения</p>
           <div class="toggles two">
-            <label class="sw"><input type="checkbox" data-k="skipCmd" checked /><i></i><span>Пропускать команды</span></label>
-            <label class="sw"><input type="checkbox" data-k="skipLinks" checked /><i></i><span>Пропускать ссылки</span></label>
-            <label class="sw"><input type="checkbox" data-k="onlyRu" checked /><i></i><span>Только русский язык</span></label>
-            <label class="sw"><input type="checkbox" data-k="noRepeat" checked /><i></i><span>Не читать повторы</span></label>
-            <label class="sw"><input type="checkbox" data-k="profanity" checked /><i></i><span>Фильтр мата</span></label>
-            <label class="sw"><input type="checkbox" data-k="skipMentions" checked /><i></i><span>Пропускать упоминания</span></label>
-            <label class="sw"><input type="checkbox" data-k="noEmoji" checked /><i></i><span>Убирать эмодзи</span></label>
+            <label class="sw"><input type="checkbox" data-k="skipCmd" checked /><i></i><span>Не озвучивать команды<small>Сообщения, которые начинаются с ! или /, например !play</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="skipLinks" checked /><i></i><span>Не озвучивать ссылки<small>Сообщение со ссылкой или адресом сайта пропускается целиком</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="onlyRu" checked /><i></i><span>Озвучивать только русский<small>Сообщения без единой русской буквы (hello, 123) пропускаются. Смешанные читаются</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="noRepeat" checked /><i></i><span>Не озвучивать повторы<small>Такой же текст в течение 20 секунд повторно не читается</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="profanity" checked /><i></i><span>Не озвучивать мат<small>Сообщение с матом пропускается целиком</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="skipMentions" checked /><i></i><span>Вырезать @упоминания<small>@ник убирается из текста, остальное сообщение читается</small></span></label>
+            <label class="sw"><input type="checkbox" data-k="noEmoji" checked /><i></i><span>Вырезать эмодзи<small>Смайлики убираются из текста перед озвучкой</small></span></label>
           </div>
-          <label style="margin-top:18px">Максимальная длина сообщения: <b id="lenVal">140</b></label>
+          <label style="margin-top:18px">Обрезать озвучку до <b id="lenVal">140</b> символов</label>
           <input type="range" id="maxLen" min="30" max="300" value="140" />
+          <p class="muted hint">Более длинные сообщения читаются не целиком: голос произнесёт только начало</p>
         </div>
       </section>
 

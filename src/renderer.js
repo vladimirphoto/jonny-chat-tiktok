@@ -123,7 +123,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSels(
 const TITLES = {
   live: ['Эфир', 'Подключись к TikTok LIVE и слушай чат вслух'],
   voice: ['Голос', 'Живые голоса, свои пресеты и события для озвучки'],
-  filters: ['Фильтры', 'Чистый чат без команд, спама и мата'],
+  filters: ['Фильтры', 'Что голос читает вслух, а что пропускает'],
   widgets: ['Виджеты', 'Чат TikTok и Twitch для OBS и TikTok LIVE Studio'],
 };
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
@@ -288,7 +288,23 @@ const colorOf = (s) => colors[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 
 
 const ICON_TT = '<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>';
 const ICON_TW = '<svg class="pi" viewBox="0 0 24 24"><path fill="#a970ff" d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg>';
-function addMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
+/* ---------- пауза: лента замирает, новые сообщения копятся и появляются после снятия паузы ---------- */
+const FEED_MAX = 150;
+const held = [];
+const isPaused = () => $('#paused').checked;
+function updatePauseLabel() { $('#pausedLbl').textContent = isPaused() && held.length ? `Пауза · +${held.length}` : 'Пауза'; }
+
+function addMsg(msg) {
+  // системные сообщения (подключение, ошибки) показываем сразу, остальное во время паузы откладываем
+  if (isPaused() && !/(^|\s)sys(\s|$)/.test(msg.kind || '')) {
+    held.push(msg);
+    if (held.length > FEED_MAX) held.shift();
+    updatePauseLabel();
+    return null;
+  }
+  return renderMsg(msg);
+}
+function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
@@ -301,14 +317,14 @@ function addMsg({ name, text, kind = '', sub = false, color, avatar = '', platfo
     im.src = avatar;
   }
   feed.appendChild(el);
-  while (feed.children.length > 150) feed.firstChild.remove();
+  while (feed.children.length > FEED_MAX) feed.firstChild.remove();
   feed.scrollTop = feed.scrollHeight;
   return el;
 }
 // цвет точки в «таблетке»: зелёный — подключились, красный — завершилось или ошибка, голубой — остальное
 const sysTone = (t) => (/завершена|ошибк|не удалось|не работает|нестабильн|отклон|отмен|не найден|не в эфире/i.test(t) ? 'bad' : /подключено!|подключён\./i.test(t) ? 'ok' : '');
 const sys = (text) => addMsg({ name: 'Система', text, kind: ('sys ' + sysTone(text)).trim(), color: '#475569' });
-const resetEmpty = () => { feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
+const resetEmpty = () => { held.length = 0; updatePauseLabel(); feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
 resetEmpty();
 $('#btnClear').onclick = resetEmpty;
 
@@ -353,8 +369,8 @@ function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук го
 
 let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
+  if (isPaused() && !force) return; // пауза: ничего не озвучиваем
   voiceCalls++;
-  if ($('#paused').checked && !force) return;
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
   item.t = Date.now(); item.force = force;
@@ -423,7 +439,13 @@ async function pump() {
 }
 
 $('#btnSkip').onclick = () => stopCurrent();
-$('#paused').addEventListener('change', (e) => { if (e.target.checked) { queue.length = 0; stopCurrent(); } });
+$('#paused').addEventListener('change', (e) => {
+  if (e.target.checked) { queue.length = 0; stopCurrent(); updatePauseLabel(); return; }
+  // пауза снята: показываем всё, что пришло за это время (без озвучки — оно уже устарело)
+  const pending = held.splice(0);
+  pending.forEach(renderMsg);
+  updatePauseLabel();
+});
 
 /* ---------- события TikTok ---------- */
 const counters = { likes: 0, gifts: 0, follows: 0 };
@@ -779,4 +801,4 @@ $('#wClear').onclick = () => window.echo.widgetClear();
 /* ---------- старт ---------- */
 renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { get voiceCalls() { return voiceCalls; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { get voiceCalls() { return voiceCalls; }, get held() { return held.length; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };

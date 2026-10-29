@@ -225,7 +225,7 @@ async function eventTests(win) {
   const send = (c, p) => win.webContents.send(c, p);
   const q = (js) => win.webContents.executeJavaScript(js, true);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  await q("document.querySelector('.nav[data-tab=live]').click(); document.querySelector('#paused').checked = true; window.__echo.S.noRepeat = false;");
+  await q("document.querySelector('.nav[data-tab=live]').click(); window.__echo.S.ttChat = false; window.__echo.S.twChat = false; window.__echo.S.gifts = false; window.__echo.S.follows = false; window.__echo.S.noRepeat = false;");
   send('tt:viewers', { count: 1234 });
   send('tt:like', { count: 3, total: 100 });
   send('tt:like', { count: 2, total: null });
@@ -281,7 +281,7 @@ async function eventTests(win) {
   send('tw:chat', { name: 'ТВгромко', text: 'твич с озвучкой', created: null, id: 'tl', avatar: '' });
   await wait(300);
   add('озвучка Twitch включена отдельно от TikTok', (await q('window.__echo.voiceCalls')) === calls0 + 1);
-  await q("window.__echo.S.ttChat = true; document.querySelector('#paused').checked = true");
+  await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false");
   const sysEl = await q("(() => { const t = document.querySelector('#feed .msg.sys .t'); if (!t) return null; const c = getComputedStyle(t); return { fs: parseFloat(c.fontSize), br: parseFloat(c.borderTopLeftRadius), line: getComputedStyle(t.parentElement, '::before').content }; })()");
   add('системные сообщения: крупная «таблетка» без линий', sysEl && sysEl.fs >= 13 && sysEl.br >= 12 && (sysEl.line === 'none' || sysEl.line === 'normal'), JSON.stringify(sysEl));
   await q("document.querySelector('#btnClear').click()");
@@ -298,6 +298,23 @@ async function eventTests(win) {
   add('подключение: старое сообщение пропущено', !/до подключения/.test(feed3), feed3.replace(/\n+/g, ' / ').slice(0, 160));
   add('подключение: новое сообщение показано', /после подключения/.test(feed3));
   await q("window.__echo.since.tiktok = 0");
+  // пауза: лента замирает, сообщения копятся и не озвучиваются, после снятия паузы появляются в ленте
+  await q("window.__echo.S.ttChat = true; window.__echo.S.twChat = true; window.__echo.S.noRepeat = false; document.querySelector('#btnClear').click();");
+  const callsP = await q('window.__echo.voiceCalls');
+  await q("(() => { const p = document.querySelector('#paused'); p.checked = true; p.dispatchEvent(new Event('change')); })()");
+  send('tt:chat', { name: 'ПаузаТТ', text: 'сообщение во время паузы', created: null });
+  send('tw:chat', { name: 'ПаузаТВ', text: 'твич во время паузы', created: null, id: 'tp', avatar: '' });
+  await wait(300);
+  const feedP = await q("document.querySelector('#feed').innerText");
+  add('пауза: новые сообщения не появляются в ленте', !/во время паузы/.test(feedP), feedP.replace(/\n+/g, ' / ').slice(0, 120));
+  add('пауза: сообщения не озвучиваются', (await q('window.__echo.voiceCalls')) === callsP, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
+  add('пауза: на переключателе виден счётчик отложенных', (await q("document.querySelector('#pausedLbl').textContent")) === 'Пауза · +2', await q("document.querySelector('#pausedLbl').textContent"));
+  await q("(() => { const p = document.querySelector('#paused'); p.checked = false; p.dispatchEvent(new Event('change')); })()");
+  await wait(200);
+  const feedR = await q("document.querySelector('#feed').innerText");
+  add('пауза снята: накопленные сообщения появились в ленте', /сообщение во время паузы/.test(feedR) && /твич во время паузы/.test(feedR), feedR.replace(/\n+/g, ' / ').slice(0, 120));
+  add('пауза снята: счётчик сброшен', (await q("document.querySelector('#pausedLbl').textContent")) === 'Пауза');
+  await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false");
   // озвучка идёт с голосом своей платформы
   await q("document.querySelector('#paused').checked = false; window.__echo.S.ttVoice = 'b-svetlana'; window.__echo.S.twVoice = 'b-dmitry'");
   const pre = await q("[window.__echo.ttPreset().voice, window.__echo.twPreset().voice].join(',')");
