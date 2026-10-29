@@ -887,6 +887,22 @@ $('#kToken').onclick = () => {
   if (!confirm('Старый адрес перестанет работать, и телефон придётся настроить заново. Сменить?')) return;
   K.token = newToken(); pushDonate();
 };
+$('#kShortcut').onclick = async () => {
+  const r = await window.echo.kaspiShortcut().catch((e) => ({ ok: false, error: String(e && e.message || e) }));
+  if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
+  $('#kScBox').hidden = false; $('#kQr').innerHTML = r.qr; $('#kScUrl').value = r.url;
+};
+$('#kScUrl').onfocus = (e) => e.target.select();
+$('#kTokCopy').onclick = async () => {
+  try { await navigator.clipboard.writeText(K.token); } catch (_) { const t = document.createElement('input'); t.value = K.token; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  $('#kTokCopy').textContent = '✓ Скопировано'; setTimeout(() => { $('#kTokCopy').textContent = 'Копировать токен'; }, 1500);
+};
+let sampleN = 0;
+$('#kSamples').onclick = async () => {
+  const r = await window.echo.kaspiSample(sampleN++ % 5).catch(() => null);
+  if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
+  setKStat(r.expectReject ? (r.accepted ? 'Ошибка: исходящая операция принята' : 'Тест пройден: покупка/исходящая отклонена') : (r.accepted ? 'Тест пройден: донат принят' : 'Пропущено: ' + r.reason), (r.accepted !== r.expectReject) ? 'ok' : 'bad');
+};
 // журнал уведомлений: видно, что пришло с телефона и как приложение это поняло
 const klog = $('#kLog');
 window.echo.onKaspiLog((l) => {

@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld('echo', {
   donateUrl: () => ipcRenderer.invoke('donate:url'),
   donateLink: () => ipcRenderer.invoke('donate:link'),
   kaspiState: () => ipcRenderer.invoke('kaspi:state'),
+  kaspiShortcut: () => ipcRenderer.invoke('kaspi:shortcut'),
+  kaspiSample: (i) => ipcRenderer.invoke('kaspi:sample', i),
   kaspiProbe: () => ipcRenderer.invoke('kaspi:probe'),
   onDonate: on('kaspi:donate'),
   onKaspiLog: on('kaspi:log'),

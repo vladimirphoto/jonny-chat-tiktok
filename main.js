@@ -353,11 +353,35 @@ function onKaspiText(text) {
 async function applyKaspi() {
   const want = !!dset.enabled && !!dset.token;
   if (want && !krx) {
-    if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText }).then((r) => { krx = r; krxP = null; return r; });
+    if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText, getShortcut: (host) => buildShortcutFile(host) }).then((r) => { krx = r; krxP = null; return r; });
     await krxP;
   }
   if (!want && krx) { krx.close(); krx = null; }
 }
+const sc = require('./shortcut');
+const qrcode = require('qrcode-generator');
+const kaspiHost = () => `${kaspi.lanAddresses()[0] || '127.0.0.1'}:${krx && krx.port ? krx.port : 0}`;
+const buildShortcutFile = (host) => sc.signIfPossible(sc.buildShortcut(`http://${host || kaspiHost()}/kaspi/${dset.token}`));
+const shortcutUrl = () => `http://${kaspiHost()}/shortcut/${dset.token}/EchoChat-Kaspi.shortcut`;
+// адрес команды и QR (SVG) для камеры iPhone; токен наружу не уходит никуда, кроме окна приложения
+ipcMain.handle('kaspi:shortcut', () => {
+  if (!krx || !krx.port) return { ok: false, error: 'Приём выключен. Включи переключатель выше' };
+  const url = shortcutUrl(), q = qrcode(0, 'M'); q.addData(url); q.make();
+  return { ok: true, url, qr: q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }), signed: process.platform === 'darwin' };
+});
+// тестовые уведомления в формате Каспи идут через настоящий приёмник: проверяется весь путь
+ipcMain.handle('kaspi:sample', async (_e, i) => {
+  const smp = sc.TEST_NOTIFICATIONS[Number(i) || 0];
+  if (!smp || !krx || !krx.port) return { ok: false, error: 'Приём выключен' };
+  return new Promise((resolve) => {
+    const rq = require('http').request({ host: '127.0.0.1', port: krx.port, path: '/kaspi/' + dset.token, method: 'POST', headers: { 'Content-Type': 'application/json' }, timeout: 4000 }, (res) => {
+      let d = ''; res.on('data', (c) => (d += c));
+      res.on('end', () => { let j = {}; try { j = JSON.parse(d); } catch (_) {} resolve({ ok: res.statusCode === 200, accepted: !!j.accepted, reason: j.reason || '', expectReject: !!smp.reject }); });
+    });
+    rq.on('error', (e) => resolve({ ok: false, error: String(e.message || e) }));
+    rq.end(JSON.stringify({ text: smp.text }));
+  });
+});
 const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses() });
 ipcMain.handle('donate:set', async (_e, s) => {
   dset = { ...dset, ...(s || {}) };

@@ -250,14 +250,19 @@
                 <div class="kstat" id="kStat"></div>
                 <div class="wbtn-row"><button class="btn wbtn primary" id="kCopy">Копировать адрес</button><button class="btn wbtn ghost" id="kProbe">Проверить приём</button></div>
                 <div class="toggles" style="margin-top:10px"><label class="sw"><input type="checkbox" data-kk="strict" checked /><i></i><span>Пропускать покупки и исходящие<small>Выключи, если настоящие донаты не проходят. Тогда донатом считается любой текст с суммой в тенге</small></span></label></div>
-                <ol class="ksteps">
-                  <li><b>Android.</b> В приложении для автоматизации (MacroDroid, Tasker или любом, где есть HTTP-запрос): триггер «уведомление приложения Kaspi.kz», действие «HTTP POST» на адрес выше, в тело запроса — текст уведомления.</li>
-                  <li><b>iPhone.</b> «Команды» → Автоматизация → срабатывание на сообщение (или уведомление, если есть в вашей iOS) → «Получить содержимое URL», метод POST, в тело — текст.</li>
-                  <li>Нажми «Проверить приём»: приложение само отправит пробное уведомление на этот адрес. Первый раз Windows или macOS спросят про доступ к сети: разреши.</li>
-                </ol>
+                <div class="card-sub"><label>iPhone: готовая команда (без ручной настройки JSON)</label>
+                  <div class="wbtn-row"><button class="btn wbtn primary" id="kShortcut">Показать QR команды</button><button class="btn wbtn ghost" id="kTokCopy">Копировать токен</button><button class="btn wbtn ghost" id="kSamples">Тестовые уведомления</button></div>
+                  <div id="kScBox" hidden><div id="kQr" style="width:180px;background:#fff;padding:4px;border-radius:8px;margin:8px 0"></div>
+                  <div class="nick-field"><input id="kScUrl" readonly spellcheck="false" /></div>
+                  <ol class="ksteps">
+                    <li>Наведи камеру iPhone на QR (телефон в той же Wi-Fi) → открой ссылку в Safari → «Загрузить» → «Команды» → <b>«Добавить команду»</b>. Если iOS пишет, что файл недействителен: открой ссылку в Safari и сохрани файл в «Файлы», затем в Настройки → Команды включи «Ненадёжные команды» (на iOS 15+ подписанный файл даёт сборка для Mac).</li>
+                    <li>Один раз создай триггер (iOS не даёт его импортировать): «Команды» → Автоматизация → + → <b>Уведомление</b> → приложение Kaspi.kz → «Немедленно» → действие «Выполнить команду» → <b>EchoChat Kaspi</b>.</li>
+                    <li>Нажми «Проверить приём» или «Тестовые уведомления»: приложение пошлёт пробное уведомление на себя без настоящих переводов.</li>
+                  </ol></div></div>
+                <ol class="ksteps" style="display:none"></ol>
                 <label>Последние уведомления</label>
                 <div class="klog" id="kLog"><div class="empty">Пока ничего не приходило</div></div>
-                <button class="btn ghost" id="kToken" style="margin-top:10px">Сменить секретный адрес</button>
+                <button class="btn ghost" id="kToken" style="margin-top:10px">Сгенерировать новый токен</button>
               </div>
             </div>
           </div>

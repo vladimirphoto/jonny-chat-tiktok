@@ -90,10 +90,28 @@ function textFromBody(body, contentType, query) {
 const safeEq = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
 // Приёмник слушает локальную сеть (телефон и компьютер — в одном Wi-Fi). Адрес содержит секретный токен.
-function startReceiver({ getConfig, onNotification }) {
+function startReceiver({ getConfig, onNotification, getShortcut }) {
   let recent = [];
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
+    // раздача готовой iOS-команды: GET /shortcut/<token>/EchoChat-Kaspi.shortcut (токен в адресе, как и у /kaspi/)
+    const sc = /^\/shortcut\/([\w-]+)\/[\w.-]+\.shortcut$/.exec(url.pathname);
+    if (sc && req.method === 'GET' && getShortcut) {
+      const c = getConfig();
+      if (!c.enabled || !c.token || !safeEq(sc[1], c.token)) { res.writeHead(404); return res.end(); }
+      return Promise.resolve(getShortcut(req.headers.host)).then((r) => {
+        res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="EchoChat-Kaspi.shortcut"', 'Content-Length': r.buf.length, 'Cache-Control': 'no-store' });
+        res.end(r.buf);
+      }).catch(() => { res.writeHead(500); res.end(); });
+    }
+    // проверка связи с телефона (откройте адрес в Safari): GET /kaspi/<token>/ping
+    const pg = /^\/kaspi\/([\w-]+)\/ping$/.exec(url.pathname);
+    if (pg) {
+      const c = getConfig();
+      const okp = c.enabled && c.token && safeEq(pg[1], c.token);
+      res.writeHead(okp ? 200 : 404, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ ok: !!okp }));
+    }
     const m = /^\/kaspi\/([\w-]+)\/?$/.exec(url.pathname) || (url.pathname === '/kaspi' ? [null, url.searchParams.get('token') || ''] : null);
     const cfg = getConfig();
     const json = (code, o) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(o)); };
