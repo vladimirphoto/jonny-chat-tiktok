@@ -1,6 +1,6 @@
 {
   "name": "echochat-live",
-  "version": "1.11.0",
+  "version": "1.11.0-paidtest.1",
   "description": "ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми нейро-голосами",
   "main": "main.js",
   "author": "EchoChat",
@@ -22,8 +22,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "live.echochat.app",
-    "productName": "EchoChat LIVE",
+    "appId": "live.echochat.app.paidtest",
+    "productName": "EchoChat LIVE PRO TEST",
     "directories": {
       "output": "dist"
     },
@@ -37,6 +37,7 @@
       "widget.js",
       "widget-page.js",
       "widget-donate-page.js",
+      "license.js",
       "kaspi.js",
       "shortcut.js",
       "selftest.js",
@@ -54,7 +55,7 @@
           ]
         }
       ],
-      "artifactName": "EchoChat-LIVE-${version}.${ext}",
+      "artifactName": "EchoChat-LIVE-PRO-TEST-${version}.${ext}",
       "icon": "build/icon.ico"
     },
     "afterPack": "tools/adhoc-sign.js",

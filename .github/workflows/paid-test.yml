@@ -1,0 +1,70 @@
+name: Build PAID TEST exe
+
+on:
+  push:
+    branches: [paid-test]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm test
+      - run: npm run dist
+
+      # Автотест собранного приложения: открывает окно, нажимает кнопки,
+      # синтезирует голоса, проверяет подключение к несуществующему эфиру.
+      - name: Self-test packaged app
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path dist/win-unpacked -Filter *.exe | Where-Object { $_.Name -notmatch 'uninstall|elevate' } | Select-Object -First 1
+          Write-Host "Testing $($exe.FullName)"
+          $out = Join-Path $PWD 'selftest.json'
+          $p = Start-Process -FilePath $exe.FullName -ArgumentList '--selftest',"--out=$out" -PassThru
+          if (-not $p.WaitForExit(240000)) { $p.Kill(); Write-Host 'TIMEOUT: app did not finish' }
+          if (Test-Path $out) {
+            $r = Get-Content $out -Raw | ConvertFrom-Json
+            Write-Host "=== SELFTEST v$($r.version) electron $($r.electron) ==="
+            foreach ($t in $r.results) {
+              $mark = if ($t.ok) { 'PASS' } else { 'FAIL' }
+              Write-Host ("[{0}] [{1}] {2} :: {3}" -f $mark, $t.group, $t.name, $t.detail)
+              if (-not $t.ok) { $m = ("{0} :: {1}" -f $t.name, $t.detail) -replace "`r|`n",' '; Write-Host ("::error title=SELFTEST FAIL [{0}]::{1}" -f $t.group, $m) }
+            }
+            Write-Host "critical failed: $($r.criticalFailed)"
+            $md = @("### Автотест сборки v$($r.version) (Electron $($r.electron))", "", "| Результат | Группа | Проверка | Детали |", "|---|---|---|---|")
+            foreach ($t in $r.results) { $d = ("$($t.detail)" -replace '\|','/' -replace "`r|`n",' '); if ($d.Length -gt 140) { $d = $d.Substring(0,140) }; $md += ("| {0} | {1} | {2} | {3} |" -f $(if ($t.ok) {'PASS'} else {'FAIL'}), $t.group, $t.name, $d) }
+            Set-Content -Path selftest.md -Value ($md -join "`n") -Encoding UTF8
+            if ($r.criticalFailed -gt 0) { exit 1 }
+          } else {
+            Write-Host '::error title=SELFTEST::no result file - app failed to start or crashed'
+            exit 1
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EchoChat-LIVE-PRO-TEST-exe
+          path: dist/*.exe
+      - name: Read version
+        id: ver
+        shell: bash
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: paid-test-${{ steps.ver.outputs.v }}
+          name: PAID TEST ${{ steps.ver.outputs.v }}
+          prerelease: true
+          make_latest: false
+          target_commitish: ${{ github.sha }}
+          body_path: selftest.md
+          files: dist/*.exe
+

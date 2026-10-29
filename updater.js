@@ -21,6 +21,7 @@ function isNewer(remote, local) {
 let found = null;
 
 async function check() {
+  if (/paidtest/.test(app.getVersion())) return { ok: true, available: false, current: app.getVersion() }; // тестовая платная сборка не обновляется из основной ветки
   const res = await fetch(API, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'EchoChat-LIVE' },
   });

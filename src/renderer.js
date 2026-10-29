@@ -127,6 +127,7 @@ const TITLES = {
   voice: ['Голос', 'Живые голоса, свои пресеты и события для озвучки'],
   filters: ['Фильтры', 'Что голос читает вслух, а что пропускает'],
   widgets: ['Виджеты', 'Чат TikTok и Twitch для OBS и TikTok LIVE Studio'],
+  license: ['Лицензия', 'Пробный период, ключ и тарифы'],
   kaspi: ['Донаты Каспи', 'Донаты на экран стрима: имя, сумма и картинка'],
 };
 $$('.nav').forEach((b) => b.addEventListener('click', () => {
@@ -863,7 +864,9 @@ function refreshKaspiUi() {
   $('#kBox').hidden = !K.enabled;
   if (!K.enabled) return;
   $('#kUrl').value = kaspiAddr();
-  if (!kState.running) setKStat('Запускаю приём…', '');
+  if (kState.locked) setKStat('Донаты Каспи входят в тариф Про. Откройте вкладку «Лицензия»', 'bad');
+  else if (!kState.running) setKStat('Запускаю приём…', '');
+  else if (kState.locked) setKStat('Донаты Каспи входят в тариф Про. Откройте вкладку «Лицензия»', 'bad');
   else if (!kState.ips.length) setKStat('Не найдено подключение к локальной сети: подключи компьютер к Wi-Fi или кабелю', 'bad');
   else setKStat('Приём включён' + (kState.ips.length > 1 ? '. Другие адреса компьютера: ' + kState.ips.slice(1).join(', ') : ''), 'ok');
 }
@@ -969,3 +972,20 @@ $('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока 
   setInterval(upd, 400);
   upd();
 })();
+
+/* ---------- лицензия ---------- */
+async function refreshLic() {
+  const l = await window.echo.licState().catch(() => null); if (!l) return;
+  const plan = l.plan === 'pro' ? 'Про' : 'Лайт';
+  const t = l.status === 'trial' ? `Пробный период: осталось дней — ${l.daysLeft}. Доступны все функции`
+    : l.status === 'active' ? `Активна лицензия «${plan}»` + (l.daysLeft == null ? ' · бессрочно' : ` · осталось дней: ${l.daysLeft}`)
+    : 'Пробный период закончился. Тариф «Лайт»: донаты Каспи отключены';
+  const e = $('#lStat'); e.textContent = t + (l.note ? ' · ' + l.note : ''); e.className = 'kstat ' + (l.status === 'expired' ? 'bad' : 'ok');
+  pushDonate();
+}
+$('#lAct').onclick = async () => {
+  const r = await window.echo.licActivate($('#lKey').value).catch((e) => ({ ok: false, error: String(e) }));
+  $('#lMsg').textContent = r.ok ? 'Ключ принят' : 'Ошибка: ' + r.error; if (r.ok) { $('#lKey').value = ''; refreshLic(); }
+};
+$('#lDel').onclick = async () => { await window.echo.licRemove(); $('#lMsg').textContent = 'Ключ удалён'; refreshLic(); };
+refreshLic();

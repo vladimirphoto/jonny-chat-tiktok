@@ -325,6 +325,27 @@ async function netTick() {
 ipcMain.handle('net:check', () => netTick());
 ipcMain.handle('net:state', () => netOnline);
 
+// ---------- Лицензия (тестовая платная версия) ----------
+const license = require('./license');
+const licFile = () => require('path').join(app.getPath('userData'), 'license.json');
+let licStore = null;
+const licLoad = () => { if (!licStore) { licStore = license.load(licFile()); if (!licStore.trialStart) { licStore.trialStart = Date.now(); license.save(licFile(), licStore); } } return licStore; };
+const licState = () => license.state(licLoad());
+const licHas = (f) => !!licState().features[f];
+ipcMain.handle('lic:state', () => licState());
+ipcMain.handle('lic:activate', async (_e, key) => {
+  const v = license.verify(key);
+  if (!v.ok) return { ok: false, error: v.reason };
+  licLoad(); licStore.key = String(key).trim(); license.save(licFile(), licStore);
+  try { await applyKaspi(); } catch (_) {}
+  return { ok: true, state: licState() };
+});
+ipcMain.handle('lic:remove', async () => {
+  licLoad(); delete licStore.key; license.save(licFile(), licStore);
+  try { await applyKaspi(); } catch (_) {}
+  return { ok: true, state: licState() };
+});
+
 // ---------- Донаты Каспи ----------
 const kaspi = require('./kaspi');
 let dset = { enabled: false, token: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
@@ -351,7 +372,7 @@ function onKaspiText(text) {
   return r;
 }
 async function applyKaspi() {
-  const want = !!dset.enabled && !!dset.token;
+  const want = !!dset.enabled && !!dset.token && licHas('kaspi'); // Каспи — функция Pro
   if (want && !krx) {
     if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText, getShortcut: (host) => buildShortcutFile(host) }).then((r) => { krx = r; krxP = null; return r; });
     await krxP;
@@ -382,7 +403,7 @@ ipcMain.handle('kaspi:sample', async (_e, i) => {
     rq.end(JSON.stringify({ text: smp.text }));
   });
 });
-const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses() });
+const kaspiState = () => ({ locked: !licHas('kaspi'), running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses() });
 ipcMain.handle('donate:set', async (_e, s) => {
   dset = { ...dset, ...(s || {}) };
   wsrv && wsrv.broadcast('dsettings', donateWidgetSettings());
