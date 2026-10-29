@@ -198,7 +198,9 @@ const PAGE_TEST = `(async () => {
     add('ui', 'поля ников TikTok и Twitch одного размера', Math.abs(f1.width - f2.width) < 1 && Math.abs(f1.height - f2.height) < 1, f1.width + 'x' + f1.height + ' / ' + f2.width + 'x' + f2.height);
     add('ui', 'кнопки TikTok и Twitch одного размера', Math.abs(b1.width - b2.width) < 1 && Math.abs(b1.height - b2.height) < 1, b1.width + 'x' + b1.height + ' / ' + b2.width + 'x' + b2.height);
     add('ui', 'статусы подключения: отдельно TikTok и Twitch', /Статус TikTok/.test($('#connStatus').previousElementSibling.textContent) && /Статус Twitch/.test($('#connTwStatus').previousElementSibling.textContent) && $('#connTwStatus').textContent.length > 0);
+    const vtw = $('.vv.tw'), vtwHidden = vtw.hidden; vtw.hidden = false; // счётчик Twitch скрыт, пока Twitch не подключён: на время замера показываем
     add('ui', 'плашка «Зрители сейчас» делится на TikTok и Twitch', !!$('#sViewers') && !!$('#sViewersTw') && $('#sViewers').closest('.vv').classList.contains('tt') && $('#sViewersTw').closest('.vv').classList.contains('tw') && rr($('#sViewersTw')).left > rr($('#sViewers')).left);
+    vtw.hidden = vtwHidden;
     add('ui', 'вкладка «Эфир» без прокрутки', $('#tab-live').scrollHeight <= $('#tab-live').clientHeight + 1, $('#tab-live').scrollHeight + '/' + $('#tab-live').clientHeight);
     const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
     add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
