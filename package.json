@@ -10,7 +10,7 @@
     "test": "node --test \"test/*.test.js\"",
     "pages": "node tools/build-pages.js",
     "dist": "electron-builder --win portable --x64",
-    "dist:mac": "electron-builder --mac dmg --arm64"
+    "dist:mac": "electron-builder --mac dmg --arm64 --publish never"
   },
   "dependencies": {
     "msedge-tts": "^2.0.0",
