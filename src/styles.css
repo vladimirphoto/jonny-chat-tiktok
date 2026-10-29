@@ -249,6 +249,7 @@ body.t-widgets .stats{display:none}
 
 /* кнопки виджета: не вылезают за карточку */
 .wbtn-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#tab-widgets .wbtn-row{margin-top:10px}
 .wbtn{padding:10px 6px!important;font-size:13px;min-width:0;overflow:hidden}
 
 /* предпросмотр */
@@ -332,6 +333,7 @@ label+.csel{margin-top:0}
 .btn.upd span{overflow:hidden;text-overflow:ellipsis}
 .btn.upd.spin svg{animation:updspin 1s linear infinite}
 @keyframes updspin{to{transform:rotate(360deg)}}
+.wstat:empty{display:none}
 .wstat{margin-top:10px;font-size:13px;line-height:1.45;color:var(--muted);min-height:18px}
 .wstat.ok{color:#a7f3d0}.wstat.bad{color:#fecaca;padding:10px 12px;border-radius:12px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3)}
 .wstat a{color:#c4b5fd;text-decoration:underline;cursor:pointer;margin-right:12px}
