@@ -252,11 +252,11 @@ body.t-widgets .stats{display:none}
 .wbtn{padding:10px 6px!important;font-size:13px;min-width:0;overflow:hidden}
 
 /* предпросмотр */
-.preview-card{flex:1;min-height:0;display:flex;flex-direction:column}
+.preview-card{flex:1;min-height:215px;display:flex;flex-direction:column}
 .prev-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex:none}
 .prev-head h2{margin:0 0 2px}.prev-head small{color:var(--muted);font-size:11px;line-height:1.3;display:block}
 .prev-head .btn{flex:none;white-space:nowrap}
-.prev-box{flex:1;min-height:0;border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;
+.prev-box{flex:1;min-height:120px;border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;
   background:linear-gradient(135deg,#1b2a3d,#2b1f3d 55%,#3a1f33),#111}
 .prev-box:before{content:"";position:absolute;inset:0;opacity:.35;
   background-image:linear-gradient(45deg,rgba(255,255,255,.05) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.05) 75%),linear-gradient(45deg,rgba(255,255,255,.05) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.05) 75%);

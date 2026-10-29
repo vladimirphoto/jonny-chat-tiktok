@@ -198,7 +198,7 @@ const PAGE_TEST = `(async () => {
     const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
     add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
     $('.nav[data-tab=widgets]').click(); await sleep(400);
-    add('ui', 'вкладка «Виджеты» без прокрутки', $('#tab-widgets').scrollHeight <= $('#tab-widgets').clientHeight + 1, $('#tab-widgets').scrollHeight + '/' + $('#tab-widgets').clientHeight);
+    add('ui', 'вкладка «Виджеты» без прокрутки (в окне нормального размера; в совсем маленьком окне превью не сжимается, а вкладка прокручивается)', innerWidth < 1060 || innerHeight < 720 || $('#tab-widgets').scrollHeight <= $('#tab-widgets').clientHeight + 1, $('#tab-widgets').scrollHeight + '/' + $('#tab-widgets').clientHeight);
     { const fb = rr($('#pvFrame')), bb = rr($('.prev-box'));
       add('ui', 'предпросмотр целиком помещается в своём блоке', fb.left >= bb.left - 1 && fb.right <= bb.right + 1 && fb.top >= bb.top - 1 && fb.bottom <= bb.bottom + 1 && bb.height >= 60, JSON.stringify([fb.width, fb.height, bb.width, bb.height].map(Math.round))); }
     add('ui', 'предпросмотр виджета под карточкой виджета', !!$('#pvFrame') && rr($('#pvFrame')).top > rr($('#wCopy')).bottom, '');
