@@ -258,6 +258,14 @@ async function eventTests(win) {
   await wait(150);
   const afterTxt = [await q("document.querySelector('#sViewers').textContent"), await digits('#sLikes'), await digits('#sGifts'), await digits('#sFollows')].join(',');
   add('отключение: зрители, лайки, подарки и подписки обнуляются', before !== '' && /^\d+,\d+,\d+,\d+$/.test(before) && afterTxt === '—,0,0,0', before + ' → ' + afterTxt);
+  // пустой ник: поле подсвечивается
+  await q("document.querySelector('#nick').value = ''; document.querySelector('#twNick').value = ''; document.querySelector('#btnConnect').click(); document.querySelector('#btnTwitch').click();");
+  await wait(150);
+  const errs = await q("['#nick', '#twNick'].map((i) => document.querySelector(i).closest('.nick-field').classList.contains('err')).join()");
+  add('подключение без ника: поля TikTok и Twitch подсвечиваются', errs === 'true,true', errs);
+  // онлайн Twitch виден, только если Twitch подключён
+  const twVis = () => q("document.querySelector('.vv.tw').hidden");
+  add('онлайн Twitch скрыт, пока Twitch не подключён', (await twVis()) === true);
   // онлайн Twitch отдельно от TikTok
   send('tt:viewers', { count: 1234 });
   send('tw:viewers', { count: 77 });
@@ -269,6 +277,7 @@ async function eventTests(win) {
   // статус каждой платформы в блоке подключения
   send('tw:status', { state: 'live', channel: 'testchan' });
   await wait(100);
+  add('онлайн Twitch показан, когда Twitch подключён', (await twVis()) === false);
   add('событие: статус Twitch «Чат подключён»', (await q("document.querySelector('#connTwStatus').textContent")) === 'Чат подключён' && (await q("document.querySelector('#connTw').textContent")) === '#testchan');
   send('tw:status', { state: 'offline' });
   await wait(100);
@@ -303,22 +312,22 @@ async function eventTests(win) {
   add('подключение: старое сообщение пропущено', !/до подключения/.test(feed3), feed3.replace(/\n+/g, ' / ').slice(0, 160));
   add('подключение: новое сообщение показано', /после подключения/.test(feed3));
   await q("window.__echo.since.tiktok = 0");
-  // пауза: лента замирает, сообщения копятся и не озвучиваются, после снятия паузы появляются в ленте
-  await q("window.__echo.S.ttChat = true; window.__echo.S.twChat = true; window.__echo.S.noRepeat = false; document.querySelector('#btnClear').click();");
+  // пауза останавливает только ленту: сообщения идут, лента стоит на месте и сама возвращается к новому; озвучка работает
+  await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false; window.__echo.S.noRepeat = false; document.querySelector('#btnClear').click();");
+  for (let i = 0; i < 40; i++) send('tt:chat', { name: 'Ф' + i, text: 'заполнение ' + i, created: null });
+  await wait(500);
+  await q("window.__echo.S.ttChat = true; window.__echo.setPauseMs(900); (() => { const p = document.querySelector('#paused'); p.checked = true; p.dispatchEvent(new Event('change')); })(); document.querySelector('#feed').scrollTop = 0;");
   const callsP = await q('window.__echo.voiceCalls');
-  await q("(() => { const p = document.querySelector('#paused'); p.checked = true; p.dispatchEvent(new Event('change')); })()");
   send('tt:chat', { name: 'ПаузаТТ', text: 'сообщение во время паузы', created: null });
-  send('tw:chat', { name: 'ПаузаТВ', text: 'твич во время паузы', created: null, id: 'tp', avatar: '' });
   await wait(300);
-  const feedP = await q("document.querySelector('#feed').innerText");
-  add('пауза: новые сообщения не появляются в ленте', !/во время паузы/.test(feedP), feedP.replace(/\n+/g, ' / ').slice(0, 120));
-  add('пауза: сообщения не озвучиваются', (await q('window.__echo.voiceCalls')) === callsP, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
-  add('пауза: на переключателе виден счётчик отложенных', (await q("document.querySelector('#pausedLbl').textContent")) === 'Пауза · +2', await q("document.querySelector('#pausedLbl').textContent"));
-  await q("(() => { const p = document.querySelector('#paused'); p.checked = false; p.dispatchEvent(new Event('change')); })()");
-  await wait(200);
-  const feedR = await q("document.querySelector('#feed').innerText");
-  add('пауза снята: накопленные сообщения появились в ленте', /сообщение во время паузы/.test(feedR) && /твич во время паузы/.test(feedR), feedR.replace(/\n+/g, ' / ').slice(0, 120));
-  add('пауза снята: счётчик сброшен', (await q("document.querySelector('#pausedLbl').textContent")) === 'Пауза');
+  const stP = JSON.parse(await q("JSON.stringify({ top: document.querySelector('#feed').scrollTop, lbl: document.querySelector('#pausedLbl').textContent, txt: document.querySelector('#feed').innerText })"));
+  add('пауза: лента не прокручивается за новыми сообщениями', stP.top === 0, stP.top);
+  add('пауза: новое сообщение всё равно попадает в ленту', /во время паузы/.test(stP.txt));
+  add('пауза: озвучка работает', (await q('window.__echo.voiceCalls')) === callsP + 1, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
+  add('пауза: на переключателе виден таймер', /^Пауза · \d+ с$/.test(stP.lbl), stP.lbl);
+  await wait(1300);
+  const stR = JSON.parse(await q("JSON.stringify({ on: document.querySelector('#paused').checked, gap: (() => { const f = document.querySelector('#feed'); return f.scrollHeight - f.clientHeight - f.scrollTop; })(), lbl: document.querySelector('#pausedLbl').textContent })"));
+  add('пауза: через время снимается и лента возвращается к новому сообщению', !stR.on && stR.gap < 6 && stR.lbl === 'Пауза', JSON.stringify(stR));
   await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false");
   // озвучка идёт с голосом своей платформы
   await q("document.querySelector('#paused').checked = false; window.__echo.S.ttVoice = 'b-svetlana'; window.__echo.S.twVoice = 'b-dmitry'");

@@ -29,6 +29,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
 <div id="stage" class="c b"></div>
 <script>
+var PREVIEW=/[?&]preview=1/.test(location.search);
 var S={duration:8,scale:100,align:'center',vpos:'bottom',showMessage:true};
 var stage=document.getElementById('stage');
 // картинка в тему суммы (в тенге)
@@ -43,7 +44,7 @@ function tierOf(a){for(var i=0;i<TIERS.length;i++)if(a<TIERS[i].max)return TIERS
 function fmt(n){return String(Math.round(n)).replace(/\\B(?=(\\d{3})+(?!\\d))/g,'\\u00a0')+'\\u00a0\\u20b8';}
 function zoomOf(){return Math.max(40,Math.min(250,+S.scale||100))/100;}
 function apply(){
-  stage.className=({left:'l',center:'c',right:'r'}[S.align]||'c')+' '+({top:'t',center:'m',bottom:'b'}[S.vpos]||'b');
+  stage.className=PREVIEW?'c m':({left:'l',center:'c',right:'r'}[S.align]||'c')+' '+({top:'t',center:'m',bottom:'b'}[S.vpos]||'b');
   var c=stage.firstChild;if(c&&c.style)c.style.zoom=zoomOf();
 }
 var queue=[],busy=false;

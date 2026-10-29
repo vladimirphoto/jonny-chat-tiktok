@@ -400,3 +400,9 @@ label+.csel{margin-top:0}
 .pill.net s,.pill.on.net s{background:#facc15;box-shadow:0 0 0 0 rgba(250,204,21,.7);animation:pulseY 1.6s infinite}
 .pill.net .pi{color:#fde68a!important;opacity:.9}
 @keyframes pulseY{70%{box-shadow:0 0 0 8px rgba(250,204,21,0)}100%{box-shadow:0 0 0 0 rgba(250,204,21,0)}}
+
+.nick-field.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.28);animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+/* журнал уведомлений: видны 3 плашки, остальное листается полосой справа */
+.klog{max-height:186px;overflow-y:auto;padding-right:8px}
+.klog::-webkit-scrollbar{width:8px}.klog::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:8px}

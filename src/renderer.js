@@ -292,22 +292,17 @@ const colorOf = (s) => colors[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 
 
 const ICON_TT = '<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>';
 const ICON_TW = '<svg class="pi" viewBox="0 0 24 24"><path fill="#a970ff" d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg>';
-/* ---------- пауза: лента замирает, новые сообщения копятся и появляются после снятия паузы ---------- */
+/* ---------- пауза: лента не прокручивается за новыми сообщениями и сама возвращается к последнему ---------- */
 const FEED_MAX = 150;
-const held = [];
+let PAUSE_MS = 10000;
 const isPaused = () => $('#paused').checked;
-function updatePauseLabel() { $('#pausedLbl').textContent = isPaused() && held.length ? `Пауза · +${held.length}` : 'Пауза'; }
-
-function addMsg(msg) {
-  // системные сообщения (подключение, ошибки) показываем сразу, остальное во время паузы откладываем
-  if (isPaused() && !/(^|\s)sys(\s|$)/.test(msg.kind || '')) {
-    held.push(msg);
-    if (held.length > FEED_MAX) held.shift();
-    updatePauseLabel();
-    return null;
-  }
-  return renderMsg(msg);
+let pauseTimer = null, pauseEnd = 0;
+function pauseTick() {
+  const left = Math.ceil((pauseEnd - Date.now()) / 1000);
+  if (left <= 0) { const p = $('#paused'); p.checked = false; p.dispatchEvent(new Event('change')); return; }
+  $('#pausedLbl').textContent = `Пауза · ${left} с`;
 }
+function addMsg(msg) { return renderMsg(msg); }
 function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
@@ -322,13 +317,13 @@ function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', pla
   }
   feed.appendChild(el);
   while (feed.children.length > FEED_MAX) feed.firstChild.remove();
-  feed.scrollTop = feed.scrollHeight;
+  if (!isPaused()) feed.scrollTop = feed.scrollHeight; // на паузе лента стоит на месте
   return el;
 }
 // цвет точки в «таблетке»: зелёный — подключились, красный — завершилось или ошибка, голубой — остальное
 const sysTone = (t) => (/завершена|ошибк|не удалось|не работает|нестабильн|отклон|отмен|не найден|не в эфире/i.test(t) ? 'bad' : /подключено!|подключён\./i.test(t) ? 'ok' : '');
 const sys = (text) => addMsg({ name: 'Система', text, kind: ('sys ' + sysTone(text)).trim(), color: '#475569' });
-const resetEmpty = () => { held.length = 0; updatePauseLabel(); feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
+const resetEmpty = () => { feed.innerHTML = '<div class="empty">Здесь появятся сообщения чата</div>'; };
 resetEmpty();
 $('#btnClear').onclick = resetEmpty;
 
@@ -373,8 +368,7 @@ function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук го
 
 let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
-  if (isPaused() && !force) return; // пауза: ничего не озвучиваем
-  voiceCalls++;
+  voiceCalls++; // пауза относится только к ленте, озвучка идёт по настройкам «Что озвучивать»
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
   item.t = Date.now(); item.force = force;
@@ -444,11 +438,10 @@ async function pump() {
 
 $('#btnSkip').onclick = () => stopCurrent();
 $('#paused').addEventListener('change', (e) => {
-  if (e.target.checked) { queue.length = 0; stopCurrent(); updatePauseLabel(); return; }
-  // пауза снята: показываем всё, что пришло за это время (без озвучки — оно уже устарело)
-  const pending = held.splice(0);
-  pending.forEach(renderMsg);
-  updatePauseLabel();
+  clearInterval(pauseTimer); pauseTimer = null;
+  if (e.target.checked) { pauseEnd = Date.now() + PAUSE_MS; pauseTimer = setInterval(pauseTick, 250); pauseTick(); return; }
+  $('#pausedLbl').textContent = 'Пауза';
+  feed.scrollTop = feed.scrollHeight; // пауза закончилась: возвращаемся к самому новому сообщению
 });
 
 /* ---------- события TikTok ---------- */
@@ -496,9 +489,18 @@ let twLive = false, twConnecting = false;
 const connTw = $('#connTw');
 const btnTw = $('#btnTwitch');
 
+// пустой ник: подсвечиваем поле красным и ставим в него курсор
+function flagField(input) {
+  const f = input.closest('.nick-field');
+  f.classList.remove('err'); void f.offsetWidth; f.classList.add('err');
+  input.focus();
+  clearTimeout(f._t); f._t = setTimeout(() => f.classList.remove('err'), 3000);
+}
+['#nick', '#twNick'].forEach((id) => $(id).addEventListener('input', () => $(id).closest('.nick-field').classList.remove('err')));
 async function connectTwitch() {
   const nick = $('#twNick').value.trim();
-  if (!nick || twConnecting) return false;
+  if (!nick) { flagField($('#twNick')); return false; }
+  if (twConnecting) return false;
   twConnecting = true; btnTw.textContent = 'Подключаю…'; btnTw.disabled = true; S.twNick = nick; save();
   since.twitch = Date.now();
   const r = await window.echo.twConnect(nick);
@@ -526,10 +528,12 @@ function renderPills() {
     el.lastElementChild.textContent = !netOnline ? (on ? txt + ' · нет сети' : 'Нет интернета') : on ? txt : off;
   });
 }
+function renderTwViewers() { const e = $('.vv.tw'); if (e) e.hidden = !twLive; } // онлайн Twitch виден, только пока Twitch подключён
 function setNetOnline(v) { if (netOnline === v) return; netOnline = v; renderPills(); if (v) autoCheckUpdate(); }
 window.echo.onNet((n) => setNetOnline(!!(n && n.online)));
 window.addEventListener('offline', () => setNetOnline(false));
 window.addEventListener('online', async () => setNetOnline(await window.echo.netCheck().catch(() => true)));
+renderTwViewers();
 window.echo.netState().then((v) => setNetOnline(v !== false)).catch(() => {});
 const connNick = $('#connNick'), connStatus = $('#connStatus'), connTwStatus = $('#connTwStatus'), connTime = $('#connTime');
 // статус подключения платформы: зелёный — подключена, жёлтый — переподключение
@@ -588,7 +592,7 @@ window.echo.onTwStatus((s) => {
     else { btnTw.textContent = 'Переподкл…'; }
     if (s.state === 'reconnect') _twText = 'Twitch · переподкл…';
   }
-  renderPills();
+  renderPills(); renderTwViewers();
 });
 window.echo.onStatus((s) => {
   if (s.state === 'live') { setStatus(true, '@' + s.username); setNk(connNick, '@' + s.username); startTimer(); $('#feedSub').textContent = 'Эфир @' + s.username; }
@@ -605,7 +609,7 @@ btn.onclick = async () => {
   try {
     if (connected) { await window.echo.disconnect(); return; }
     const nick = $('#nick').value.trim().replace(/^@/, '');
-    if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); $('#nick').focus(); return; }
+    if (!nick) { showAlert('Введите ник стримера TikTok LIVE (без @).', true); flagField($('#nick')); return; }
     S.nick = nick; save();
     since.tiktok = Date.now();
     btn.textContent = 'Подключаю…'; btn.classList.add('connecting');
@@ -891,7 +895,7 @@ window.echo.onKaspiLog((l) => {
   const it = document.createElement('div'); it.className = 'it ' + (l.accepted ? 'ok' : 'no');
   it.innerHTML = `<b>${hm} · ${l.accepted ? esc(l.name) + ' · ' + kmoney(l.amount) : 'Пропущено: ' + esc(l.reason || 'не распознано')}</b><small>${esc(l.raw)}</small>`;
   klog.prepend(it);
-  while (klog.children.length > 6) klog.lastChild.remove();
+  while (klog.children.length > 30) klog.lastChild.remove();
 });
 // донат пришёл (или нажат тест): строка в ленте и голос
 window.echo.onDonate((d) => {
@@ -915,10 +919,10 @@ async function initDonatePreview() {
   $('#dvFrame').addEventListener('load', () => { pushDonate(); fitDonate(); });
   if (window.ResizeObserver) new ResizeObserver(fitDonate).observe($('#dvBox'));
   window.addEventListener('resize', fitDonate);
-  $('#dvFrame').src = base;
+  $('#dvFrame').src = base + '?preview=1'; // предпросмотр показывает донат по центру окошка
 }
 
 /* ---------- старт ---------- */
 renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate();
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, get held() { return held.length; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
