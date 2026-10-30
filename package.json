@@ -37,6 +37,7 @@
       "widget.js",
       "widget-page.js",
       "widget-donate-page.js",
+      "widget-likes-page.js",
       "kaspi.js",
       "relay.js",
       "tts-engines.js",
