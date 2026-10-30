@@ -346,7 +346,7 @@ ipcMain.handle('widget:test', () => {
 });
 ipcMain.handle('likes:set', (_e, s) => {
   s = s || {};
-  lset = { count: clampN(s.count, 1, LIKES_MAX, 5), perRow: +s.perRow === 10 ? 10 : 5, scale: clampN(s.scale, 30, 300, 100), align: ['left', 'center', 'right'].includes(s.align) ? s.align : 'center', showCount: s.showCount !== false, showRank: s.showRank !== false, shadow: s.shadow !== false };
+  lset = { count: clampN(s.count, 1, LIKES_MAX, 5), perRow: clampN(s.perRow, 1, 10, 5), scale: clampN(s.scale, 30, 300, 100), align: ['left', 'center', 'right'].includes(s.align) ? s.align : 'center', showCount: s.showCount !== false, showRank: s.showRank !== false, shadow: s.shadow !== false };
   wsrv && wsrv.broadcast('lsettings', lset);
   return { ok: true };
 });

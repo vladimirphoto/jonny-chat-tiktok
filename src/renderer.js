@@ -954,10 +954,9 @@ const pushLikesSet = () => { save(); window.echo.likesSet({ ...L }); };
 const refreshLCount = bindRange('lCount', 'lCountVal', (v) => String(v), () => L.count, (v) => { L.count = v; pushLikesSet(); fitLikes(); });
 // масштаб и выравнивание в приложении не настраиваются: масштаб задаёт OBS/Studio, блок всегда по центру
 L.scale = 100; L.align = 'center';
-$('#lPerRow').value = String(L.perRow === 10 ? 10 : 5);
-$('#lPerRow').onchange = (e) => { L.perRow = +e.target.value === 10 ? 10 : 5; pushLikesSet(); fitLikes(); };
+const refreshLPerRow = bindRange('lPerRow', 'lPerRowVal', (v) => String(v), () => L.perRow, (v) => { L.perRow = v; pushLikesSet(); fitLikes(); });
 $$('input[data-lk]').forEach((el) => { el.checked = !!L[el.dataset.lk]; el.addEventListener('change', () => { L[el.dataset.lk] = el.checked; pushLikesSet(); }); });
-refreshLCount();
+refreshLCount(); refreshLPerRow();
 async function refreshLikesLink() {
   const r = await window.echo.likesLink().catch(() => null);
   $('#lUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
@@ -976,8 +975,9 @@ function fitLikes() {
   const box = $('.lk-prev'), fr = $('#lkFrame'), w = box.clientWidth;
   if (!w) return;
   // в ряду столько, сколько выбрано; блоки растягиваем, насколько влезает в окно предпросмотра (без масштаба — его нет в приложении)
-  const perRow = Math.min(L.count, L.perRow === 10 ? 10 : 5), rows = Math.ceil(L.count / perRow);
-  const k = Math.min(1.5, w / (perRow * 136 + 20), $('.lk-prev').clientHeight / (rows * 200 + 20));
+  const perRow = Math.min(L.count, Math.max(1, Math.min(10, Math.round(+L.perRow) || 5))), rows = Math.ceil(L.count / perRow);
+  // 0.9 — чуть меньше, чем влезает, чтобы блоки не упирались в края окна
+  const k = 0.9 * Math.min(1.5, w / (perRow * 124 + 20), $('.lk-prev').clientHeight / (rows * 191 + 20));
   try { fr.contentWindow.postMessage({ echochat: 'fit', k: Math.max(0.15, k) }, '*'); } catch (_) {}
 }
 async function initLikesPreview() {
@@ -999,6 +999,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.17.0': ['Топ лайков: «В ряду» — бегунок от 1 до 10 вместо выбора «по 5 или по 10»', 'Аватарки чуть меньше, предпросмотр слегка меньше и с отступом от краёв'],
   '1.16.0': ['Топ лайков: масштаб и выравнивание убраны из приложения (масштаб задаёт OBS или Studio), блок всегда по центру', 'Выбор «В ряду: по 5 или по 10», блоки в предпросмотре крупнее, ники чуть крупнее', 'Лайки мигают, когда у ника растут', 'Строка версии обновляется по кнопке «Проверить обновления»'],
   '1.14.0': ['Новый виджет «Топ лайков»: 5–10 закруглённых квадратиков с аватарками, никами и числом лайков под ними', 'Количество, масштаб и выравнивание настраиваются, ссылка для OBS и Twitch Studio', 'Предпросмотр чата больше не обрезается справа при нажатии «Тест»'],
   '1.13.3': ['Убрана кнопка «Пропустить» и карточка «Движок озвучки»: озвучка идёт голосами Microsoft Edge', 'Донаты Каспи временно скрыты из меню: готовится сервер приёма, сама функция в приложении сохранена', 'При запуске приложение проверяет обновления и показывает, что нового'],

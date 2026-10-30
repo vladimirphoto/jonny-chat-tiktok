@@ -5,13 +5,13 @@ module.exports = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><ti
 <style>
 html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%}
 #root{position:fixed;left:0;top:0;display:grid;align-content:center;gap:18px 16px;padding:10px;box-sizing:border-box;transform-origin:top left}
-.t{width:120px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;animation:in .3s ease-out}
-.a{position:relative;width:120px;height:120px;border-radius:28px;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:46px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.t{width:108px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;animation:in .3s ease-out}
+.a{position:relative;width:108px;height:108px;border-radius:25px;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:42px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .r{position:absolute;left:7px;top:7px;min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:13px;background:rgba(0,0,0,.62);font-size:15px;font-weight:700;line-height:26px;text-align:center}
 .t:nth-child(1) .r{background:#f5b301;color:#2a1c00}.t:nth-child(2) .r{background:#cfd4dc;color:#1c2230}.t:nth-child(3) .r{background:#c98542;color:#2b1800}
 .l{display:flex;align-items:center;justify-content:center;gap:5px;min-width:64px;height:30px;padding:0 12px;box-sizing:border-box;border-radius:15px;background:rgba(0,0,0,.72);color:#fff;font-size:20px;font-weight:800;line-height:30px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .l i{font-style:normal;color:#ff4d6d;font-size:18px}
-.n{max-width:124px;font-size:19px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.n{max-width:112px;font-size:19px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .n{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes lk{50%{transform:scale(1.25);background:#ff4d6d}}
@@ -30,7 +30,7 @@ function apply(){
   root.style.transform='scale('+sc+')';
   root.style.width=(100/sc)+'%';
   root.style.height=(100/sc)+'vh';
-  root.style.gridTemplateColumns='repeat('+(+S.perRow===10?10:5)+',max-content)';
+  root.style.gridTemplateColumns='repeat('+Math.max(1,Math.min(10,Math.round(+S.perRow)||5))+',max-content)';
   root.style.justifyContent=S.align==='left'?'start':S.align==='right'?'end':'center';
   render();
 }
