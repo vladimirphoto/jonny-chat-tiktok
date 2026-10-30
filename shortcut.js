@@ -49,13 +49,13 @@ const tokenStr = (s) => ({ Value: { string: s, attachmentsByRange: {} }, WFSeria
 const inputVar = () => ({ Value: { string: '\uFFFC', attachmentsByRange: { '{0, 1}': { Type: 'ExtensionInput' } } }, WFSerializationType: 'WFTextTokenString' });
 
 // url — полный адрес приёмника, например http://192.168.0.5:7899/kaspi/<token>
-function buildShortcut(url) {
+function buildShortcut(url, ask) {
   return bplist({
     WFWorkflowClientVersion: '1146.14',
     WFWorkflowMinimumClientVersion: 900,
     WFWorkflowMinimumClientVersionString: '900',
     WFWorkflowIcon: { WFWorkflowIconStartColor: 4282601983, WFWorkflowIconGlyphNumber: 59511 },
-    WFWorkflowImportQuestions: [],
+    WFWorkflowImportQuestions: ask ? [{ ActionIndex: 0, Category: 'Parameter', ParameterKey: 'WFURL', DefaultValue: String(url), Text: 'Вставьте адрес из приложения ЭхоЧат (кнопка «Скопировать адрес»)' }] : [],
     WFWorkflowInputContentItemClasses: ['WFStringContentItem', 'WFGenericFileContentItem'],
     WFWorkflowTypes: [],
     WFWorkflowActions: [{
@@ -95,4 +95,6 @@ const TEST_NOTIFICATIONS = [
   { text: 'Вы перевели 2 000 ₸ Ивану И.', reject: true },
 ];
 
-module.exports = { bplist, buildShortcut, signIfPossible, TEST_NOTIFICATIONS };
+// шаблон для подписи (в CI на macOS): адрес спрашивается при импорте, поэтому один подписанный файл подходит всем
+const buildTemplate = () => buildShortcut('http://192.168.0.5:7899/kaspi/ВАШ_ТОКЕН', true);
+module.exports = { buildTemplate, bplist, buildShortcut, signIfPossible, TEST_NOTIFICATIONS };

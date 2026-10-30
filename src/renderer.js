@@ -888,10 +888,12 @@ $('#kToken').onclick = () => {
   if (!confirm('Старый адрес перестанет работать, и телефон придётся настроить заново. Сменить?')) return;
   K.token = newToken(); pushDonate();
 };
+let kQrDone = '';
 $('#kShortcut').onclick = async () => {
   const r = await window.echo.kaspiShortcut().catch((e) => ({ ok: false, error: String(e && e.message || e) }));
   if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
-  $('#kScBox').hidden = false; $('#kQr').innerHTML = r.qr; $('#kScUrl').value = r.url;
+  $('#kQr').innerHTML = r.qr; $('#kScUrl').value = r.url; kQrDone = r.url;
+  $('#kScNote').textContent = r.signed ? '' : 'В этой сборке нет подписанной команды: iOS её не примет. Скачайте сборку из раздела Releases.';
 };
 $('#kScUrl').onfocus = (e) => e.target.select();
 $('#kTokCopy').onclick = async () => {
@@ -904,6 +906,7 @@ $('#kSamples').onclick = async () => {
   if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
   setKStat(r.expectReject ? (r.accepted ? 'Ошибка: исходящая операция принята' : 'Тест пройден: покупка/исходящая отклонена') : (r.accepted ? 'Тест пройден: донат принят' : 'Пропущено: ' + r.reason), (r.accepted !== r.expectReject) ? 'ok' : 'bad');
 };
+setInterval(() => { if (kState && kState.running && !kQrDone) $('#kShortcut').click(); if (kState && !kState.running) kQrDone = ''; }, 1500);
 // журнал уведомлений: видно, что пришло с телефона и как приложение это поняло
 const klog = $('#kLog');
 window.echo.onKaspiLog((l) => {
@@ -946,6 +949,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.12.0': ['Донаты Каспи: переделан экран подключения iPhone за 4 шага', 'Подписанная команда для iPhone: iOS принимает её без «ненадёжных команд»', 'Новые движки озвучки: Piper (офлайн) и Google рядом с Edge', 'Настройки виджета донатов теперь под предпросмотром', 'Мягкая стрелка прокрутки без видимых границ'],
   '1.11.0': ['Донаты Каспи: готовая команда для iPhone — QR-код вместо ручной настройки', 'Токен подключения: копирование и перевыпуск одной кнопкой', 'Тестовые уведомления Каспи без настоящих переводов', 'Кнопка «Очистить» в журнале уведомлений', 'Блок подключения теперь сверху, настройки виджета ниже', 'Стрелка-подсказка прокрутки на странице озвучки', 'Обновление запускается сразу при старте программы'],
 };
 (async () => {
@@ -962,10 +966,47 @@ const CHANGES = {
 $('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока ничего не приходило</div>'; };
 /* ---------- стрелка «можно листать» на странице озвучки ---------- */
 (() => {
-  const hint = $('#scrollHint'), tab = $('#tab-voice');
-  const upd = () => { const more = tab.classList.contains('show') && tab.scrollHeight - tab.scrollTop - tab.clientHeight > 40; hint.classList.toggle('on', more); };
-  tab.addEventListener('scroll', upd, { passive: true });
+  const hint = $('#scrollHint');
+  const upd = () => { const tab = document.querySelector('.tab.show'); const more = !!tab && tab.scrollHeight - tab.scrollTop - tab.clientHeight > 40; hint.classList.toggle('on', more); };
+  document.addEventListener('scroll', upd, { passive: true, capture: true });
   window.addEventListener('resize', upd);
   setInterval(upd, 400);
   upd();
 })();
+
+/* ---------- движки озвучки: Edge / Piper / Google ---------- */
+let ENG = null;
+const engBusy = {};
+function engRender() {
+  if (!ENG) return;
+  $$('.eng').forEach((b) => b.classList.toggle('on', b.dataset.eng === ENG.engine));
+  const pn = $('#engPanel');
+  if (ENG.engine === 'piper') {
+    const P = ENG.piper;
+    pn.innerHTML = (P.supported ? '' : '<p class="muted">Piper на этой системе недоступен</p>') + '<div class="vsq-grid">' + P.voices.map((v) => {
+      const busy = engBusy[v.id];
+      const sub = busy != null ? Math.round(busy * 100) + '%' : v.installed ? (P.voice === v.id ? 'выбран' : 'выбрать') : 'установить · ' + v.mb + ' МБ';
+      return `<button class="vsq${P.voice === v.id && v.installed ? ' on' : ''}${v.installed ? '' : ' dl'}" data-pv="${v.id}"><b>${esc(v.name)}</b><small>${v.gender}</small><small>${sub}</small></button>`;
+    }).join('') + '</div><p class="muted" id="engErr" style="margin-top:8px"></p>';
+    pn.querySelectorAll('[data-pv]').forEach((b) => (b.onclick = async () => {
+      const id = b.dataset.pv, v = P.voices.find((x) => x.id === id);
+      if (engBusy[id] != null) return;
+      if (v.installed) { ENG = await window.echo.engSet({ piperVoice: id }); return engRender(); }
+      engBusy[id] = 0; engRender();
+      const r = await window.echo.engInstall(id);
+      delete engBusy[id];
+      if (r.ok) ENG = r.status; else { await engRefresh(); const e = $('#engErr'); if (e) e.textContent = 'Не удалось установить: ' + r.error; return; }
+      engRender();
+    }));
+  } else if (ENG.engine === 'google') {
+    const G = ENG.google;
+    pn.innerHTML = `<label>Ключ API Google Cloud Text-to-Speech</label><div class="nick-field"><input id="gKey" type="password" spellcheck="false" placeholder="${G.hasKey ? 'ключ сохранён · введите новый, чтобы заменить' : 'AIza…'}" /></div><div class="wbtn-row"><button class="btn wbtn primary" id="gSave">Сохранить ключ</button></div><div class="vsq-grid">` +
+      G.voices.map((v) => `<button class="vsq${G.voice === v.id ? ' on' : ''}" data-gv="${v.id}"><b>${esc(v.name)}</b><small>${v.gender}</small><small>${G.voice === v.id ? 'выбран' : 'выбрать'}</small></button>`).join('') + '</div><p class="muted" style="margin-top:8px">Ключ хранится только на этом компьютере. Озвучка тарифицируется Google по вашему аккаунту</p>';
+    $('#gSave').onclick = async () => { const v = $('#gKey').value.trim(); if (!v) return; ENG = await window.echo.engSet({ googleKey: v }); engRender(); };
+    pn.querySelectorAll('[data-gv]').forEach((b) => (b.onclick = async () => { ENG = await window.echo.engSet({ googleVoice: b.dataset.gv }); engRender(); }));
+  } else pn.innerHTML = '<p class="muted">Голоса Microsoft выбираются в карточках ниже</p>';
+}
+async function engRefresh() { try { ENG = await window.echo.engStatus(); engRender(); } catch (_) {} }
+$$('.eng').forEach((b) => (b.onclick = async () => { ENG = await window.echo.engSet({ engine: b.dataset.eng }); engRender(); }));
+window.echo.onEngProgress((d) => { engBusy[d.id] = d.p; engRender(); });
+engRefresh();

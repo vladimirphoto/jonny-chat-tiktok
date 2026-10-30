@@ -98,3 +98,18 @@ test('раздача команды: только с верным токеном
   assert.match(got[0], /Перевод 1000/);
   r.close();
 });
+
+test('шаблон команды: вопрос при импорте про адрес', () => {
+  const sc = require('../shortcut');
+  const b = sc.buildTemplate();
+  assert.equal(b.slice(0, 8).toString(), 'bplist00');
+  assert.ok(b.includes(Buffer.from('WFWorkflowImportQuestions')) && b.includes(Buffer.from('ParameterKey')));
+});
+
+test('Piper: аргументы без shell, скорость через length_scale', () => {
+  const te = require('../tts-engines');
+  const a = te.piperArgs('m.onnx', 'o.wav', 2);
+  assert.deepEqual(a.slice(0, 4), ['--model', 'm.onnx', '--output_file', 'o.wav']);
+  assert.equal(a[5], '0.50');
+  assert.equal(te.piperArgs('m', 'o', 0.1)[5], '2.00');
+});

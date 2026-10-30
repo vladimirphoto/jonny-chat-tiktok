@@ -239,10 +239,34 @@ function edgeSynth(text, voice, rate, pitch) {
   });
 }
 
+// выбранный движок и его настройки; ключ Google хранится только здесь и в логи не попадает
+const te = require('./tts-engines');
+const engFile = () => require('path').join(app.getPath('userData'), 'engines.json');
+let engCfg = null;
+const engLoad = () => { if (!engCfg) { try { engCfg = JSON.parse(require('fs').readFileSync(engFile(), 'utf8')); } catch (_) { engCfg = {}; } } return engCfg; };
+const engSave = () => { try { require('fs').writeFileSync(engFile(), JSON.stringify(engCfg)); } catch (_) {} };
+ipcMain.handle('eng:status', () => te.status(app.getPath('userData'), engLoad()));
+ipcMain.handle('eng:set', (_e, o) => {
+  const c = engLoad();
+  if (['edge', 'piper', 'google'].includes(o.engine)) c.engine = o.engine;
+  if (o.piperVoice && te.PIPER_VOICES.some((v) => v.id === o.piperVoice)) c.piperVoice = o.piperVoice;
+  if (o.googleVoice && te.GOOGLE_VOICES.some((v) => v.id === o.googleVoice)) c.googleVoice = o.googleVoice;
+  if (typeof o.googleKey === 'string') c.googleKey = o.googleKey.trim().slice(0, 200);
+  engSave(); return te.status(app.getPath('userData'), c);
+});
+ipcMain.handle('eng:install', async (e, id) => {
+  try { await te.install(app.getPath('userData'), id, (p) => { try { e.sender.send('eng:progress', { id, p }); } catch (_) {} }); engLoad().piperVoice = id; engSave(); return { ok: true, status: te.status(app.getPath('userData'), engCfg) }; }
+  catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
+});
 ipcMain.handle('tts:synth', async (_e, o) => {
   try {
     const text = String(o.text || '').slice(0, 400);
     if (!text.trim()) return { ok: false, error: 'empty text' };
+    const cfg = engLoad();
+    if (cfg.engine === 'piper' || cfg.engine === 'google') {
+      try { const b = cfg.engine === 'piper' ? await te.piperSynth(app.getPath('userData'), cfg, text, o.rate) : await te.googleSynth(cfg, text, o.rate); return { ok: true, audio: b.toString('base64'), chars: text.length }; }
+      catch (err) { console.warn('[tts] ' + cfg.engine + ' не сработал, откат на Edge:', String((err && err.message) || err).replace(cfg.googleKey || '\u0000', '***')); }
+    }
     const buf = await edgeSynth(text, o.voice, o.rate, o.pitch);
     return { ok: true, audio: buf.toString('base64'), chars: text.length };
   } catch (err) {
@@ -361,13 +385,15 @@ async function applyKaspi() {
 const sc = require('./shortcut');
 const qrcode = require('qrcode-generator');
 const kaspiHost = () => `${kaspi.lanAddresses()[0] || '127.0.0.1'}:${krx && krx.port ? krx.port : 0}`;
-const buildShortcutFile = (host) => sc.signIfPossible(sc.buildShortcut(`http://${host || kaspiHost()}/kaspi/${dset.token}`));
+// подписанный шаблон кладётся в сборку на macOS-раннере (iOS не принимает неподписанные команды)
+const signedShortcutPath = () => { const fs = require('fs'), path = require('path'); return [path.join(__dirname, 'assets', 'EchoChat-Kaspi.signed.shortcut'), path.join(process.resourcesPath || '', 'app.asar', 'assets', 'EchoChat-Kaspi.signed.shortcut')].find((f) => { try { return fs.statSync(f).size > 100; } catch (_) { return false; } }); };
+const buildShortcutFile = async () => { const f = signedShortcutPath(); if (!f) throw new Error('нет подписанной команды'); return { buf: require('fs').readFileSync(f), signed: true }; };
 const shortcutUrl = () => `http://${kaspiHost()}/shortcut/${dset.token}/EchoChat-Kaspi.shortcut`;
 // адрес команды и QR (SVG) для камеры iPhone; токен наружу не уходит никуда, кроме окна приложения
 ipcMain.handle('kaspi:shortcut', () => {
   if (!krx || !krx.port) return { ok: false, error: 'Приём выключен. Включи переключатель выше' };
   const url = shortcutUrl(), q = qrcode(0, 'M'); q.addData(url); q.make();
-  return { ok: true, url, qr: q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }), signed: process.platform === 'darwin' };
+  return { ok: true, url, qr: q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }), signed: !!signedShortcutPath() };
 });
 // тестовые уведомления в формате Каспи идут через настоящий приёмник: проверяется весь путь
 ipcMain.handle('kaspi:sample', async (_e, i) => {

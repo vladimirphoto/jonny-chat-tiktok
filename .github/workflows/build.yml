@@ -9,7 +9,26 @@ permissions:
   contents: write
 
 jobs:
+  sign-shortcut:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Подписать команду iOS
+        run: |
+          node tools/make-template.js template.shortcut
+          shortcuts sign -m anyone -i template.shortcut -o EchoChat-Kaspi.signed.shortcut
+          ls -l EchoChat-Kaspi.signed.shortcut
+          test "$(head -c 4 EchoChat-Kaspi.signed.shortcut)" = "AEA1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-shortcut
+          path: EchoChat-Kaspi.signed.shortcut
+
   build:
+    needs: sign-shortcut
+    if: ${{ !cancelled() }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +36,11 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: signed-shortcut
+          path: assets
       - run: npm run dist
 
       # Автотест собранного приложения: открывает окно, нажимает кнопки,
@@ -65,13 +89,19 @@ jobs:
           files: dist/*.exe
 
   build-mac:
-    needs: build
+    needs: [build, sign-shortcut]
+    if: ${{ !cancelled() }}
     runs-on: macos-latest   # Apple Silicon (M1 и новее)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: signed-shortcut
+          path: assets
       - run: npm install
       - name: Build dmg
         shell: bash
