@@ -27,7 +27,8 @@ function apply(){
   root.style.transform='scale('+sc+')';
   root.style.height=(100/sc)+'vh';
   // ряд всегда 640 px, по центру экрана (и по вертикали через align-content)
-  root.style.left='calc((100vw / '+sc+' - 640px) / 2)';
+  // левый край блока с учётом масштаба: (ширина экрана − видимая ширина ряда) / 2
+  root.style.left='calc((100vw - '+(640*sc)+'px) / 2)';
   render();
 }
 function render(){
