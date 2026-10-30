@@ -18,6 +18,16 @@ let wset = {};           // настройки виджета (приходят 
 const NAME_COLORS = ['#a78bfa', '#f472b6', '#22d3ee', '#fbbf24', '#34d399', '#818cf8', '#fb7185'];
 const colorOf = (s) => NAME_COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length];
 const wmsg = (m) => wsrv && wsrv.broadcast('msg', m);
+// ---- виджет «Топ лайков»: считаем лайки каждого зрителя и отдаём страницам виджета лучших (до 10, сколько показать — решает страница)
+const likesBoard = new ev.LikesBoard();
+const LIKES_MAX = 10;
+let lset = { count: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true };
+const clampN = (v, a, b, d) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : d; };
+let likesTimer = null;
+function pushLikes() { // не чаще раза в 0,4 с: лайки сыплются пачками
+  if (likesTimer) return;
+  likesTimer = setTimeout(() => { likesTimer = null; wsrv && wsrv.broadcast('likes', likesBoard.top(LIKES_MAX)); }, 400);
+}
 const SELFTEST = process.argv.includes('--selftest');
 
 function createWindow() {
@@ -120,7 +130,12 @@ async function doConnect(rawName) {
   };
   c.on(WebcastEvent.FOLLOW || 'follow', onFollow);
   c.on(WebcastEvent.SOCIAL || 'social', (d) => { if (ev.isFollowSocial(d)) onFollow(d); });
-  c.on(WebcastEvent.LIKE || 'like', (d) => alive() && send('tt:like', ev.likesOf(d)));
+  c.on(WebcastEvent.LIKE || 'like', (d) => {
+    if (!alive()) return;
+    send('tt:like', ev.likesOf(d));
+    const l = ev.likerOf(d);
+    if (likesBoard.add(l, l.count)) pushLikes();
+  });
   c.on(WebcastEvent.ROOM_USER || 'roomUser', (d) => {
     if (!alive()) return;
     const count = ev.viewersOf(d);
@@ -152,6 +167,7 @@ async function doConnect(rawName) {
 }
 
 ipcMain.handle('tt:connect', async (_e, rawName) => {
+  likesBoard.clear(); wsrv && wsrv.broadcast('likes', []); // новый эфир — таблица с нуля
   try { return await doConnect(rawName); } catch (err) { return { ok: false, ...explain(err) }; }
 });
 
@@ -328,6 +344,20 @@ ipcMain.handle('widget:test', () => {
   wmsg({ platform: 'tiktok', name: 'Игорь', color: colorOf('Игорь'), gift: { name: 'Роза', count: 5 } });
   return { ok: true };
 });
+ipcMain.handle('likes:set', (_e, s) => {
+  s = s || {};
+  lset = { count: clampN(s.count, 1, LIKES_MAX, 5), scale: clampN(s.scale, 30, 300, 100), align: ['left', 'center', 'right'].includes(s.align) ? s.align : 'center', showCount: s.showCount !== false, showRank: s.showRank !== false, shadow: s.shadow !== false };
+  wsrv && wsrv.broadcast('lsettings', lset);
+  return { ok: true };
+});
+ipcMain.handle('likes:test', () => {
+  const names = ['Анна', 'Max', 'Игорь', 'Дина', 'Марат', 'Света', 'Олег', 'Ксюша', 'Тимур', 'Лера'];
+  wsrv && wsrv.broadcast('likes', names.map((name, i) => ({ name, avatar: '', likes: 1200 - i * 97 - i * i * 5 })));
+  return { ok: true };
+});
+ipcMain.handle('likes:clear', () => { likesBoard.clear(); wsrv && wsrv.broadcast('likes', []); return { ok: true }; });
+ipcMain.handle('likes:url', () => (wsrv && wsrv.port ? `http://127.0.0.1:${wsrv.port}/likes` : ''));
+ipcMain.handle('likes:link', () => (wsrv && wsrv.port ? { ok: true, url: widget.LIKES_PAGES_URL } : { ok: false, url: '' }));
 ipcMain.handle('widget:clear', () => { wsrv && wsrv.broadcast('clear', {}); return { ok: true }; });
 
 // ---------- Интернет: проверяем связь, чтобы плашки в шапке горели жёлтым без сети ----------
@@ -491,7 +521,7 @@ ipcMain.handle('upd:install', async () => {
 });
 
 app.whenReady().then(async () => {
-  try { wsrv = await widget.start(() => wset, 7878, { getDonate: () => donateWidgetSettings() }); } catch (_) { wsrv = null; }
+  try { wsrv = await widget.start(() => wset, 7878, { getDonate: () => donateWidgetSettings(), getLikes: () => ({ settings: lset, top: likesBoard.top(LIKES_MAX) }) }); } catch (_) { wsrv = null; }
   createWindow();
   if (!SELFTEST) { netTick(); setInterval(netTick, 8000); }
   // прогрев: модуль, DNS и TLS-соединение готовы до первой фразы эфира

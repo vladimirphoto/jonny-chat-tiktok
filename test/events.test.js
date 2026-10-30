@@ -99,3 +99,17 @@ test('сервер виджета: страница, настройки и со�
   assert.match(got, /"platform":"twitch"/);
   await reader.cancel(); srv.close();
 });
+
+test('топ лайков: суммирует лайки по зрителям, сортирует, анонимов пропускает', () => {
+  const b = new E.LikesBoard();
+  const a = E.likerOf({ likeCount: 3, user: { uniqueId: 'anya', nickname: 'Аня' } });
+  assert.equal(a.count, 3);
+  assert.equal(b.add(a, a.count), true);
+  b.add({ id: 'max', name: 'Max', avatar: 'https://x/a.png' }, 5);
+  b.add({ id: 'anya', name: 'Аня' }, 4);
+  assert.equal(b.add({ id: '', name: 'Гость' }, 9), false);
+  assert.deepEqual(b.top(5).map((x) => [x.name, x.likes]), [['Аня', 7], ['Max', 5]]);
+  assert.equal(b.top(1).length, 1);
+  b.clear();
+  assert.deepEqual(b.top(5), []);
+});

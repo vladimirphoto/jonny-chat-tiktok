@@ -27,3 +27,15 @@ test('страница донатов подключается к приложе
   assert.match(DONATE, /addEventListener\('donate'/);
   assert.match(DONATE, /addEventListener\('dsettings'/);
 });
+
+const LIKES = require('../widget-likes-page');
+test('страница топа лайков для GitHub Pages совпадает с виджетом приложения (npm run pages)', () => {
+  const f = path.join(__dirname, '..', 'docs', 'likes', 'index.html');
+  assert.equal(fs.readFileSync(f, 'utf8'), LIKES);
+});
+
+test('страница топа лайков подключается к приложению и слушает лайки и настройки', () => {
+  assert.match(LIKES, /127\.0\.0\.1:'\+port\+'\/events/);
+  assert.match(LIKES, /addEventListener\('likes'/);
+  assert.match(LIKES, /addEventListener\('lsettings'/);
+});

@@ -28,10 +28,12 @@ const DEFAULTS = {
   widgets: [], wSel: '', twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
+  likes: { count: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true },
   kaspi: { enabled: false, token: '', strict: true, minAmount: 0, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true, voice: true },
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
+S.likes = { ...DEFAULTS.likes, ...(S.likes && typeof S.likes === 'object' ? S.likes : {}) };
 S.kaspi = { ...DEFAULTS.kaspi, ...(S.kaspi && typeof S.kaspi === 'object' ? S.kaspi : {}) };
 // виджеты: у каждого своё выравнивание TikTok и Twitch и своя ссылка. Первый — для OBS, второй — для TikTok LIVE Studio.
 // Прежнее выравнивание (одно на всё приложение) переносится на первый виджет.
@@ -133,7 +135,7 @@ $$('.nav').forEach((b) => b.addEventListener('click', () => {
   $$('.nav').forEach((x) => x.classList.toggle('active', x === b));
   $$('.tab').forEach((t) => t.classList.toggle('show', t.id === 'tab-' + b.dataset.tab));
   document.body.classList.toggle('t-widgets', b.dataset.tab === 'widgets');
-  if (b.dataset.tab === 'widgets') requestAnimationFrame(initPreview);
+  if (b.dataset.tab === 'widgets') requestAnimationFrame(() => { initPreview(); initLikesPreview(); });
   if (b.dataset.tab === 'kaspi') requestAnimationFrame(() => initDonatePreview());
   $('#title').textContent = TITLES[b.dataset.tab][0];
   $('#subtitle').textContent = TITLES[b.dataset.tab][1];
@@ -797,14 +799,16 @@ const PV_H = 210; // высота «виртуального экрана» пр
 let pvInit = false, pvBase = '', pvReady = false, pvTested = false;
 const pvVisible = () => $('#tab-widgets').classList.contains('show');
 const pvTest = () => { if (pvReady && pvVisible() && !pvTested) { pvTested = true; window.echo.widgetTest(); } };
-// iframe — это виртуальный экран PV_H по высоте, пропорциональный блоку; он целиком масштабируется под размер блока
+// iframe всегда по размеру блока (без CSS-масштабирования — оно в Electron давало недорисованный кадр справа);
+// «виртуальный экран» PV_H по высоте создаётся масштабом внутри страницы виджета
+let pvK = 1;
 function fitPreview() {
   const box = $('.prev-box'), fr = $('#pvFrame');
   const w = box.clientWidth, h = box.clientHeight;
   if (!w || !h) return; // вкладка скрыта — подгоним, когда появится
-  const k = Math.min(1, h / PV_H);
-  fr.style.width = Math.ceil(w / k) + 'px'; fr.style.height = Math.ceil(h / k) + 'px';
-  fr.style.transform = k === 1 ? '' : 'scale(' + k + ')';
+  pvK = Math.min(1, h / PV_H);
+  fr.style.width = ''; fr.style.height = ''; fr.style.transform = '';
+  try { fr.contentWindow.postMessage({ echochat: 'fit', k: pvK }, '*'); } catch (_) {}
 }
 async function initPreview() {
   if (pvInit) { fitPreview(); pvTest(); return; }
@@ -939,8 +943,50 @@ async function initDonatePreview() {
   $('#dvFrame').src = base + '?preview=1'; // предпросмотр показывает донат по центру окошка
 }
 
+/* ---------- виджет «Топ лайков» ---------- */
+const L = S.likes;
+const pushLikesSet = () => { save(); window.echo.likesSet({ ...L }); };
+const refreshLCount = bindRange('lCount', 'lCountVal', (v) => String(v), () => L.count, (v) => { L.count = v; pushLikesSet(); fitLikes(); });
+const refreshLScale = bindRange('lScale', 'lScaleVal', (v) => v + '%', () => L.scale, (v) => { L.scale = v; pushLikesSet(); fitLikes(); });
+$('#lAlign').value = L.align;
+$('#lAlign').onchange = (e) => { L.align = e.target.value; pushLikesSet(); };
+$$('input[data-lk]').forEach((el) => { el.checked = !!L[el.dataset.lk]; el.addEventListener('change', () => { L[el.dataset.lk] = el.checked; pushLikesSet(); }); });
+refreshLCount(); refreshLScale();
+async function refreshLikesLink() {
+  const r = await window.echo.likesLink().catch(() => null);
+  $('#lUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
+}
+$('#lUrl').onfocus = (e) => e.target.select();
+$('#lCopy').onclick = async () => {
+  const u = $('#lUrl').value, b = $('#lCopy');
+  try { await navigator.clipboard.writeText(u); } catch (_) { $('#lUrl').select(); document.execCommand('copy'); }
+  b.textContent = '✓'; setTimeout(() => { b.textContent = 'Копировать'; }, 1500);
+};
+$('#lTest').onclick = () => window.echo.likesTest();
+$('#lClear').onclick = () => window.echo.likesClear();
+// предпросмотр: iframe по размеру блока, масштаб, чтобы все квадратики поместились по ширине, задаёт страница виджета
+let lkInit = false;
+function fitLikes() {
+  const box = $('.lk-prev'), fr = $('#lkFrame'), w = box.clientWidth;
+  if (!w) return;
+  const sc = Math.max(0.3, L.scale / 100), perRow = Math.min(L.count, 5), rows = Math.ceil(L.count / perRow); // в предпросмотре — до 5 в ряду, дальше второй ряд
+  const k = Math.min(1, w / ((perRow * 136 + 20) * sc), $('.lk-prev').clientHeight / ((rows * 160 + 20) * sc));
+  try { fr.contentWindow.postMessage({ echochat: 'fit', k: Math.max(0.15, k) }, '*'); } catch (_) {}
+}
+async function initLikesPreview() {
+  if (lkInit) { fitLikes(); return; }
+  lkInit = true;
+  const base = await window.echo.likesUrl();
+  if (!base) return;
+  const fr = $('#lkFrame');
+  window.addEventListener('message', (e) => { if (e.source === fr.contentWindow && e.data && e.data.echochat === 'likes-ready') { window.echo.likesSet({ ...L }); fitLikes(); window.echo.likesTest(); } });
+  fr.addEventListener('load', () => { window.echo.likesSet({ ...L }); fitLikes(); });
+  if (window.ResizeObserver) new ResizeObserver(fitLikes).observe($('.lk-prev'));
+  fr.src = base;
+}
+
 /* ---------- старт ---------- */
-renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate();
+renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate(); refreshLikesLink(); window.echo.likesSet({ ...L });
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
 window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
 

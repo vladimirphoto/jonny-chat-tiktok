@@ -20,7 +20,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 </style></head><body class="sh">
 <div id="wh" style="display:none;position:fixed;left:0;right:0;pointer-events:none;z-index:9999;box-sizing:border-box;border-top:2px solid rgba(139,92,246,.85);background:rgba(139,92,246,.07)"><div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(139,92,246,.85);color:#fff;font:700 11px/1 sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">граница чата</div></div><div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"></div>
 <script>
-var PV=false;
+var PV=false,PK=1;
 var S={alignTt:'left',alignTw:'left',icons:true,avatars:true,gifts:true,scale:100,height:100,fade:true,fadeSec:20,shadow:true};
 var root=document.getElementById('root');
 var TT='<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>';
@@ -28,7 +28,7 @@ var TW='<svg class="pi" viewBox="0 0 24 24"><path fill="#a970ff" d="M4 2 2.5 6v1
 function applyPreviewHeight(on){
   var wh=document.getElementById('wh');
   if(!wh)return;
-  var sc=Math.max(30,Math.min(300,+S.scale||100))/100;
+  var sc=Math.max(30,Math.min(300,+S.scale||100))/100*PK;
   var hpct=Math.max(10,Math.min(100,+S.height||100));
   var px=window.innerHeight*hpct/100/sc;
   wh.style.display=on&&hpct<100?'block':'none';
@@ -38,7 +38,7 @@ function applyPreviewHeight(on){
 }
 function apply(){
   document.body.className=S.shadow?'sh':'';
-  var sc=Math.max(30,Math.min(300,+S.scale||100))/100;
+  var sc=Math.max(30,Math.min(300,+S.scale||100))/100*PK;
   root.style.transform='scale('+sc+')';
   root.style.width=(100/sc)+'%';
   root.style.height=(Math.max(10,Math.min(100,+S.height||100))/sc)+'vh';
@@ -118,5 +118,7 @@ function connect(){
   })();
 }
 window.addEventListener('resize',apply);
+// предпросмотр в приложении: масштаб «виртуального экрана» задаёт приложение (iframe сам не масштабируется)
+window.addEventListener('message',function(e){var d=e.data;if(window.parent!==window&&e.source===window.parent&&d&&d.echochat==='fit'){var k=+d.k;if(k>0.1&&k<=1&&k!==PK){PK=k;apply();}}});
 S=Object.assign(S,OV);apply();connect();
 </script></body></html>`;

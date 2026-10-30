@@ -84,6 +84,35 @@ function likesOf(d) {
   return { count: pick(d.likeCount, d.count) ?? 1, total: total > 0 ? total : null }; // 0 — «итога нет», а не «лайков нет»
 }
 
+// Кто поставил лайки и сколько (для виджета «Топ лайков»)
+function likerOf(d) {
+  return { ...userOf(d), count: Math.max(1, likesOf(d).count || 1) };
+}
+
+// Таблица лидеров по лайкам: считает лайки каждого зрителя за эфир
+class LikesBoard {
+  constructor() { this.m = new Map(); this.seq = 0; }
+  add(u, n) {
+    const key = (u && (u.id || (u.name && u.name !== 'Гость' ? u.name : ''))) || '';
+    if (!key) return false; // анонимные лайки в таблицу не попадают
+    const e = this.m.get(key) || { name: u.name, avatar: u.avatar || '', likes: 0, order: this.seq++ };
+    e.likes += Math.max(1, num(n) || 1);
+    if (u.name) e.name = u.name;
+    if (u.avatar) e.avatar = u.avatar;
+    this.m.set(key, e);
+    if (this.m.size > 5000) { // не растём бесконечно: оставляем самых активных
+      const keep = [...this.m.entries()].sort((a, b) => b[1].likes - a[1].likes).slice(0, 1000);
+      this.m = new Map(keep);
+    }
+    return true;
+  }
+  top(n) {
+    return [...this.m.values()].sort((a, b) => b.likes - a.likes || a.order - b.order)
+      .slice(0, Math.max(0, n | 0)).map(({ name, avatar, likes }) => ({ name, avatar, likes }));
+  }
+  clear() { this.m.clear(); this.seq = 0; }
+}
+
 // done=false — серия подарков ещё идёт: озвучиваем один раз, когда она закончилась
 function giftOf(d) {
   d = d || {};
@@ -109,4 +138,4 @@ function isFollowSocial(d) {
   return /follow/.test(text);
 }
 
-module.exports = { avatarOf, num, pick, userOf, timeMs, chatOf, viewersOf, likesOf, giftOf, isFollowSocial };
+module.exports = { avatarOf, num, pick, userOf, timeMs, chatOf, viewersOf, likesOf, likerOf, LikesBoard, giftOf, isFollowSocial };
