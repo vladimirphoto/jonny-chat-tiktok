@@ -8,7 +8,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .t:nth-child(1) .r{background:#f5b301;color:#2a1c00}.t:nth-child(2) .r{background:#cfd4dc;color:#1c2230}.t:nth-child(3) .r{background:#c98542;color:#2b1800}
 .l{display:flex;align-items:center;justify-content:center;gap:5px;min-width:64px;height:30px;padding:0 12px;box-sizing:border-box;border-radius:15px;background:rgba(0,0,0,.72);color:#fff;font-size:20px;font-weight:800;line-height:30px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .l i{font-style:normal;color:#ff4d6d;font-size:18px}
-.n{max-width:120px;font-size:17px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.n{max-width:124px;font-size:19px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .n{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes lk{50%{transform:scale(1.25);background:#ff4d6d}}
@@ -66,7 +66,7 @@ function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 var told=false;
 function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'likes-ready'},'*');}catch(_){}}
 // предпросмотр в приложении: масштаб подгоняет приложение (iframe сам не масштабируется)
-window.addEventListener('message',function(e){var d=e.data;if(window.parent!==window&&e.source===window.parent&&d&&d.echochat==='fit'){var k=+d.k;if(k>0.1&&k<=1&&k!==PK){PK=k;apply();}}});
+window.addEventListener('message',function(e){var d=e.data;if(window.parent!==window&&e.source===window.parent&&d&&d.echochat==='fit'){var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}});
 function bind(es){
   es.addEventListener('lsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
   es.addEventListener('likes',function(e){var d=JSON.parse(e.data);LIST=Array.isArray(d)?d:[];render();});
