@@ -335,7 +335,7 @@ function clean(raw) {
   if (S.skipLinks && /(https?:\/\/|www\.|\b[\w-]+\.(com|ru|net|org|me|io|kz|ua)\b)/i.test(t)) return null;
   if (S.skipCmd && /^[!/]/.test(t)) return null;
   t = t.replace(/\[[A-Za-z0-9_ ]{1,24}\]/g, ' '); // смайлы TikTok вида [rose]
-  if (S.skipMentions) t = t.replace(/@[\w.]+/g, '');
+  if (S.skipMentions) t = t.replace(/@[\p{L}\p{N}_.-]+/gu, ''); // ники с кириллицей тоже (\w не понимает русские буквы)
   t = t.replace(/(\p{L})\1{2,}/gu, '$1').replace(/\s+/g, ' ').trim(); // «приветттт» -> «привет»
   if (!t || !/[a-zа-яё0-9]/i.test(t)) return null;
   if (S.onlyRu && !/[а-яё]/i.test(t)) return null;
