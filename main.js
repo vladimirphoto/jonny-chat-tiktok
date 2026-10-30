@@ -21,7 +21,7 @@ const wmsg = (m) => wsrv && wsrv.broadcast('msg', m);
 // ---- виджет «Топ лайков»: считаем лайки каждого зрителя и отдаём страницам виджета лучших (до 10, сколько показать — решает страница)
 const likesBoard = new ev.LikesBoard();
 const LIKES_MAX = 10;
-let lset = { count: 5, perRow: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true };
+let lset = { count: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true };
 const clampN = (v, a, b, d) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : d; };
 let likesTimer = null;
 function pushLikes() { // не чаще раза в 0,4 с: лайки сыплются пачками
@@ -346,7 +346,7 @@ ipcMain.handle('widget:test', () => {
 });
 ipcMain.handle('likes:set', (_e, s) => {
   s = s || {};
-  lset = { count: clampN(s.count, 1, LIKES_MAX, 5), perRow: clampN(s.perRow, 1, 10, 5), scale: clampN(s.scale, 30, 300, 100), align: ['left', 'center', 'right'].includes(s.align) ? s.align : 'center', showCount: s.showCount !== false, showRank: s.showRank !== false, shadow: s.shadow !== false };
+  lset = { count: clampN(s.count, 5, LIKES_MAX, 5),scale: clampN(s.scale, 30, 300, 100), align: ['left', 'center', 'right'].includes(s.align) ? s.align : 'center', showCount: s.showCount !== false, showRank: s.showRank !== false, shadow: s.shadow !== false };
   wsrv && wsrv.broadcast('lsettings', lset);
   return { ok: true };
 });
