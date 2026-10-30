@@ -648,7 +648,9 @@ function setUpd(icon, label, spin) {
   btnUpd.innerHTML = (UPD_ICON[icon] || '') + '<span>' + esc(label) + '</span>';
   btnUpd.classList.toggle('spin', !!spin);
 }
-window.echo.version().then((v) => { $('#verLine').textContent = 'Версия ' + v; });
+// строка версии в боковом меню: обновляется при запуске и каждый раз по кнопке обновления
+const refreshVer = (note) => window.echo.version().then((v) => { $('#verLine').textContent = 'Версия ' + v + (note ? ' · ' + note : ''); }).catch(() => {});
+refreshVer();
 // полоска прогресса заполняется цветом под текстом кнопки
 const setProgress = (p) => { btnUpd.classList.add('dl'); btnUpd.style.setProperty('--p', Math.max(0, Math.min(100, Number(p) || 0))); };
 const clearProgress = () => { btnUpd.classList.remove('dl'); btnUpd.style.removeProperty('--p'); };
@@ -676,12 +678,14 @@ setInterval(() => { updChecked = false; autoCheckUpdate(); }, UPD_EVERY_MS);
 btnUpd.onclick = async () => {
   if (btnUpd.classList.contains('busy')) return;
   btnUpd.classList.add('busy');
+  refreshVer();
   if (!updReady) {
     setUpd('sync', 'Проверяю…', true);
     const r = await window.echo.checkUpdate();
     btnUpd.classList.remove('busy');
     if (!r.ok) { setUpd('sync', 'Проверить обновления'); sys('Не удалось проверить обновления: ' + r.error); return; }
     updChecked = true;
+    refreshVer(r.available ? 'доступна ' + r.version : 'актуальна');
     if (r.available) {
       updReady = true;
       btnUpd.classList.add('new');

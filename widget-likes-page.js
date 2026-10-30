@@ -14,10 +14,12 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .n{max-width:120px;font-size:17px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .n{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes lk{50%{transform:scale(1.25);background:#ff4d6d}}
+.t.bl .l{animation:lk .45s ease-in-out 2}
 </style></head><body class="sh">
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"></div>
 <script>
-var S={count:5,perRow:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true},PK=1,LIST=[];
+var S={count:5,perRow:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true},PK=1,LIST=[],PREV={};
 var root=document.getElementById('root');
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
@@ -53,6 +55,9 @@ function render(){
     r.textContent=i+1;r.style.display=S.showRank?'':'none';
     l.innerHTML='<i>♥</i>';l.appendChild(document.createTextNode(fmt(d.likes)));l.style.display=S.showCount?'':'none';
     t.querySelector('.n').textContent=nm;
+    // лайки выросли — мигаем плашкой (первая отрисовка без мигания)
+    if(PREV[nm]!==undefined&&d.likes>PREV[nm]){t.classList.remove('bl');void t.offsetWidth;t.classList.add('bl');}
+    PREV[nm]=d.likes;
   }
 }
 var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
