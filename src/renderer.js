@@ -28,7 +28,7 @@ const DEFAULTS = {
   widgets: [], wSel: '', twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
-  likes: { count: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true },
+  likes: { count: 5, perRow: 5, scale: 100, align: 'center', showCount: true, showRank: true, shadow: true },
   kaspi: { enabled: false, token: '', strict: true, minAmount: 0, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true, voice: true },
 };
 let S = { ...DEFAULTS };
@@ -950,6 +950,8 @@ const refreshLCount = bindRange('lCount', 'lCountVal', (v) => String(v), () => L
 const refreshLScale = bindRange('lScale', 'lScaleVal', (v) => v + '%', () => L.scale, (v) => { L.scale = v; pushLikesSet(); fitLikes(); });
 $('#lAlign').value = L.align;
 $('#lAlign').onchange = (e) => { L.align = e.target.value; pushLikesSet(); };
+$('#lPerRow').value = String(L.perRow === 10 ? 10 : 5);
+$('#lPerRow').onchange = (e) => { L.perRow = +e.target.value === 10 ? 10 : 5; pushLikesSet(); fitLikes(); };
 $$('input[data-lk]').forEach((el) => { el.checked = !!L[el.dataset.lk]; el.addEventListener('change', () => { L[el.dataset.lk] = el.checked; pushLikesSet(); }); });
 refreshLCount(); refreshLScale();
 async function refreshLikesLink() {
@@ -970,7 +972,7 @@ function fitLikes() {
   const box = $('.lk-prev'), fr = $('#lkFrame'), w = box.clientWidth;
   if (!w) return;
   // k не зависит от выбранного масштаба: подгоняем под максимум слайдера (300%), иначе слайдер ничего не меняет в предпросмотре
-  const REF = 3, perRow = Math.min(L.count, 5), rows = Math.ceil(L.count / perRow); // в предпросмотре — до 5 в ряду, дальше второй ряд
+  const REF = 3, perRow = Math.min(L.count, L.perRow === 10 ? 10 : 5), rows = Math.ceil(L.count / perRow); // в ряду столько, сколько выбрано в настройке
   const k = Math.min(1, w / ((perRow * 136 + 20) * REF), $('.lk-prev').clientHeight / ((rows * 200 + 20) * REF));
   try { fr.contentWindow.postMessage({ echochat: 'fit', k: Math.max(0.15, k) }, '*'); } catch (_) {}
 }

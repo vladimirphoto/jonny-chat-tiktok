@@ -4,7 +4,7 @@
 module.exports = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Топ лайков</title>
 <style>
 html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%}
-#root{position:fixed;left:0;top:0;display:flex;flex-wrap:wrap;align-content:flex-start;gap:18px 16px;padding:10px;box-sizing:border-box;transform-origin:top left}
+#root{position:fixed;left:0;top:0;display:grid;align-content:center;gap:18px 16px;padding:10px;box-sizing:border-box;transform-origin:top left}
 .t{width:120px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;animation:in .3s ease-out}
 .a{position:relative;width:120px;height:120px;border-radius:28px;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:46px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .r{position:absolute;left:7px;top:7px;min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:13px;background:rgba(0,0,0,.62);font-size:15px;font-weight:700;line-height:26px;text-align:center}
@@ -17,7 +17,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 </style></head><body class="sh">
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"></div>
 <script>
-var S={count:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true},PK=1,LIST=[];
+var S={count:5,perRow:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true},PK=1,LIST=[];
 var root=document.getElementById('root');
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
@@ -27,7 +27,9 @@ function apply(){
   document.body.className=S.shadow?'sh':'';
   root.style.transform='scale('+sc+')';
   root.style.width=(100/sc)+'%';
-  root.style.justifyContent=S.align==='left'?'flex-start':S.align==='right'?'flex-end':'center';
+  root.style.height=(100/sc)+'vh';
+  root.style.gridTemplateColumns='repeat('+(+S.perRow===10?10:5)+',max-content)';
+  root.style.justifyContent=S.align==='left'?'start':S.align==='right'?'end':'center';
   render();
 }
 function render(){
