@@ -65,6 +65,7 @@ jobs:
           files: dist/*.exe
 
   build-mac:
+    if: false   # сборка для Mac временно отключена
     needs: build
     runs-on: macos-latest   # Apple Silicon (M1 и новее)
     steps:

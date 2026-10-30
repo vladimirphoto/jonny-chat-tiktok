@@ -294,16 +294,11 @@ const ICON_TT = '<svg class="pi" viewBox="0 0 24 24"><path fill="#fff" d="M16.6 
 const ICON_TW = '<svg class="pi" viewBox="0 0 24 24"><path fill="#a970ff" d="M4 2 2.5 6v14H8v2.5h3L13.5 20H18l3.5-3.5V2H4zm15.5 13-2.5 2.5h-4.5L10 20v-2.5H6V4h13.5v11zM16 7.5h-2v5h2v-5zm-5 0H9v5h2v-5z"/></svg>';
 /* ---------- пауза: лента не прокручивается за новыми сообщениями и сама возвращается к последнему ---------- */
 const FEED_MAX = 150;
-let PAUSE_MS = 10000;
+let PAUSE_MS = 0; // таймера паузы больше нет: пауза — полный стоп, пока не снимешь
 const isPaused = () => $('#paused').checked;
-let pauseTimer = null, pauseEnd = 0;
-function pauseTick() {
-  const left = Math.ceil((pauseEnd - Date.now()) / 1000);
-  if (left <= 0) { const p = $('#paused'); p.checked = false; p.dispatchEvent(new Event('change')); return; }
-  $('#pausedLbl').textContent = `Пауза · ${left} с`;
-}
 function addMsg(msg) { return renderMsg(msg); }
 function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
+  if (isPaused() && !/\bsys\b/.test(kind)) return document.createElement('div'); // на паузе сообщения чата не показываются и не озвучиваются
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
@@ -368,6 +363,7 @@ function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук го
 
 let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
+  if (isPaused()) return;
   voiceCalls++; // пауза относится только к ленте, озвучка идёт по настройкам «Что озвучивать»
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
@@ -438,10 +434,8 @@ async function pump() {
 
 $('#btnSkip').onclick = () => stopCurrent();
 $('#paused').addEventListener('change', (e) => {
-  clearInterval(pauseTimer); pauseTimer = null;
-  if (e.target.checked) { pauseEnd = Date.now() + PAUSE_MS; pauseTimer = setInterval(pauseTick, 250); pauseTick(); return; }
-  $('#pausedLbl').textContent = 'Пауза';
-  feed.scrollTop = feed.scrollHeight; // пауза закончилась: возвращаемся к самому новому сообщению
+  if (e.target.checked) { queue.length = 0; stopCurrent(); return; } // пауза: очередь сброшена, звук остановлен
+  feed.scrollTop = feed.scrollHeight;
 });
 
 /* ---------- события TikTok ---------- */
@@ -949,6 +943,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.12.2': ['Пауза ленты чата теперь полный стоп: сообщения не показываются и не озвучиваются, таймер убран'],
   '1.12.1': ['Статус приёма Каспи: красный «Приём отключён», когда тумблер выключен', 'Обновление по кнопке стало надёжнее: берётся последний релиз, где есть EXE', 'Ссылка iCloud на команду для iPhone подхватывается без новой сборки', 'Стрелка прокрутки чуть ниже'],
   '1.12.0': ['Донаты Каспи: переделан экран подключения iPhone за 4 шага', 'Подписанная команда для iPhone: iOS принимает её без «ненадёжных команд»', 'Новые движки озвучки: Piper (офлайн) и Google рядом с Edge', 'Настройки виджета донатов теперь под предпросмотром', 'Мягкая стрелка прокрутки без видимых границ'],
   '1.11.0': ['Донаты Каспи: готовая команда для iPhone — QR-код вместо ручной настройки', 'Токен подключения: копирование и перевыпуск одной кнопкой', 'Тестовые уведомления Каспи без настоящих переводов', 'Кнопка «Очистить» в журнале уведомлений', 'Блок подключения теперь сверху, настройки виджета ниже', 'Стрелка-подсказка прокрутки на странице озвучки', 'Обновление запускается сразу при старте программы'],

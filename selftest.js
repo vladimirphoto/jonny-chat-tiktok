@@ -323,13 +323,12 @@ async function eventTests(win) {
   send('tt:chat', { name: 'ПаузаТТ', text: 'сообщение во время паузы', created: null });
   await wait(300);
   const stP = JSON.parse(await q("JSON.stringify({ top: document.querySelector('#feed').scrollTop, lbl: document.querySelector('#pausedLbl').textContent, txt: document.querySelector('#feed').innerText })"));
-  add('пауза: лента не прокручивается за новыми сообщениями', stP.top === 0, stP.top);
-  add('пауза: новое сообщение всё равно попадает в ленту', /во время паузы/.test(stP.txt));
-  add('пауза: озвучка работает', (await q('window.__echo.voiceCalls')) === callsP + 1, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
-  add('пауза: на переключателе виден таймер', /^Пауза · \d+ с$/.test(stP.lbl), stP.lbl);
+  add('пауза: сообщение не попадает в ленту', !/во время паузы/.test(stP.txt));
+  add('пауза: озвучка не запускается', (await q('window.__echo.voiceCalls')) === callsP, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
+  add('пауза: таймера нет', stP.lbl === 'Пауза', stP.lbl);
   await wait(1300);
-  const stR = JSON.parse(await q("JSON.stringify({ on: document.querySelector('#paused').checked, gap: (() => { const f = document.querySelector('#feed'); return f.scrollHeight - f.clientHeight - f.scrollTop; })(), lbl: document.querySelector('#pausedLbl').textContent })"));
-  add('пауза: через время снимается и лента возвращается к новому сообщению', !stR.on && stR.gap < 6 && stR.lbl === 'Пауза', JSON.stringify(stR));
+  add('пауза: остаётся включённой, пока не снимешь', await q("document.querySelector('#paused').checked") === true);
+  await q("document.querySelector('#paused').checked = false; document.querySelector('#paused').dispatchEvent(new Event('change'))");
   await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false");
   // озвучка идёт с голосом своей платформы
   await q("document.querySelector('#paused').checked = false; window.__echo.S.ttVoice = 'b-svetlana'; window.__echo.S.twVoice = 'b-dmitry'");
