@@ -2,11 +2,12 @@
 <style>
 html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%}
 #root{position:fixed;left:0;top:0;display:flex;flex-wrap:wrap;align-content:flex-start;gap:18px 16px;padding:10px;box-sizing:border-box;transform-origin:top left}
-.t{width:120px;display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;animation:in .3s ease-out}
+.t{width:120px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;animation:in .3s ease-out}
 .a{position:relative;width:120px;height:120px;border-radius:28px;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:46px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .r{position:absolute;left:7px;top:7px;min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:13px;background:rgba(0,0,0,.62);font-size:15px;font-weight:700;line-height:26px;text-align:center}
 .t:nth-child(1) .r{background:#f5b301;color:#2a1c00}.t:nth-child(2) .r{background:#cfd4dc;color:#1c2230}.t:nth-child(3) .r{background:#c98542;color:#2b1800}
-.l{position:absolute;right:6px;bottom:6px;padding:0 9px;height:24px;border-radius:12px;background:rgba(0,0,0,.62);font-size:14px;font-weight:700;line-height:24px;white-space:nowrap}
+.l{display:flex;align-items:center;justify-content:center;gap:5px;min-width:64px;height:30px;padding:0 12px;box-sizing:border-box;border-radius:15px;background:rgba(0,0,0,.72);color:#fff;font-size:20px;font-weight:800;line-height:30px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.l i{font-style:normal;color:#ff4d6d;font-size:18px}
 .n{max-width:120px;font-size:17px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .n{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -33,7 +34,7 @@ function render(){
     var d=items[i],t=root.children[i];
     if(!t){
       t=document.createElement('div');t.className='t';
-      t.innerHTML='<div class="a"><span class="ch"></span><div class="r"></div><div class="l"></div></div><div class="n"></div>';
+      t.innerHTML='<div class="a"><span class="ch"></span><div class="r"></div></div><div class="n"></div><div class="l"></div>';
       root.appendChild(t);
     }
     var a=t.firstChild,nm=d.name||'Гость',av=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
@@ -43,10 +44,10 @@ function render(){
       a.style.backgroundColor=av?'#374151':colorOf(nm);
       a.querySelector('.ch').textContent=av?'':nm.charAt(0).toUpperCase();
     }
-    var r=a.querySelector('.r'),l=a.querySelector('.l');
+    var r=a.querySelector('.r'),l=t.querySelector('.l');
     r.textContent=i+1;r.style.display=S.showRank?'':'none';
-    l.textContent='♥ '+fmt(d.likes);l.style.display=S.showCount?'':'none';
-    t.lastChild.textContent=nm;
+    l.innerHTML='<i>♥</i>';l.appendChild(document.createTextNode(fmt(d.likes)));l.style.display=S.showCount?'':'none';
+    t.querySelector('.n').textContent=nm;
   }
 }
 var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
