@@ -258,12 +258,14 @@ ipcMain.handle('eng:install', async (e, id) => {
   try { await te.install(app.getPath('userData'), id, (p) => { try { e.sender.send('eng:progress', { id, p }); } catch (_) {} }); engLoad().piperVoice = id; engSave(); return { ok: true, status: te.status(app.getPath('userData'), engCfg) }; }
   catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
 });
+// выбор движка (Piper/Google) пока убран из интерфейса: всегда озвучивает Edge, даже если раньше был выбран другой
+const ENGINES_ON = false;
 ipcMain.handle('tts:synth', async (_e, o) => {
   try {
     const text = String(o.text || '').slice(0, 400);
     if (!text.trim()) return { ok: false, error: 'empty text' };
     const cfg = engLoad();
-    if (cfg.engine === 'piper' || cfg.engine === 'google') {
+    if (ENGINES_ON && (cfg.engine === 'piper' || cfg.engine === 'google')) {
       try { const b = cfg.engine === 'piper' ? await te.piperSynth(app.getPath('userData'), cfg, text, o.rate) : await te.googleSynth(cfg, text, o.rate); return { ok: true, audio: b.toString('base64'), chars: text.length }; }
       catch (err) { console.warn('[tts] ' + cfg.engine + ' не сработал, откат на Edge:', String((err && err.message) || err).replace(cfg.googleKey || '\u0000', '***')); }
     }

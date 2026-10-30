@@ -975,41 +975,4 @@ $('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока 
   upd();
 })();
 
-/* ---------- движки озвучки: Edge / Piper / Google ---------- */
-let ENG = null;
-const engBusy = {};
-function engRender() {
-  if (!ENG) return;
-  $$('.eng').forEach((b) => b.classList.toggle('on', b.dataset.eng === ENG.engine));
-  const pn = $('#engPanel');
-  if (ENG.engine === 'piper') {
-    const P = ENG.piper;
-    pn.innerHTML = (P.supported ? '' : '<p class="muted">Piper на этой системе недоступен</p>') + '<div class="vsq-grid">' + P.voices.map((v) => {
-      const busy = engBusy[v.id];
-      const sub = busy != null ? Math.round(busy * 100) + '%' : v.installed ? (P.voice === v.id ? 'выбран' : 'выбрать') : 'установить · ' + v.mb + ' МБ';
-      return `<button class="vsq${P.voice === v.id && v.installed ? ' on' : ''}${v.installed ? '' : ' dl'}" data-pv="${v.id}"><b>${esc(v.name)}</b><small>${v.gender}</small><small>${sub}</small></button>`;
-    }).join('') + '</div><p class="muted" id="engErr" style="margin-top:8px"></p>';
-    pn.querySelectorAll('[data-pv]').forEach((b) => (b.onclick = async () => {
-      const id = b.dataset.pv, v = P.voices.find((x) => x.id === id);
-      if (engBusy[id] != null) return;
-      if (v.installed) { ENG = await window.echo.engSet({ piperVoice: id }); return engRender(); }
-      engBusy[id] = 0; engRender();
-      const r = await window.echo.engInstall(id);
-      delete engBusy[id];
-      if (r.ok) ENG = r.status; else { await engRefresh(); const e = $('#engErr'); if (e) e.textContent = 'Не удалось установить: ' + r.error; return; }
-      engRender();
-    }));
-  } else if (ENG.engine === 'google') {
-    const G = ENG.google;
-    pn.innerHTML = `<label>Ключ API Google Cloud Text-to-Speech</label><div class="nick-field"><input id="gKey" type="password" spellcheck="false" placeholder="${G.hasKey ? 'ключ сохранён · введите новый, чтобы заменить' : 'AIza…'}" /></div><div class="wbtn-row"><button class="btn wbtn primary" id="gSave">Сохранить ключ</button></div><div class="vsq-grid">` +
-      G.voices.map((v) => `<button class="vsq${G.voice === v.id ? ' on' : ''}" data-gv="${v.id}"><b>${esc(v.name)}</b><small>${v.gender}</small><small>${G.voice === v.id ? 'выбран' : 'выбрать'}</small></button>`).join('') + '</div><p class="muted" style="margin-top:8px">Ключ хранится только на этом компьютере. Озвучка тарифицируется Google по вашему аккаунту</p>';
-    $('#gSave').onclick = async () => { const v = $('#gKey').value.trim(); if (!v) return; ENG = await window.echo.engSet({ googleKey: v }); engRender(); };
-    pn.querySelectorAll('[data-gv]').forEach((b) => (b.onclick = async () => { ENG = await window.echo.engSet({ googleVoice: b.dataset.gv }); engRender(); }));
-  } else pn.innerHTML = '<p class="muted">Голоса Microsoft выбираются в карточках ниже</p>';
-}
-async function engRefresh() { try { ENG = await window.echo.engStatus(); engRender(); } catch (_) {} }
-$$('.eng').forEach((b) => (b.onclick = async () => { ENG = await window.echo.engSet({ engine: b.dataset.eng }); engRender(); }));
-window.echo.onEngProgress((d) => { engBusy[d.id] = d.p; engRender(); });
-engRefresh();
-
 refreshKaspiUi();
