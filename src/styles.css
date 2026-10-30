@@ -234,20 +234,19 @@ select::-webkit-scrollbar-button{display:none}
 .empty{margin:auto}
 
 /* ===== вкладки «Эфир» и «Виджеты»: всё помещается без прокрутки ===== */
-#tab-live .cols,#tab-widgets .cols{flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
-#tab-live .col-left,#tab-widgets .col-left{min-height:0}
+#tab-live .cols{flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
+#tab-live .col-left{min-height:0}
 #tab-live .card{padding:16px 18px}
 #tab-live h2{margin-bottom:10px}
 #tab-live .conn-rows{margin-top:12px;padding-top:10px;gap:8px}
 #tab-live .tips{flex:none}
-#tab-widgets .cols{grid-template-columns:minmax(360px,420px) minmax(0,1fr)}
+#tab-widgets .cols{grid-template-columns:minmax(360px,420px) minmax(0,1fr);grid-template-rows:auto;align-items:stretch;flex:none}
 body.t-widgets .stats{display:none}
 #tab-widgets .card{padding:16px 18px}
 #tab-widgets .muted{margin-bottom:8px}
 #tab-widgets .note{margin-top:12px}
 #tab-widgets .sw{padding:6px 0}
 #tab-widgets .ctl{margin-top:2px}
-#tab-widgets .col-right{min-height:0}
 
 /* кнопки виджета: не вылезают за карточку */
 .wbtn-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
@@ -452,10 +451,13 @@ label+.csel{margin-top:0}
 .nav[hidden]{display:none}
 
 /* виджет «Топ лайков» */
-.likes-card{margin-top:16px}
-.likes-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;margin-top:6px}
 .likes-card select{width:100%}
-.lk-prev{height:250px;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;
+#tab-widgets .likes-row .preview-card{min-height:300px}
+.lk-prev{flex:1;min-height:200px;border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;
   background:linear-gradient(135deg,#1b2a3d,#2b1f3d 55%,#3a1f33),#111}
 .lk-prev iframe{position:absolute;left:0;top:0;width:100%;height:100%;border:0;background:transparent;pointer-events:none}
-#tab-widgets>.cols,#tab-widgets>.likes-card{flex:none}
+#tab-widgets>*{flex:none}
+#tab-widgets .wtop,#tab-widgets .wsettings,#tab-widgets .likes-row{margin-bottom:16px}
+#tab-widgets .wsettings .toggles.two{grid-template-columns:1fr 1fr;gap:0 28px}
+.ctl-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 28px;margin-top:6px}
+@media(max-width:1180px){.ctl-row{grid-template-columns:1fr}#tab-widgets .wsettings .toggles.two{grid-template-columns:1fr}}

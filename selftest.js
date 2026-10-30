@@ -202,14 +202,21 @@ const PAGE_TEST = `(async () => {
     const vtw = $('.vv.tw'), vtwHidden = vtw.hidden; vtw.hidden = false; // счётчик Twitch скрыт, пока Twitch не подключён: на время замера показываем
     add('ui', 'плашка «Зрители сейчас» делится на TikTok и Twitch', !!$('#sViewers') && !!$('#sViewersTw') && $('#sViewers').closest('.vv').classList.contains('tt') && $('#sViewersTw').closest('.vv').classList.contains('tw') && rr($('#sViewersTw')).left > rr($('#sViewers')).left);
     vtw.hidden = vtwHidden;
+    { const tp = rr($('.tips')), cn = rr($('#btnConnect').closest('.card'));
+      add('ui', 'эфир: «Перед эфиром» сверху, «Подключение» под ним', tp.bottom <= cn.top + 1 && Math.abs(tp.left - cn.left) <= 1, JSON.stringify([tp.bottom, cn.top].map(Math.round)));
+      add('ui', 'раздел называется «Озвучка»', $('.nav[data-tab=voice]').textContent.trim() === 'Озвучка'); }
     add('ui', 'вкладка «Эфир» без прокрутки', $('#tab-live').scrollHeight <= $('#tab-live').clientHeight + 1, $('#tab-live').scrollHeight + '/' + $('#tab-live').clientHeight);
     const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
     add('ui', 'кнопка «Очистить» внутри карточки ленты', ca.right <= cf.right && ca.left >= cf.left && ca.bottom <= cf.bottom, JSON.stringify([ca.right, cf.right]));
     $('.nav[data-tab=widgets]').click(); await sleep(400);
-    add('ui', 'вкладка «Виджеты» без прокрутки (в окне нормального размера; в совсем маленьком окне превью не сжимается, а вкладка прокручивается)', innerWidth < 1060 || innerHeight < 720 || $('#tab-widgets').scrollHeight <= $('#tab-widgets').clientHeight + 1, $('#tab-widgets').scrollHeight + '/' + $('#tab-widgets').clientHeight);
     { const fb = rr($('#pvFrame')), bb = rr($('.prev-box'));
       add('ui', 'предпросмотр целиком помещается в своём блоке', fb.left >= bb.left - 1 && fb.right <= bb.right + 1 && fb.top >= bb.top - 1 && fb.bottom <= bb.bottom + 1 && bb.height >= 60, JSON.stringify([fb.width, fb.height, bb.width, bb.height].map(Math.round))); }
-    add('ui', 'предпросмотр виджета под карточкой виджета', !!$('#pvFrame') && rr($('#pvFrame')).top > rr($('#wCopy')).bottom, '');
+    { const wl = rr($('#wCopy').closest('.card')), pv = rr($('#pvFrame').closest('.card')), st = rr($('#wScale').closest('.card'));
+      add('ui', 'виджеты: предпросмотр справа от виджетов чата, одинаковой высоты', pv.left >= wl.right - 1 && Math.abs(pv.height - wl.height) <= 1 && Math.abs(pv.top - wl.top) <= 1, JSON.stringify([wl.height, pv.height].map(Math.round)));
+      add('ui', 'виджеты: настройки выбранного виджета под верхним рядом', st.top >= Math.max(wl.bottom, pv.bottom) - 1, JSON.stringify([st.top, wl.bottom, pv.bottom].map(Math.round)));
+      const lkEl = $('#lCount').closest('.card'), lpEl = $('#lkFrame').closest('.card'), lk = rr(lkEl), lp = rr(lpEl), tl = rr($('#lTest'));
+      add('ui', 'топ лайков: настройки и ссылка слева, справа только предпросмотр с кнопкой «Тест»', lkEl.contains($('#lUrl')) && lk.right <= lp.left + 1 && lpEl.contains($('#lTest')) && tl.left >= lp.left && tl.right <= lp.right && lpEl.querySelectorAll('input,select,textarea').length === 0 && lpEl.querySelectorAll('button').length === 1 && Math.abs(lk.height - lp.height) <= 1, JSON.stringify([lk.height, lp.height].map(Math.round)));
+    }
     const wc = rr($('#wClear')), wcard = rr($('#wClear').closest('.card'));
     add('ui', 'кнопки виджета не вылезают за карточку', wc.right <= wcard.right && wc.left >= wcard.left, JSON.stringify([wc.right, wcard.right]));
     $('.nav[data-tab=live]').click();

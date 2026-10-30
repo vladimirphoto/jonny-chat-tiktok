@@ -17,7 +17,7 @@
       </div>
       <nav>
         <button class="nav active" data-tab="live"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>Эфир</button>
-        <button class="nav" data-tab="voice"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>Голос</button>
+        <button class="nav" data-tab="voice"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>Озвучка</button>
         <button class="nav" data-tab="filters"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></svg>Фильтры</button>
         <button class="nav" data-tab="widgets"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg>Виджеты</button>
         <button class="nav" data-tab="kaspi" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.9 9.3c-.4-1-1.4-1.5-2.8-1.5-1.6 0-2.7.8-2.7 2s1 1.7 2.7 2c1.7.3 2.9.9 2.9 2.2 0 1.3-1.3 2.1-2.9 2.1-1.5 0-2.6-.6-3-1.7M12 6.4v1.4M12 16.3v1.4"/></svg>Донаты Каспи</button>
@@ -45,6 +45,14 @@
       <section class="tab show" id="tab-live">
         <div class="cols">
           <div class="col-left">
+            <div class="card tips">
+              <h2>Перед эфиром</h2>
+              <ol>
+                <li>Запусти TikTok LIVE</li>
+                <li>Введи ник и подключись</li>
+                <li>Выбери голос во вкладке «Озвучка»</li>
+              </ol>
+            </div>
             <div class="card">
               <h2>Подключение</h2>
               <p class="muted">Подключай платформы независимо друг от друга</p>
@@ -66,14 +74,6 @@
                 <div class="conn-row"><span>Время в эфире</span><b id="connTime">—</b></div>
               </div>
             </div>
-            <div class="card tips">
-              <h2>Перед эфиром</h2>
-              <ol>
-                <li>Запусти TikTok LIVE</li>
-                <li>Введи ник и подключись</li>
-                <li>Выбери голос во вкладке «Голос»</li>
-              </ol>
-            </div>
           </div>
           <div class="card feed-card">
             <div class="feed-head">
@@ -88,7 +88,7 @@
         </div>
       </section>
 
-      <!-- ГОЛОС -->
+      <!-- ОЗВУЧКА -->
       <section class="tab" id="tab-voice">
         <div class="cols">
           <div class="col-left">
@@ -166,64 +166,66 @@
 
       <!-- ВИДЖЕТЫ -->
       <section class="tab" id="tab-widgets">
-        <div class="cols">
-          <div class="col-left">
-            <div class="card">
-              <h2>Виджеты чата</h2>
-              <p class="muted">Для каждого места (OBS, TikTok LIVE Studio) — своя ссылка со своим выравниванием. Чат TikTok и Twitch на прозрачном фоне.</p>
-              <div class="wtabs" id="wTabs"></div>
-              <div class="align-row">
-                <div><label>Выравнивание TikTok</label><div class="csel" id="wAlignTtSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
-                <div><label>Выравнивание Twitch</label><div class="csel" id="wAlignTwSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
-              </div>
-              <label>Ссылка на виджет</label>
-              <div class="nick-field"><input id="wUrl" readonly spellcheck="false" /></div>
-              <div class="wstat" id="wStat"></div>
-              <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
+        <div class="cols wtop">
+          <div class="card">
+            <h2>Виджеты чата</h2>
+            <p class="muted">Для каждого места (OBS, TikTok LIVE Studio) — своя ссылка со своим выравниванием. Чат TikTok и Twitch на прозрачном фоне.</p>
+            <div class="wtabs" id="wTabs"></div>
+            <div class="align-row">
+              <div><label>Выравнивание TikTok</label><div class="csel" id="wAlignTtSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
+              <div><label>Выравнивание Twitch</label><div class="csel" id="wAlignTwSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div></div>
             </div>
-            <div class="card preview-card">
-              <div class="prev-head">
-                <div><h2>Предпросмотр</h2><small>Так виджет выглядит в OBS. Настройки применяются сразу</small></div>
-                <button class="btn ghost" id="pvTest">Тест</button>
-              </div>
-              <div class="prev-box"><iframe id="pvFrame" title="Предпросмотр чата" tabindex="-1"></iframe></div>
-            </div>
+            <label>Ссылка на виджет</label>
+            <div class="nick-field"><input id="wUrl" readonly spellcheck="false" /></div>
+            <div class="wstat" id="wStat"></div>
+            <div class="wbtn-row"><button class="btn wbtn primary" id="wCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</button><button class="btn wbtn ghost" id="wClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Очистить</button></div>
           </div>
-          <div class="col-right">
-            <div class="card">
-              <h2>Настройки виджета</h2>
-              <p class="muted">Свои для каждого виджета: переключай вкладки слева</p>
-              <div class="toggles" style="margin-top:8px">
-                <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
-                <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
-                <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
-                <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Лёгкая тень за сообщениями</span></label>
-                <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
-              </div>
+          <div class="card preview-card">
+            <div class="prev-head">
+              <div><h2>Предпросмотр</h2><small>Так виджет выглядит в OBS. Настройки применяются сразу</small></div>
+              <button class="btn ghost" id="pvTest">Тест</button>
+            </div>
+            <div class="prev-box"><iframe id="pvFrame" title="Предпросмотр чата" tabindex="-1"></iframe></div>
+          </div>
+        </div>
+        <div class="wsettings">
+          <div class="card">
+            <h2>Настройки виджета</h2>
+            <p class="muted">Свои для каждого виджета: переключай вкладки в блоке «Виджеты чата»</p>
+            <div class="toggles two" style="margin-top:8px">
+              <label class="sw"><input type="checkbox" data-k="wIcons" checked /><i></i><span>Иконки платформ (TikTok / Twitch)</span></label>
+              <label class="sw"><input type="checkbox" data-k="wAvatars" checked /><i></i><span>Аватарки</span></label>
+              <label class="sw"><input type="checkbox" data-k="wGifts" checked /><i></i><span>Показывать подарки</span></label>
+              <label class="sw"><input type="checkbox" data-k="wShadow" checked /><i></i><span>Лёгкая тень за сообщениями</span></label>
+              <label class="sw"><input type="checkbox" data-k="wFade" checked /><i></i><span>Исчезающие сообщения</span></label>
+            </div>
+            <div class="ctl-row">
               <div class="ctl"><div class="row"><label>Масштаб</label><b id="wScaleVal">100%</b></div><input type="range" id="wScale" min="50" max="200" value="100" /></div>
               <div class="ctl"><div class="row"><label>Высота чата</label><b id="wHeightVal">100%</b></div><input type="range" id="wHeight" min="20" max="100" value="100" /></div>
               <div class="ctl"><div class="row"><label>Исчезать через</label><b id="wFadeSecVal">20 с</b></div><input type="range" id="wFadeSec" min="3" max="120" value="20" /></div>
             </div>
           </div>
         </div>
-        <div class="card likes-card">
-          <h2>Топ лайков</h2>
-          <p class="muted">Отдельный виджет: самые активные зрители TikTok по лайкам за эфир — закруглённые квадратики с аватарками и никами. Таблица обнуляется при новом подключении к эфиру. Ссылка подходит и для OBS, и для Twitch Studio (источник «Браузер»)</p>
-          <div class="likes-grid">
-            <div>
-              <div class="ctl"><div class="row"><label>Сколько показывать</label><b id="lCountVal">5</b></div><input type="range" id="lCount" min="5" max="10" value="5" /></div>
-              <div class="toggles" style="margin-top:10px">
-                <label class="sw"><input type="checkbox" data-lk="showCount" checked /><i></i><span>Число лайков под аватаркой</span></label>
-                <label class="sw"><input type="checkbox" data-lk="showRank" checked /><i></i><span>Номер места</span></label>
-                <label class="sw"><input type="checkbox" data-lk="shadow" checked /><i></i><span>Лёгкая тень за никами</span></label>
-              </div>
+        <div class="cols likes-row">
+          <div class="card likes-card">
+            <h2>Топ лайков</h2>
+            <p class="muted">Отдельный виджет: самые активные зрители TikTok по лайкам за эфир — закруглённые квадратики с аватарками и никами. Таблица обнуляется при новом подключении к эфиру. Ссылка подходит и для OBS, и для Twitch Studio (источник «Браузер»)</p>
+            <div class="ctl"><div class="row"><label>Сколько показывать</label><b id="lCountVal">5</b></div><input type="range" id="lCount" min="5" max="10" value="5" /></div>
+            <div class="toggles" style="margin-top:10px">
+              <label class="sw"><input type="checkbox" data-lk="showCount" checked /><i></i><span>Число лайков под аватаркой</span></label>
+              <label class="sw"><input type="checkbox" data-lk="showRank" checked /><i></i><span>Номер места</span></label>
+              <label class="sw"><input type="checkbox" data-lk="shadow" checked /><i></i><span>Лёгкая тень за никами</span></label>
             </div>
-            <div>
-              <label style="margin-top:0">Ссылка на виджет (OBS и Twitch)</label>
-              <div class="nick-field"><input id="lUrl" readonly spellcheck="false" /></div>
-              <div class="wbtn-row wbtn-row3"><button class="btn wbtn primary" id="lCopy">Копировать</button><button class="btn wbtn ghost" id="lTest">Тест</button><button class="btn wbtn ghost" id="lClear">Сбросить</button></div>
-              <div class="lk-prev"><iframe id="lkFrame" title="Предпросмотр топа лайков" tabindex="-1"></iframe></div>
+            <label>Ссылка на виджет (OBS и Twitch)</label>
+            <div class="nick-field"><input id="lUrl" readonly spellcheck="false" /></div>
+            <div class="wbtn-row"><button class="btn wbtn primary" id="lCopy">Копировать</button><button class="btn wbtn ghost" id="lClear">Сбросить</button></div>
+          </div>
+          <div class="card preview-card">
+            <div class="prev-head">
+              <div><h2>Предпросмотр</h2><small>Так виджет выглядит в OBS. Настройки применяются сразу</small></div>
+              <button class="btn ghost" id="lTest">Тест</button>
             </div>
+            <div class="lk-prev"><iframe id="lkFrame" title="Предпросмотр топа лайков" tabindex="-1"></iframe></div>
           </div>
         </div>
       </section>
