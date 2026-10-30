@@ -387,13 +387,15 @@ const qrcode = require('qrcode-generator');
 const kaspiHost = () => `${kaspi.lanAddresses()[0] || '127.0.0.1'}:${krx && krx.port ? krx.port : 0}`;
 // подписанный шаблон кладётся в сборку на macOS-раннере (iOS не принимает неподписанные команды)
 const signedShortcutPath = () => { const fs = require('fs'), path = require('path'); return [path.join(__dirname, 'assets', 'EchoChat-Kaspi.signed.shortcut'), path.join(process.resourcesPath || '', 'app.asar', 'assets', 'EchoChat-Kaspi.signed.shortcut')].find((f) => { try { return fs.statSync(f).size > 100; } catch (_) { return false; } }); };
+// вариант без Mac: ссылка iCloud на команду, созданную на iPhone (Apple сама её подписывает) — в assets/shortcut-link.txt
+const icloudLink = () => { try { const t = require('fs').readFileSync(require('path').join(__dirname, 'assets', 'shortcut-link.txt'), 'utf8').trim(); return /^https:\/\/www\.icloud\.com\/shortcuts\/[\w-]+$/.test(t) ? t : ''; } catch (_) { return ''; } };
 const buildShortcutFile = async () => { const f = signedShortcutPath(); if (!f) throw new Error('нет подписанной команды'); return { buf: require('fs').readFileSync(f), signed: true }; };
 const shortcutUrl = () => `http://${kaspiHost()}/shortcut/${dset.token}/EchoChat-Kaspi.shortcut`;
 // адрес команды и QR (SVG) для камеры iPhone; токен наружу не уходит никуда, кроме окна приложения
 ipcMain.handle('kaspi:shortcut', () => {
   if (!krx || !krx.port) return { ok: false, error: 'Приём выключен. Включи переключатель выше' };
-  const url = shortcutUrl(), q = qrcode(0, 'M'); q.addData(url); q.make();
-  return { ok: true, url, qr: q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }), signed: !!signedShortcutPath() };
+  const link = icloudLink(), url = link || shortcutUrl(), q = qrcode(0, 'M'); q.addData(url); q.make();
+  return { ok: true, url, qr: q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }), signed: !!link || !!signedShortcutPath() };
 });
 // тестовые уведомления в формате Каспи идут через настоящий приёмник: проверяется весь путь
 ipcMain.handle('kaspi:sample', async (_e, i) => {

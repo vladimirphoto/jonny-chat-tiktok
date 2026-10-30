@@ -893,7 +893,7 @@ $('#kShortcut').onclick = async () => {
   const r = await window.echo.kaspiShortcut().catch((e) => ({ ok: false, error: String(e && e.message || e) }));
   if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
   $('#kQr').innerHTML = r.qr; $('#kScUrl').value = r.url; kQrDone = r.url;
-  $('#kScNote').textContent = r.signed ? '' : 'В этой сборке нет подписанной команды: iOS её не примет. Скачайте сборку из раздела Releases.';
+  $('#kScNote').textContent = r.signed ? '' : 'В этой сборке нет подписанной команды, iOS не примет неподписанную. Нужен разовый шаг разработчика: README, раздел «Подпись команды».';
 };
 $('#kScUrl').onfocus = (e) => e.target.select();
 $('#kTokCopy').onclick = async () => {
