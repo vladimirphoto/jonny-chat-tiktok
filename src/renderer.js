@@ -328,32 +328,6 @@ $('#btnClear').onclick = resetEmpty;
 const BAD = /(?:^|[^а-яё])(?:х[уy][йяеёию]|пизд|бл[яе]д|бля|еб[аауо]|ёб|ебл|сук[аи]|муд[аи]|гондон|залуп|пидор|пидр|шлюх|дроч|нахуй|нахер)/i;
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu;
 const recent = new Map();
-// ники, которые уже писали в эфире (в нижнем регистре): по ним точно понимаем, где кончается упоминание из двух слов
-const knownNicks = new Set();
-const rememberNick = (name) => { const n = String(name || '').trim().toLowerCase(); if (n) { if (knownNicks.size > 5000) knownNicks.clear(); knownNicks.add(n); } };
-// вырезает @упоминания: сначала известный ник (длинный раньше короткого), иначе только «@слово»
-// и только если слово с заглавной и рядом такое же с заглавной — второе слово ника тоже уходит
-function stripMentions(t) {
-  let out = '';
-  for (let i = 0; i < t.length;) {
-    if (t[i] !== '@') { out += t[i++]; continue; }
-    const orig = t.slice(i + 1), low = orig.toLowerCase();
-    let cut = 0;
-    for (const nick of knownNicks) {
-      if (nick.length > cut && low.startsWith(nick) && !/[\p{L}\p{N}_]/u.test(low.charAt(nick.length))) cut = nick.length;
-    }
-    if (!cut) {
-      const w = /^[\p{L}\p{N}_.-]+/u.exec(orig);
-      if (w) {
-        cut = w[0].length;
-        const second = /^\s+\p{Lu}[\p{L}\p{N}_.-]*/u.exec(orig.slice(cut));
-        if (second && /^\p{Lu}/u.test(w[0])) cut += second[0].length;
-      }
-    }
-    i += 1 + cut;
-  }
-  return out;
-}
 
 function clean(raw) {
   let t = String(raw || '').trim();
@@ -362,7 +336,7 @@ function clean(raw) {
   if (S.skipCmd && /^[!/]/.test(t)) return null;
   t = t.replace(/\[[A-Za-z0-9_ ]{1,24}\]/g, ' '); // смайлы TikTok вида [rose]
   // ник с кириллицей тоже (\w не понимает русские буквы); ник из двух слов («@Анна Петрова») — вторую часть с заглавной тоже убираем
-  if (S.skipMentions) t = stripMentions(t);
+  if (S.skipMentions) t = t.replace(/@[\p{L}\p{N}_.-]+(\s+\p{Lu}[\p{L}\p{N}_.-]*)?/gu, '');
   t = t.replace(/(\p{L})\1{2,}/gu, '$1').replace(/\s+/g, ' ').trim(); // «приветттт» -> «привет»
   if (!t || !/[a-zа-яё0-9]/i.test(t)) return null;
   if (S.onlyRu && !/[а-яё]/i.test(t)) return null;
@@ -479,7 +453,6 @@ function handleChat(m, platform) {
   if (!m.text || isBacklog(m, platform)) return; // пустые и старые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub, avatar: m.avatar, platform });
   if (platform === 'twitch' ? !S.twChat : !S.ttChat) return; // озвучка этой платформы выключена — сообщение остаётся в ленте
-  rememberNick(m.name);
   const t = clean(m.text);
   if (!t) return;
   enqueue({ el, say: S.readName ? `${speakName(m.name)}: ${t}` : t, preset: platform === 'twitch' ? twPreset() : ttPreset() });
