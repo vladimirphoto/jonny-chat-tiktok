@@ -28,7 +28,7 @@ const DEFAULTS = {
   widgets: [], wSel: '', twNick: '',
   ttChat: true, twChat: true, readName: true, gifts: true, follows: true, eventVoice: '', ttVoice: '', twVoice: '',
   skipCmd: true, skipLinks: true, onlyRu: true, noRepeat: true, profanity: true, skipMentions: true, noEmoji: true,
-  kaspi: { enabled: false, token: '', relayUrl: '', strict: true, minAmount: 0, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true, voice: true },
+  kaspi: { enabled: false, token: '', strict: true, minAmount: 0, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true, voice: true },
 };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('echochat2') || '{}') }; } catch (_) {}
@@ -851,14 +851,16 @@ async function refreshDonateLink() {
   const r = await window.echo.donateLink().catch(() => null);
   $('#dUrl').value = r && r.ok ? r.url : 'Не удалось запустить сервер виджета';
 }
-const kaspiAddr = () => `http://${kState.ips[0] || 'IP-компьютера'}:${kState.port || '…'}/kaspi/${K.token}`;
+// есть сервер (assets/relay-url.txt) — в команду идёт его адрес, телефон тогда работает из любой сети; иначе адрес компьютера в Wi-Fi
+const kaspiAddr = () => kState.relayBase ? `${kState.relayBase}/notify.php?token=${K.token}` : `http://${kState.ips[0] || 'IP-компьютера'}:${kState.port || '…'}/kaspi/${K.token}`;
 function setKStat(text, tone) { const e = $('#kStat'); e.textContent = text; e.className = 'kstat' + (tone ? ' ' + tone : ''); }
 function refreshKaspiUi() {
   $('#kTok').value = K.token || '';
   $('#kBox').hidden = !K.enabled;
   if (!K.enabled) return setKStat('Приём отключён', 'bad');
   $('#kUrl').value = kaspiAddr();
-  if (!kState.running) setKStat('Запускаю приём…', '');
+  if (kState.relayBase) setKStat(kState.relay === false ? 'Нет связи с сервером приёма, проверь интернет' : 'Приём включён: телефон шлёт уведомления через сервер, общий Wi-Fi не нужен', kState.relay === false ? 'bad' : 'ok');
+  else if (!kState.running) setKStat('Запускаю приём…', '');
   else if (!kState.ips.length) setKStat('Не найдено подключение к локальной сети: подключи компьютер к Wi-Fi или кабелю', 'bad');
   else setKStat('Приём включён' + (kState.ips.length > 1 ? '. Другие адреса компьютера: ' + kState.ips.slice(1).join(', ') : ''), 'ok');
 }
@@ -867,20 +869,7 @@ async function copyFrom(inputSel, btn, label) {
   try { await navigator.clipboard.writeText(inp.value); } catch (_) { inp.select(); document.execCommand('copy'); }
   btn.textContent = '✓ Скопировано'; setTimeout(() => { btn.textContent = label; }, 1500);
 }
-// приём через интернет: ссылка для команды iPhone (то же, что у сервисов вида kzdon.kz/api_ios/notify.php)
-const relayBase = () => String(K.relayUrl || '').trim().replace(/\/+$/, '').replace(/\/(?:poll|notify)\.php$/i, '');
-function refreshRelayUi() {
-  const b = relayBase(), okUrl = /^https?:\/\/[^\s/]+/i.test(b);
-  $('#kRelayLink').value = okUrl ? `${b}/notify.php?token=${K.token}&bank=kaspi&text=` : '';
-  $('#kRelayStat').textContent = !okUrl ? '' : kState.relay === true ? 'Сервер отвечает, приложение получает уведомления' : kState.relay === false && kState.relayError ? 'Нет связи с сервером: ' + kState.relayError : '';
-}
-$('#kRelayUrl').value = K.relayUrl || '';
-$('#kRelayUrl').oninput = (e) => { K.relayUrl = e.target.value.trim(); pushDonate(); refreshRelayUi(); };
-$('#kRelayUrl').onfocus = (e) => e.target.select();
-$('#kRelayLink').onfocus = (e) => e.target.select();
-$('#kRelayCopy').onclick = () => copyFrom('#kRelayLink', $('#kRelayCopy'), 'Скопировать ссылку');
-if (window.echo.onKaspiRelay) window.echo.onKaspiRelay((s) => { kState.relay = s.ok; kState.relayError = s.error || ''; refreshRelayUi(); });
-refreshRelayUi();
+if (window.echo.onKaspiRelay) window.echo.onKaspiRelay((s) => { kState.relay = s.ok; refreshKaspiUi(); });
 $('#dUrl').onfocus = (e) => e.target.select();
 $('#kUrl').onfocus = (e) => e.target.select();
 $('#dCopy').onclick = () => copyFrom('#dUrl', $('#dCopy'), 'Копировать');

@@ -351,7 +351,7 @@ ipcMain.handle('net:state', () => netOnline);
 
 // ---------- Донаты Каспи ----------
 const kaspi = require('./kaspi');
-let dset = { enabled: false, token: '', relayUrl: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
+let dset = { enabled: false, token: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
 let krx = null, krxP = null;
 const donateWidgetSettings = () => ({ duration: dset.duration, scale: dset.scale, align: dset.align, vpos: dset.vpos, showMessage: dset.showMessage });
 let lastDon = { key: '', t: 0 };
@@ -374,20 +374,33 @@ function onKaspiText(text) {
   send('kaspi:log', { t: Date.now(), raw: String(text).slice(0, 220), accepted: !!r.accepted, reason: r.reason || '', name: p.name || '', amount: p.amount || 0 });
   return r;
 }
-// приём через интернет: телефон шлёт на сервер-посредник (relay/*.php), приложение забирает оттуда
+// приём через интернет: телефон шлёт на наш сервер (relay/*.php), приложение забирает оттуда.
+// Адрес сервера лежит в assets/relay-url.txt (его можно менять в репозитории без новой сборки, как ссылку на команду).
+// Файл пустой — работает только приём по Wi-Fi
 const relayMod = require('./relay');
-let relayRx = null, relayKey = '', relayOk = null;
-function applyRelay() {
-  const base = relayMod.normBase(dset.relayUrl);
-  const want = !!dset.enabled && !!dset.token && relayMod.isHttp(base);
-  const key = want ? base + '|' + dset.token : '';
+let relayRx = null, relayKey = '', relayOk = null, relayBaseNow = '', relayCache = { t: 0, v: '' };
+const firstUrl = (t) => relayMod.normBase(String(t || '').split(/\r?\n/).map((x) => x.trim()).find((x) => /^https?:\/\//i.test(x)) || '');
+const relayLocal = () => { try { return firstUrl(require('fs').readFileSync(require('path').join(__dirname, 'assets', 'relay-url.txt'), 'utf8')); } catch (_) { return ''; } };
+async function relayServer() {
+  if (Date.now() - relayCache.t < 600000) return relayCache.v || relayLocal();
+  try {
+    const r = await fetch('https://raw.githubusercontent.com/vladimirphoto/jonny-chat-tiktok/main/assets/relay-url.txt', { signal: AbortSignal.timeout(3000) });
+    relayCache = { t: Date.now(), v: r.ok ? firstUrl(await r.text()) : '' };
+  } catch (_) { relayCache = { t: Date.now() - 540000, v: relayCache.v }; }
+  return relayCache.v || relayLocal();
+}
+async function applyRelay() {
+  const base = await relayServer();
+  relayBaseNow = relayMod.isHttp(base) ? base : '';
+  const want = !!dset.enabled && !!dset.token && !!relayBaseNow;
+  const key = want ? relayBaseNow + '|' + dset.token : '';
   if (key === relayKey) return;
   if (relayRx) { relayRx.close(); relayRx = null; }
   relayKey = key; relayOk = null;
-  if (want) relayRx = relayMod.startRelay({ getConfig: () => dset, onNotification: onKaspiText, onState: (s) => { relayOk = s; send('kaspi:relay', s); } });
+  if (want) relayRx = relayMod.startRelay({ getConfig: () => ({ enabled: dset.enabled, token: dset.token, relayUrl: relayBaseNow }), onNotification: onKaspiText, onState: (s) => { relayOk = s; send('kaspi:relay', s); } });
 }
 async function applyKaspi() {
-  applyRelay();
+  await applyRelay();
   const want = !!dset.enabled && !!dset.token;
   if (want && !krx) {
     if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText, getShortcut: (host) => buildShortcutFile(host) }).then((r) => { krx = r; krxP = null; return r; });
@@ -434,7 +447,7 @@ ipcMain.handle('kaspi:sample', async (_e, i) => {
     rq.end(JSON.stringify({ text: smp.text }));
   });
 });
-const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses(), relay: relayOk ? relayOk.ok : null, relayError: relayOk ? relayOk.error : '' });
+const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses(), relay: relayOk ? relayOk.ok : null, relayBase: relayBaseNow });
 ipcMain.handle('donate:set', async (_e, s) => {
   dset = { ...dset, ...(s || {}) };
   wsrv && wsrv.broadcast('dsettings', donateWidgetSettings());
