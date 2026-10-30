@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('echo', {
   kaspiProbe: () => ipcRenderer.invoke('kaspi:probe'),
   onDonate: on('kaspi:donate'),
   onKaspiLog: on('kaspi:log'),
+  onKaspiRelay: on('kaspi:relay'),
   netCheck: () => ipcRenderer.invoke('net:check'),
   netState: () => ipcRenderer.invoke('net:state'),
   onNet: on('net:status'),

@@ -351,7 +351,7 @@ ipcMain.handle('net:state', () => netOnline);
 
 // ---------- Донаты Каспи ----------
 const kaspi = require('./kaspi');
-let dset = { enabled: false, token: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
+let dset = { enabled: false, token: '', relayUrl: '', minAmount: 0, strict: true, duration: 8, scale: 100, align: 'center', vpos: 'bottom', showMessage: true };
 let krx = null, krxP = null;
 const donateWidgetSettings = () => ({ duration: dset.duration, scale: dset.scale, align: dset.align, vpos: dset.vpos, showMessage: dset.showMessage });
 let lastDon = { key: '', t: 0 };
@@ -374,7 +374,20 @@ function onKaspiText(text) {
   send('kaspi:log', { t: Date.now(), raw: String(text).slice(0, 220), accepted: !!r.accepted, reason: r.reason || '', name: p.name || '', amount: p.amount || 0 });
   return r;
 }
+// приём через интернет: телефон шлёт на сервер-посредник (relay/*.php), приложение забирает оттуда
+const relayMod = require('./relay');
+let relayRx = null, relayKey = '', relayOk = null;
+function applyRelay() {
+  const base = relayMod.normBase(dset.relayUrl);
+  const want = !!dset.enabled && !!dset.token && relayMod.isHttp(base);
+  const key = want ? base + '|' + dset.token : '';
+  if (key === relayKey) return;
+  if (relayRx) { relayRx.close(); relayRx = null; }
+  relayKey = key; relayOk = null;
+  if (want) relayRx = relayMod.startRelay({ getConfig: () => dset, onNotification: onKaspiText, onState: (s) => { relayOk = s; send('kaspi:relay', s); } });
+}
 async function applyKaspi() {
+  applyRelay();
   const want = !!dset.enabled && !!dset.token;
   if (want && !krx) {
     if (!krxP) krxP = kaspi.startReceiver({ getConfig: () => dset, onNotification: onKaspiText, getShortcut: (host) => buildShortcutFile(host) }).then((r) => { krx = r; krxP = null; return r; });
@@ -421,7 +434,7 @@ ipcMain.handle('kaspi:sample', async (_e, i) => {
     rq.end(JSON.stringify({ text: smp.text }));
   });
 });
-const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses() });
+const kaspiState = () => ({ running: !!(krx && krx.port), port: krx ? krx.port : 0, ips: kaspi.lanAddresses(), relay: relayOk ? relayOk.ok : null, relayError: relayOk ? relayOk.error : '' });
 ipcMain.handle('donate:set', async (_e, s) => {
   dset = { ...dset, ...(s || {}) };
   wsrv && wsrv.broadcast('dsettings', donateWidgetSettings());
