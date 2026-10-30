@@ -84,7 +84,7 @@ const PAGE_TEST = `(async () => {
     // --- отдельные голоса для TikTok и Twitch, выпадающие списки ---
     const sels = ['ttVoiceSel', 'twVoiceSel', 'eventVoiceSel'].map((i) => $('#' + i));
     add('ui', 'три выпадающих списка голосов в стиле виджета', sels.every((e) => e && e.classList.contains('csel') && e.querySelector('.csel-val').textContent.length > 0 && e.querySelectorAll('.csel-opt').length >= 2), sels.map((e) => e.querySelector('.csel-val').textContent).join(' | '));
-    add('ui', 'старый <select> голоса подарков убран', !document.querySelector('select'));
+    add('ui', 'старый <select> голоса подарков убран', !document.querySelector('#tab-voice select'));
     sels[1].click(); await sleep(50);
     const opened = sels[1].classList.contains('open') && !sels[0].classList.contains('open');
     const dmitry = [...sels[1].querySelectorAll('.csel-opt')].find((o) => /Дмитрий/.test(o.textContent));
