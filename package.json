@@ -38,6 +38,7 @@
       "widget-page.js",
       "widget-donate-page.js",
       "kaspi.js",
+      "relay.js",
       "tts-engines.js",
       "shortcut.js",
       "selftest.js",
