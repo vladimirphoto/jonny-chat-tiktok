@@ -97,4 +97,5 @@ const TEST_NOTIFICATIONS = [
 
 // шаблон для подписи (в CI на macOS): адрес спрашивается при импорте, поэтому один подписанный файл подходит всем
 const buildTemplate = () => buildShortcut('http://192.168.0.5:7899/kaspi/ВАШ_ТОКЕН', true);
-module.exports = { buildTemplate, bplist, buildShortcut, signIfPossible, TEST_NOTIFICATIONS };
+const isICloudLink = (t) => /^https:\/\/www\.icloud\.com\/shortcuts\/[\w-]+$/.test(String(t || '').trim());
+module.exports = { isICloudLink, buildTemplate, bplist, buildShortcut, signIfPossible, TEST_NOTIFICATIONS };

@@ -113,3 +113,17 @@ test('Piper: аргументы без shell, скорость через length
   assert.equal(a[5], '0.50');
   assert.equal(te.piperArgs('m', 'o', 0.1)[5], '2.00');
 });
+
+test('обновление: берётся новейший релиз с EXE, пред-релизы и релизы без EXE пропускаются', () => {
+  const u = require('../updater.js');
+  const exe = (v, extra = {}) => ({ tag_name: 'v' + v, assets: [{ name: `E-${v}.exe`, browser_download_url: 'u' + v, size: 1 }], ...extra });
+  const list = [{ tag_name: 'v1.12.0', assets: [{ name: 'a.dmg' }] }, exe('1.11.9', { prerelease: true }), exe('1.11.0'), exe('1.10.1')];
+  assert.equal(u.pickRelease(list).version, '1.11.0');
+  assert.equal(u.pickRelease([]), null);
+});
+test('ссылка iCloud: только официальный адрес команды', () => {
+  const sc = require('../shortcut');
+  assert.equal(sc.isICloudLink('https://www.icloud.com/shortcuts/4e916b32ae1b47efbe3d85395359ceaa'), true);
+  assert.equal(sc.isICloudLink('https://evil.example/shortcuts/abc'), false);
+  assert.equal(sc.isICloudLink(''), false);
+});

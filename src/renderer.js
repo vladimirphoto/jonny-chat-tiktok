@@ -861,7 +861,7 @@ const kaspiAddr = () => `http://${kState.ips[0] || 'IP-компьютера'}:${
 function setKStat(text, tone) { const e = $('#kStat'); e.textContent = text; e.className = 'kstat' + (tone ? ' ' + tone : ''); }
 function refreshKaspiUi() {
   $('#kBox').hidden = !K.enabled;
-  if (!K.enabled) return;
+  if (!K.enabled) return setKStat('Приём отключён', 'bad');
   $('#kUrl').value = kaspiAddr();
   if (!kState.running) setKStat('Запускаю приём…', '');
   else if (!kState.ips.length) setKStat('Не найдено подключение к локальной сети: подключи компьютер к Wi-Fi или кабелю', 'bad');
@@ -949,6 +949,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.12.1': ['Статус приёма Каспи: красный «Приём отключён», когда тумблер выключен', 'Обновление по кнопке стало надёжнее: берётся последний релиз, где есть EXE', 'Ссылка iCloud на команду для iPhone подхватывается без новой сборки', 'Стрелка прокрутки чуть ниже'],
   '1.12.0': ['Донаты Каспи: переделан экран подключения iPhone за 4 шага', 'Подписанная команда для iPhone: iOS принимает её без «ненадёжных команд»', 'Новые движки озвучки: Piper (офлайн) и Google рядом с Edge', 'Настройки виджета донатов теперь под предпросмотром', 'Мягкая стрелка прокрутки без видимых границ'],
   '1.11.0': ['Донаты Каспи: готовая команда для iPhone — QR-код вместо ручной настройки', 'Токен подключения: копирование и перевыпуск одной кнопкой', 'Тестовые уведомления Каспи без настоящих переводов', 'Кнопка «Очистить» в журнале уведомлений', 'Блок подключения теперь сверху, настройки виджета ниже', 'Стрелка-подсказка прокрутки на странице озвучки', 'Обновление запускается сразу при старте программы'],
 };
@@ -1010,3 +1011,5 @@ async function engRefresh() { try { ENG = await window.echo.engStatus(); engRend
 $$('.eng').forEach((b) => (b.onclick = async () => { ENG = await window.echo.engSet({ engine: b.dataset.eng }); engRender(); }));
 window.echo.onEngProgress((d) => { engBusy[d.id] = d.p; engRender(); });
 engRefresh();
+
+refreshKaspiUi();

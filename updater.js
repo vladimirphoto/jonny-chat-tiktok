@@ -20,18 +20,31 @@ function isNewer(remote, local) {
 
 let found = null;
 
+// самый свежий не черновой и не пред-релиз со скачиваемым EXE (последний релиз мог выйти без EXE)
+function pickRelease(list) {
+  let best = null;
+  for (const rel of list || []) {
+    if (!rel || rel.draft || rel.prerelease) continue;
+    const asset = (rel.assets || []).find((a) => /\.exe$/i.test(a.name));
+    if (!asset) continue;
+    const version = String(rel.tag_name || '').replace(/^v/i, '');
+    if (!best || isNewer(version, best.version)) best = { version, asset, notes: rel.body || '' };
+  }
+  return best;
+}
+
 async function check() {
-  const res = await fetch(API, {
+  if (/paidtest/.test(app.getVersion())) return { ok: true, available: false, current: app.getVersion() }; // тестовая платная сборка не обновляется из основной ветки
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=15`, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'EchoChat-LIVE' },
   });
   if (res.status === 404) return { ok: true, available: false, current: app.getVersion() };
   if (!res.ok) throw new Error('GitHub ответил ' + res.status);
-  const rel = await res.json();
-  const asset = (rel.assets || []).find((a) => /\.exe$/i.test(a.name));
-  const version = String(rel.tag_name || '').replace(/^v/i, '');
-  const available = !!asset && isNewer(version, app.getVersion());
-  found = available ? { version, url: asset.browser_download_url, size: asset.size } : null;
-  return { ok: true, available, current: app.getVersion(), version, notes: rel.body || '', portable: !!process.env.PORTABLE_EXECUTABLE_FILE };
+  const best = pickRelease(await res.json());
+  if (!best) return { ok: true, available: false, current: app.getVersion() };
+  const available = isNewer(best.version, app.getVersion());
+  found = available ? { version: best.version, url: best.asset.browser_download_url, size: best.asset.size } : null;
+  return { ok: true, available, current: app.getVersion(), version: best.version, notes: best.notes, portable: !!process.env.PORTABLE_EXECUTABLE_FILE };
 }
 
 async function install(onProgress) {
@@ -82,4 +95,4 @@ async function install(onProgress) {
   return { ok: true };
 }
 
-module.exports = { check, install };
+module.exports = { check, install, pickRelease, isNewer };
