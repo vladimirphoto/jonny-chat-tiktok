@@ -854,6 +854,7 @@ async function refreshDonateLink() {
 const kaspiAddr = () => `http://${kState.ips[0] || 'IP-компьютера'}:${kState.port || '…'}/kaspi/${K.token}`;
 function setKStat(text, tone) { const e = $('#kStat'); e.textContent = text; e.className = 'kstat' + (tone ? ' ' + tone : ''); }
 function refreshKaspiUi() {
+  $('#kTok').value = K.token || '';
   $('#kBox').hidden = !K.enabled;
   if (!K.enabled) return setKStat('Приём отключён', 'bad');
   $('#kUrl').value = kaspiAddr();
@@ -880,19 +881,19 @@ $('#kProbe').onclick = async () => {
 };
 $('#kToken').onclick = () => {
   if (!confirm('Старый адрес перестанет работать, и телефон придётся настроить заново. Сменить?')) return;
-  K.token = newToken(); pushDonate();
+  K.token = newToken(); pushDonate(); refreshKaspiUi();
 };
 let kQrDone = '';
 $('#kShortcut').onclick = async () => {
   const r = await window.echo.kaspiShortcut().catch((e) => ({ ok: false, error: String(e && e.message || e) }));
   if (!r || !r.ok) return setKStat('Не получилось: ' + ((r && r.error) || 'нет ответа'), 'bad');
   $('#kQr').innerHTML = r.qr; $('#kScUrl').value = r.url; kQrDone = r.url;
-  $('#kScNote').textContent = r.signed ? '' : 'В этой сборке нет подписанной команды, iOS не примет неподписанную. Нужен разовый шаг разработчика: README, раздел «Подпись команды».';
+  $('#kScNote').textContent = '';
 };
 $('#kScUrl').onfocus = (e) => e.target.select();
 $('#kTokCopy').onclick = async () => {
   try { await navigator.clipboard.writeText(K.token); } catch (_) { const t = document.createElement('input'); t.value = K.token; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-  $('#kTokCopy').textContent = '✓ Скопировано'; setTimeout(() => { $('#kTokCopy').textContent = 'Копировать токен'; }, 1500);
+  $('#kTokCopy').textContent = '✓ Скопировано'; setTimeout(() => { $('#kTokCopy').textContent = 'Скопировать токен'; }, 1500);
 };
 let sampleN = 0;
 $('#kSamples').onclick = async () => {
@@ -943,6 +944,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.12.3': ['Подключение Каспи: шаг 1 — токен виден, копируется и перевыпускается', 'Готовая подписанная команда для iPhone по ссылке iCloud'],
   '1.12.2': ['Пауза ленты чата теперь полный стоп: сообщения не показываются и не озвучиваются, таймер убран'],
   '1.12.1': ['Статус приёма Каспи: красный «Приём отключён», когда тумблер выключен', 'Обновление по кнопке стало надёжнее: берётся последний релиз, где есть EXE', 'Ссылка iCloud на команду для iPhone подхватывается без новой сборки', 'Стрелка прокрутки чуть ниже'],
   '1.12.0': ['Донаты Каспи: переделан экран подключения iPhone за 4 шага', 'Подписанная команда для iPhone: iOS принимает её без «ненадёжных команд»', 'Новые движки озвучки: Piper (офлайн) и Google рядом с Edge', 'Настройки виджета донатов теперь под предпросмотром', 'Мягкая стрелка прокрутки без видимых границ'],
