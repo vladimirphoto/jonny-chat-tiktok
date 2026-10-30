@@ -202,8 +202,9 @@ const PAGE_TEST = `(async () => {
     const vtw = $('.vv.tw'), vtwHidden = vtw.hidden; vtw.hidden = false; // счётчик Twitch скрыт, пока Twitch не подключён: на время замера показываем
     add('ui', 'плашка «Зрители сейчас» делится на TikTok и Twitch', !!$('#sViewers') && !!$('#sViewersTw') && $('#sViewers').closest('.vv').classList.contains('tt') && $('#sViewersTw').closest('.vv').classList.contains('tw') && rr($('#sViewersTw')).left > rr($('#sViewers')).left);
     vtw.hidden = vtwHidden;
-    { const tp = rr($('.tips')), cn = rr($('#btnConnect').closest('.card'));
-      add('ui', 'эфир: «Перед эфиром» сверху, «Подключение» под ним', tp.bottom <= cn.top + 1 && Math.abs(tp.left - cn.left) <= 1, JSON.stringify([tp.bottom, cn.top].map(Math.round)));
+    { const tpEl = $('.tips'), cnEl = $('#btnConnect').closest('.card'), tp = rr(tpEl), cn = rr(cnEl);
+      // в невысоком окне «Перед эфиром» скрыт правилом CSS (так и было) — тогда сверяем только порядок в разметке
+      add('ui', 'эфир: «Перед эфиром» сверху, «Подключение» под ним', !!(tpEl.compareDocumentPosition(cnEl) & Node.DOCUMENT_POSITION_FOLLOWING) && (tp.height === 0 || (tp.bottom <= cn.top + 1 && Math.abs(tp.left - cn.left) <= 1)), JSON.stringify([tp.bottom, cn.top].map(Math.round)));
       add('ui', 'раздел называется «Озвучка»', $('.nav[data-tab=voice]').textContent.trim() === 'Озвучка'); }
     add('ui', 'вкладка «Эфир» без прокрутки', $('#tab-live').scrollHeight <= $('#tab-live').clientHeight + 1, $('#tab-live').scrollHeight + '/' + $('#tab-live').clientHeight);
     const ca = rr($('#btnClear')), cf = rr($('.feed-card'));
