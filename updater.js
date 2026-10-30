@@ -33,14 +33,38 @@ function pickRelease(list) {
   return best;
 }
 
+// запасной путь, когда API GitHub отвечает 403/429 (лимит 60 запросов в час на IP без токена): обычные страницы сайта.
+// Лента релизов (atom) даёт теги, страница expanded_assets — ссылку на exe
+async function pickViaWeb() {
+  const H = { 'User-Agent': 'EchoChat-LIVE' };
+  const feed = await fetch(`https://github.com/${REPO}/releases.atom`, { headers: H });
+  if (!feed.ok) throw new Error('GitHub ответил ' + feed.status);
+  const xml = await feed.text();
+  const tags = [...xml.matchAll(/<link[^>]+href="https:\/\/github\.com\/[^"]+\/releases\/tag\/([^"]+)"/g)].map((m) => decodeURIComponent(m[1]));
+  let best = null;
+  for (const tag of tags.slice(0, 8)) {
+    const version = tag.replace(/^v/i, '');
+    if (best && !isNewer(version, best.version)) continue;
+    const r = await fetch(`https://github.com/${REPO}/releases/expanded_assets/${encodeURIComponent(tag)}`, { headers: H });
+    if (!r.ok) continue;
+    const m = /href="(\/[^"]+\/releases\/download\/[^"]+?\.exe)"/i.exec(await r.text());
+    if (m) best = { version, asset: { browser_download_url: 'https://github.com' + m[1].replace(/&amp;/g, '&'), size: 0 }, notes: '' };
+  }
+  return best;
+}
+
 async function check() {
   if (/paidtest/.test(app.getVersion())) return { ok: true, available: false, current: app.getVersion() }; // тестовая платная сборка не обновляется из основной ветки
+  let best;
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=15`, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'EchoChat-LIVE' },
-  });
-  if (res.status === 404) return { ok: true, available: false, current: app.getVersion() };
-  if (!res.ok) throw new Error('GitHub ответил ' + res.status);
-  const best = pickRelease(await res.json());
+  }).catch(() => null);
+  if (res && res.status === 404) return { ok: true, available: false, current: app.getVersion() };
+  if (res && res.ok) best = pickRelease(await res.json());
+  else {
+    try { best = await pickViaWeb(); }
+    catch (e) { throw new Error(res ? 'GitHub ответил ' + res.status + (res.status === 403 || res.status === 429 ? ' (лимит запросов, попробуй позже)' : '') : String((e && e.message) || e)); }
+  }
   if (!best) return { ok: true, available: false, current: app.getVersion() };
   const available = isNewer(best.version, app.getVersion());
   found = available ? { version: best.version, url: best.asset.browser_download_url, size: best.asset.size } : null;
