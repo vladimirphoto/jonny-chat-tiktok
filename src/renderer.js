@@ -432,7 +432,6 @@ async function pump() {
   } finally { busy = false; document.body.classList.remove('talking'); }
 }
 
-$('#btnSkip').onclick = () => stopCurrent();
 $('#paused').addEventListener('change', (e) => {
   if (e.target.checked) { queue.length = 0; stopCurrent(); return; } // пауза: очередь сброшена, звук остановлен
   feed.scrollTop = feed.scrollHeight;
@@ -947,21 +946,29 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.13.3': ['Убрана кнопка «Пропустить» и карточка «Движок озвучки»: озвучка идёт голосами Microsoft Edge', 'Донаты Каспи временно скрыты из меню: готовится сервер приёма, сама функция в приложении сохранена', 'При запуске приложение проверяет обновления и показывает, что нового'],
+  '1.13.2': ['Обновление больше не падает с ошибкой «GitHub ответил 403»: приложение берёт версию из запасного источника'],
   '1.12.3': ['Подключение Каспи: шаг 1 — токен виден, копируется и перевыпускается', 'Готовая подписанная команда для iPhone по ссылке iCloud'],
   '1.12.2': ['Пауза ленты чата теперь полный стоп: сообщения не показываются и не озвучиваются, таймер убран'],
   '1.12.1': ['Статус приёма Каспи: красный «Приём отключён», когда тумблер выключен', 'Обновление по кнопке стало надёжнее: берётся последний релиз, где есть EXE', 'Ссылка iCloud на команду для iPhone подхватывается без новой сборки', 'Стрелка прокрутки чуть ниже'],
   '1.12.0': ['Донаты Каспи: переделан экран подключения iPhone за 4 шага', 'Подписанная команда для iPhone: iOS принимает её без «ненадёжных команд»', 'Новые движки озвучки: Piper (офлайн) и Google рядом с Edge', 'Настройки виджета донатов теперь под предпросмотром', 'Мягкая стрелка прокрутки без видимых границ'],
   '1.11.0': ['Донаты Каспи: готовая команда для iPhone — QR-код вместо ручной настройки', 'Токен подключения: копирование и перевыпуск одной кнопкой', 'Тестовые уведомления Каспи без настоящих переводов', 'Кнопка «Очистить» в журнале уведомлений', 'Блок подключения теперь сверху, настройки виджета ниже', 'Стрелка-подсказка прокрутки на странице озвучки', 'Обновление запускается сразу при старте программы'],
 };
+const vcmp = (a, b) => { const x = String(a).split('.').map((n) => parseInt(n, 10) || 0), y = String(b).split('.').map((n) => parseInt(n, 10) || 0); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); return 0; };
 (async () => {
   try {
-    const v = await window.echo.version(), list = CHANGES[v];
+    const v = await window.echo.version();
     let seen = ''; try { seen = localStorage.getItem('echo.seenVer') || ''; } catch (_) {}
-    if (!list || seen === v) return;
+    if (seen === v) return;
+    const markSeen = () => { try { localStorage.setItem('echo.seenVer', v); } catch (_) {} };
+    // пропустил несколько версий: показываем изменения всех, что вышли после последней виденной; первый запуск — только текущей
+    const vers = Object.keys(CHANGES).filter((k) => vcmp(k, v) <= 0 && (seen ? vcmp(k, seen) > 0 : k === v)).sort((a, b) => vcmp(b, a));
+    const list = vers.flatMap((k) => CHANGES[k]).slice(0, 8);
+    if (!list.length) return markSeen();
     $('#wnVer').textContent = 'Версия ' + v;
     $('#wnList').innerHTML = list.map((t) => `<li>${esc(t)}</li>`).join('');
     $('#wnBack').hidden = false;
-    $('#wnClose').onclick = () => { $('#wnBack').hidden = true; try { localStorage.setItem('echo.seenVer', v); } catch (_) {} };
+    $('#wnClose').onclick = () => { $('#wnBack').hidden = true; markSeen(); };
   } catch (_) {}
 })();
 $('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока ничего не приходило</div>'; };

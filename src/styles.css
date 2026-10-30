@@ -447,3 +447,5 @@ label+.csel{margin-top:0}
 .vsq.on{background:linear-gradient(160deg,rgba(139,92,246,.35),rgba(236,72,153,.2));border-color:rgba(167,139,250,.7)}
 .vsq.dl small{color:#a78bfa}
 .ktok{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);font:600 14px/1.2 Consolas,monospace;letter-spacing:.5px}
+
+.nav[hidden]{display:none}
