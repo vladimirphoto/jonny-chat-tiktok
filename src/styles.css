@@ -251,6 +251,7 @@ body.t-widgets .stats{display:none}
 
 /* кнопки виджета: не вылезают за карточку */
 .wbtn-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.wbtn-row.wbtn-row3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 #tab-widgets .wbtn-row{margin-top:10px}
 .wbtn{padding:10px 6px!important;font-size:13px;min-width:0;overflow:hidden}
 

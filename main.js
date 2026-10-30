@@ -352,7 +352,7 @@ ipcMain.handle('likes:set', (_e, s) => {
 });
 ipcMain.handle('likes:test', () => {
   const names = ['Анна', 'Max', 'Игорь', 'Дина', 'Марат', 'Света', 'Олег', 'Ксюша', 'Тимур', 'Лера'];
-  wsrv && wsrv.broadcast('likes', names.map((name, i) => ({ name, avatar: '', likes: 1200 - i * 97 - i * i * 5 })));
+  wsrv && wsrv.broadcast('likes', names.map((name, i) => ({ name, avatar: '', likes: Math.max(20, 1200 - i * 97 - i * i * 5) })));
   return { ok: true };
 });
 ipcMain.handle('likes:clear', () => { likesBoard.clear(); wsrv && wsrv.broadcast('likes', []); return { ok: true }; });
