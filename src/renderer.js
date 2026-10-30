@@ -969,8 +969,9 @@ let lkInit = false;
 function fitLikes() {
   const box = $('.lk-prev'), fr = $('#lkFrame'), w = box.clientWidth;
   if (!w) return;
-  const sc = Math.max(0.3, L.scale / 100), perRow = Math.min(L.count, 5), rows = Math.ceil(L.count / perRow); // в предпросмотре — до 5 в ряду, дальше второй ряд
-  const k = Math.min(1, w / ((perRow * 136 + 20) * sc), $('.lk-prev').clientHeight / ((rows * 200 + 20) * sc));
+  // k не зависит от выбранного масштаба: подгоняем под максимум слайдера (300%), иначе слайдер ничего не меняет в предпросмотре
+  const REF = 3, perRow = Math.min(L.count, 5), rows = Math.ceil(L.count / perRow); // в предпросмотре — до 5 в ряду, дальше второй ряд
+  const k = Math.min(1, w / ((perRow * 136 + 20) * REF), $('.lk-prev').clientHeight / ((rows * 200 + 20) * REF));
   try { fr.contentWindow.postMessage({ echochat: 'fit', k: Math.max(0.15, k) }, '*'); } catch (_) {}
 }
 async function initLikesPreview() {
