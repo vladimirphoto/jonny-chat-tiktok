@@ -225,6 +225,21 @@ const PAGE_TEST = `(async () => {
     add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
     add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));
 
+    // --- лента сама возвращается вниз после чтения; стрелка прокрутки кликабельна ---
+    { $('.nav[data-tab=live]').click(); await sleep(200);
+      const fd = document.getElementById('feed'); E.setFeedReturnMs(400);
+      for (let i = 0; i < 40; i++) E.addMsg({ name: 'Тест' + i, text: 'сообщение для проверки прокрутки номер ' + i });
+      fd.scrollTop = 0; fd.dispatchEvent(new WheelEvent('wheel', { deltaY: -100 }));
+      E.addMsg({ name: 'Новый', text: 'пришло во время чтения' });
+      const kept = E.feedFromBottom() > 40;
+      for (let i = 0; i < 40 && E.feedFromBottom() > 4; i++) await sleep(100);
+      add('ui', 'лента: при чтении не сдёргивается вниз, потом сама плавно возвращается', kept && E.feedFromBottom() <= 4, kept + ' / ' + Math.round(E.feedFromBottom()));
+      E.setFeedReturnMs(10000); $('#btnClear').click();
+      $('.nav[data-tab=voice]').click(); await sleep(500);
+      const tab = document.querySelector('.tab.show'), sh = document.getElementById('scrollHint');
+      if (sh.classList.contains('on')) { sh.querySelector('.sh-btn').click(); for (let i = 0; i < 40 && tab.scrollHeight - tab.scrollTop - tab.clientHeight > 2; i++) await sleep(100); }
+      add('ui', 'стрелка «листать»: клик плавно опускает страницу до конца', tab.scrollHeight - tab.scrollTop - tab.clientHeight <= 2, Math.round(tab.scrollHeight - tab.scrollTop - tab.clientHeight));
+      $('.nav[data-tab=live]').click(); }
     // --- проверка обновлений ---
     const up = await window.echo.checkUpdate();
     add('net', 'проверка обновлений', up.ok, JSON.stringify(up).slice(0, 160));

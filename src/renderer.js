@@ -301,6 +301,19 @@ const FEED_MAX = 150;
 let PAUSE_MS = 0; // таймера паузы больше нет: пауза — полный стоп, пока не снимешь
 const isPaused = () => $('#paused').checked;
 function addMsg(msg) { return renderMsg(msg); }
+// Лента сама возвращается вниз через FEED_RETURN_MS после того, как её перестали листать (на паузе и при выделенном тексте — нет)
+let FEED_RETURN_MS = 10000, feedUserAt = 0, feedTimer = null;
+const feedFromBottom = () => feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+function feedScheduleReturn() {
+  clearTimeout(feedTimer);
+  feedTimer = setTimeout(() => {
+    const sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed && feed.contains(sel.anchorNode)) return feedScheduleReturn(); // человек выделил текст — не мешаем
+    if (isPaused() || feedFromBottom() <= 4) return;
+    feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+  }, FEED_RETURN_MS);
+}
+['wheel', 'touchmove', 'pointerdown', 'keydown'].forEach((ev) => feed.addEventListener(ev, () => { feedUserAt = Date.now(); feedScheduleReturn(); }, { passive: true }));
 function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
   if (isPaused() && !/\bsys\b/.test(kind)) return document.createElement('div'); // на паузе сообщения чата не показываются и не озвучиваются
   $('.empty', feed)?.remove();
@@ -314,9 +327,11 @@ function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', pla
     im.onload = () => { av.style.backgroundImage = `url("${esc(avatar)}")`; av.textContent = ''; };
     im.src = avatar;
   }
+  // человек листает ленту вверх, чтобы прочитать: пока он «в процессе», новые сообщения её не сдёргивают вниз
+  const reading = Date.now() - feedUserAt < FEED_RETURN_MS && feedFromBottom() > 40;
   feed.appendChild(el);
   while (feed.children.length > FEED_MAX) feed.firstChild.remove();
-  if (!isPaused()) feed.scrollTop = feed.scrollHeight; // на паузе лента стоит на месте
+  if (!isPaused() && !reading) feed.scrollTop = feed.scrollHeight; // на паузе лента стоит на месте
   return el;
 }
 // цвет точки в «таблетке»: зелёный — подключились, красный — завершилось или ошибка, голубой — остальное
@@ -996,10 +1011,11 @@ async function initLikesPreview() {
 /* ---------- старт ---------- */
 renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate(); refreshLikesLink(); window.echo.likesSet({ ...L });
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, setFeedReturnMs(v) { FEED_RETURN_MS = v; }, feedFromBottom, addMsg, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.19.1': ['Лента чата сама возвращается вниз через 10 секунд после того, как её перестали листать (пока читаешь — новые сообщения её не сдёргивают)', 'Стрелка «можно листать» теперь кнопка: клик плавно опускает страницу до конца'],
   '1.19.0': ['Озвучка: голос для TikTok и Twitch выбирается в карточке голоса — выбери голос и нажми TikTok и/или Twitch', 'Голос подарков и подписок перенесён в «Что озвучивать»; карточка «Голоса платформ» убрана'],
   '1.18.4': ['Озвучка: слева «Что озвучивать», «Голоса платформ» и «Студия озвучки», справа «Мои голоса»'],
   '1.18.2': ['«Перед эфиром» теперь над «Подключением»', 'Раздел «Голос» переименован в «Озвучка»', 'Виджеты: предпросмотр справа от виджетов чата, настройки ниже; «Топ лайков»: настройки слева, предпросмотр с кнопкой «Тест» справа'],
@@ -1037,6 +1053,8 @@ $('#kLogClear').onclick = () => { klog.innerHTML = '<div class="empty">Пока 
 (() => {
   const hint = $('#scrollHint');
   const upd = () => { const tab = document.querySelector('.tab.show'); const more = !!tab && tab.scrollHeight - tab.scrollTop - tab.clientHeight > 40; hint.classList.toggle('on', more); };
+  // клик по стрелке — плавно до конца страницы
+  $('.sh-btn', hint).addEventListener('click', () => { const tab = document.querySelector('.tab.show'); if (tab) tab.scrollTo({ top: tab.scrollHeight, behavior: 'smooth' }); });
   document.addEventListener('scroll', upd, { passive: true, capture: true });
   window.addEventListener('resize', upd);
   setInterval(upd, 400);

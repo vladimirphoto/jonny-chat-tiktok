@@ -471,3 +471,9 @@ label+.csel{margin-top:0}
 .voice .rbtn.tt.on{background:#fe2c55;border-color:#fe2c55;color:#fff}
 .voice .rbtn.tw.on{background:#9146ff;border-color:#9146ff;color:#fff}
 .vgroup .vlabel{margin:10px 0 6px}
+
+/* стрелка «листать вниз» кликабельна, но сам светящийся круг клики не перехватывает */
+.sh-btn{position:relative;width:54px;height:54px;border-radius:50%;border:0;padding:0;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer;pointer-events:none;transition:background .2s,transform .2s}
+.scrollhint.on .sh-btn{pointer-events:auto}
+.sh-btn:hover{background:rgba(255,255,255,.12);transform:scale(1.08)}
+.sh-btn:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
