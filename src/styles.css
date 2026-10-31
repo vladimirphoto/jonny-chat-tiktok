@@ -461,3 +461,13 @@ label+.csel{margin-top:0}
 #tab-widgets .wsettings .toggles.two{grid-template-columns:1fr 1fr;gap:0 28px}
 .ctl-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 28px;margin-top:6px}
 @media(max-width:1180px){.ctl-row{grid-template-columns:1fr}#tab-widgets .wsettings .toggles.two{grid-template-columns:1fr}}
+
+/* выбранная карточка голоса: закрепить голос за TikTok / Twitch */
+.voice{flex-wrap:wrap}
+.voice .vroute{flex-basis:100%;display:flex;align-items:center;gap:8px;padding-top:9px;margin-top:2px;border-top:1px dashed rgba(255,255,255,.12);cursor:default}
+.voice .vroute span{margin-right:auto;color:var(--muted);font-size:12px}
+.voice .rbtn{padding:6px 14px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--muted);font:600 12px/1.2 inherit;cursor:pointer;transition:.2s}
+.voice .rbtn:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
+.voice .rbtn.tt.on{background:#fe2c55;border-color:#fe2c55;color:#fff}
+.voice .rbtn.tw.on{background:#9146ff;border-color:#9146ff;color:#fff}
+.vgroup .vlabel{margin:10px 0 6px}

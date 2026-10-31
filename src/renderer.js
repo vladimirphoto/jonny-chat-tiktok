@@ -203,11 +203,15 @@ function renderVoices() {
     d.dataset.id = p.id;
     d.innerHTML = `<div class="av">${esc((p.name[0] || '?').toUpperCase())}</div>
       <div class="vi"><b>${esc(p.name)}</b><small>${esc(p.desc || p.voice || '')}</small></div>
-      <span class="vtags">${S.ttVoice === p.id ? '<em class="tt">TikTok</em>' : ''}${S.twVoice === p.id ? '<em class="tw">Twitch</em>' : ''}</span>
+      <span class="vtags">${p.id !== S.selected && S.ttVoice === p.id ? '<em class="tt">TikTok</em>' : ''}${p.id !== S.selected && S.twVoice === p.id ? '<em class="tw">Twitch</em>' : ''}</span>
       <button class="mini play" title="Прослушать">${ICON_PLAY}</button>
-      ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}`;
+      ${p.builtin ? '' : '<button class="mini del" title="Удалить голос">✕</button>'}
+      ${p.id === S.selected ? `<div class="vroute"><span>Озвучивает чат:</span><button class="rbtn tt${S.ttVoice === p.id ? ' on' : ''}" data-r="tt" title="Озвучивать чат TikTok этим голосом">TikTok</button><button class="rbtn tw${S.twVoice === p.id ? ' on' : ''}" data-r="tw" title="Озвучивать чат Twitch этим голосом">Twitch</button></div>` : ''}`;
     d.onclick = () => { S.selected = p.id; save(); renderVoices(); refreshRate(); refreshPitch(); syncControls(); };
     $('.play', d).onclick = (e) => { e.stopPropagation(); previewPreset(p); };
+    $$('.rbtn', d).forEach((btn) => { // закрепить этот голос за платформой: у платформы всегда есть голос, поэтому «снять» нельзя — только назначить другой
+      btn.onclick = (e) => { e.stopPropagation(); S[btn.dataset.r === 'tt' ? 'ttVoice' : 'twVoice'] = p.id; save(); renderVoices(); };
+    });
     const del = $('.del', d);
     if (del) del.onclick = (e) => {
       e.stopPropagation();
@@ -222,11 +226,9 @@ function renderVoices() {
   fillVoiceSelects();
 }
 
-// голос чата TikTok, голос чата Twitch и голос для подарков и подписок — отдельные выпадающие списки
+// голос чата TikTok и Twitch закрепляется кнопками в карточке выбранного голоса; для подарков и подписок — список в «Что озвучивать»
 const voiceOpts = () => S.presets.map((p) => ({ v: p.id, label: p.name + ' · ' + (p.gender === 'M' ? 'муж.' : 'жен.') }));
 const routeSelects = [
-  makeSelect('ttVoiceSel', { options: voiceOpts, get: () => S.ttVoice, set: (v) => { S.ttVoice = v; save(); renderVoices(); } }),
-  makeSelect('twVoiceSel', { options: voiceOpts, get: () => S.twVoice, set: (v) => { S.twVoice = v; save(); renderVoices(); } }),
   makeSelect('eventVoiceSel', {
     options: () => [{ v: '', label: 'Как у чата TikTok' }, ...voiceOpts()],
     get: () => (S.presets.some((p) => p.id === S.eventVoice) ? S.eventVoice : ''),
@@ -998,6 +1000,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.19.0': ['Озвучка: голос для TikTok и Twitch выбирается в карточке голоса — выбери голос и нажми TikTok и/или Twitch', 'Голос подарков и подписок перенесён в «Что озвучивать»; карточка «Голоса платформ» убрана'],
   '1.18.4': ['Озвучка: слева «Что озвучивать», «Голоса платформ» и «Студия озвучки», справа «Мои голоса»'],
   '1.18.2': ['«Перед эфиром» теперь над «Подключением»', 'Раздел «Голос» переименован в «Озвучка»', 'Виджеты: предпросмотр справа от виджетов чата, настройки ниже; «Топ лайков»: настройки слева, предпросмотр с кнопкой «Тест» справа'],
   '1.18.0': ['Топ лайков: упрощён — только бегунок «Сколько показывать» (от 5 до 10) и три переключателя', 'Раскладка фиксированная: по 5 в ряду, всё по центру'],

@@ -71,8 +71,8 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
-    { const wh = $('[data-k=ttChat]').closest('.card'), rt = $('#voiceRoutes'), mv = $('#voices').closest('.card'), st = $('#studio'), rr2 = (e) => e.getBoundingClientRect();
-      add('ui', 'озвучка: слева «Что озвучивать», «Голоса платформ» и студия; справа «Мои голоса»', wh === $('#tab-voice .col-left').firstElementChild && rt === wh.nextElementSibling && st === rt.nextElementSibling && mv === $('#tab-voice .col-right').firstElementChild && !!st); }
+    { const wh = $('[data-k=ttChat]').closest('.card'), mv = $('#voices').closest('.card'), st = $('#studio');
+      add('ui', 'озвучка: слева «Что озвучивать» и студия, справа «Мои голоса»; карточки «Голоса платформ» нет', wh === $('#tab-voice .col-left').firstElementChild && st === wh.nextElementSibling && mv === $('#tab-voice .col-right').firstElementChild && !$('#voiceRoutes') && !$('#ttVoiceSel') && !$('#twVoiceSel')); }
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
     // --- озвучка: отдельные кнопки для TikTok и Twitch ---
     const vb = (k) => document.querySelector('input[data-k=' + k + ']');
@@ -82,19 +82,19 @@ const PAGE_TEST = `(async () => {
     vb('twChat').click();
     add('ui', 'переключатель озвучки Twitch переключается отдельно от TikTok', E.S.twChat === !tw0 && vb('twChat').checked === E.S.twChat && E.S.ttChat === true && vb('ttChat').checked, E.S.twChat + ' / ' + E.S.ttChat);
     vb('twChat').click();
-    // --- отдельные голоса для TikTok и Twitch, выпадающие списки ---
-    const sels = ['ttVoiceSel', 'twVoiceSel', 'eventVoiceSel'].map((i) => $('#' + i));
-    add('ui', 'три выпадающих списка голосов в стиле виджета', sels.every((e) => e && e.classList.contains('csel') && e.querySelector('.csel-val').textContent.length > 0 && e.querySelectorAll('.csel-opt').length >= 2), sels.map((e) => e.querySelector('.csel-val').textContent).join(' | '));
+    // --- голос для TikTok и Twitch закрепляется кнопками в карточке выбранного голоса ---
+    const evSel = $('#eventVoiceSel');
+    add('ui', 'голос подарков и подписок — список в стиле виджета внутри «Что озвучивать»', !!evSel && evSel.classList.contains('csel') && evSel.closest('.card').querySelector('[data-k=ttChat]') !== null && evSel.querySelectorAll('.csel-opt').length >= 3);
     add('ui', 'старый <select> голоса подарков убран', !document.querySelector('#tab-voice select'));
-    sels[1].click(); await sleep(50);
-    const opened = sels[1].classList.contains('open') && !sels[0].classList.contains('open');
-    const dmitry = [...sels[1].querySelectorAll('.csel-opt')].find((o) => /Дмитрий/.test(o.textContent));
-    dmitry.click(); await sleep(50);
-    sels[0].click(); await sleep(50);
-    [...sels[0].querySelectorAll('.csel-opt')].find((o) => /Светлана/.test(o.textContent)).click(); await sleep(50);
-    add('ui', 'список открывается по клику, выбор сохраняется отдельно для Twitch и TikTok', opened && E.S.twVoice === 'b-dmitry' && E.S.ttVoice === 'b-svetlana' && E.twPreset().voice !== E.ttPreset().voice, E.S.ttVoice + ' / ' + E.S.twVoice);
-    add('ui', 'на карточках голосов видны метки платформ', !!document.querySelector('#voices .vtags em.tt') && !!document.querySelector('#voices .vtags em.tw'));
-    sels[2].click(); await sleep(50); document.body.click(); await sleep(50);
+    const card = (id) => document.querySelector('#voices .voice[data-id="' + id + '"]');
+    card('b-dmitry').click(); await sleep(50);
+    add('ui', 'выбранный голос подсвечен и показывает кнопки TikTok и Twitch', card('b-dmitry').classList.contains('sel') && !!card('b-dmitry').querySelector('.rbtn.tt') && !!card('b-dmitry').querySelector('.rbtn.tw') && !card('b-svetlana').querySelector('.rbtn'));
+    card('b-dmitry').querySelector('.rbtn.tw').click(); await sleep(50);
+    card('b-svetlana').click(); await sleep(50);
+    card('b-svetlana').querySelector('.rbtn.tt').click(); await sleep(50);
+    add('ui', 'кнопки закрепляют голос отдельно за Twitch и TikTok', E.S.twVoice === 'b-dmitry' && E.S.ttVoice === 'b-svetlana' && E.twPreset().voice !== E.ttPreset().voice && card('b-svetlana').querySelector('.rbtn.tt').classList.contains('on') && !card('b-svetlana').querySelector('.rbtn.tw').classList.contains('on'), E.S.ttVoice + ' / ' + E.S.twVoice);
+    add('ui', 'на невыбранных карточках видны метки платформ', !!document.querySelector('#voices .vtags em.tw'));
+    evSel.click(); await sleep(50); document.body.click(); await sleep(50);
     add('ui', 'список закрывается кликом вне него', !document.querySelector('.csel.open'));
     // --- шапка: обе платформы «не в эфире» до подключения ---
     add('ui', 'плашки: «Не в эфире TikTok» и «Не в эфире Twitch»', /Не в эфире TikTok/.test($('#pillTt').textContent) && /Не в эфире Twitch/.test($('#pillTw').textContent) && !$('#pillTt').hidden && !$('#pillTw').hidden, $('#pillTt').textContent.trim() + ' | ' + $('#pillTw').textContent.trim());
