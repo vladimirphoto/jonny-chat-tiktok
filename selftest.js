@@ -223,6 +223,7 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопки виджета не вылезают за карточку', wc.right <= wcard.right && wc.left >= wcard.left, JSON.stringify([wc.right, wcard.right]));
     $('.nav[data-tab=live]').click();
     add('ui', 'студия озвучки на месте', !!$('#btnStudio') && document.querySelectorAll('#chips .chip').length === 4);
+    add('ui', 'упоминания: ник вырезается, слова сообщения остаются', window.__echo.clean('@vlad Привет всем') === 'Привет всем' && window.__echo.clean('Ну что @vlad, как дела') === 'Ну что как дела', window.__echo.clean('@vlad Привет всем'));
     add('ui', 'переключателя голосов зрителей нет', !document.querySelector('[data-k=perViewer]'));
 
     // --- проверка обновлений ---

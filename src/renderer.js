@@ -328,6 +328,7 @@ $('#btnClear').onclick = resetEmpty;
 const BAD = /(?:^|[^а-яё])(?:х[уy][йяеёию]|пизд|бл[яе]д|бля|еб[аауо]|ёб|ебл|сук[аи]|муд[аи]|гондон|залуп|пидор|пидр|шлюх|дроч|нахуй|нахер)/i;
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu;
 const recent = new Map();
+const mentions = Mentions.create();
 
 function clean(raw) {
   let t = String(raw || '').trim();
@@ -335,8 +336,8 @@ function clean(raw) {
   if (S.skipLinks && /(https?:\/\/|www\.|\b[\w-]+\.(com|ru|net|org|me|io|kz|ua)\b)/i.test(t)) return null;
   if (S.skipCmd && /^[!/]/.test(t)) return null;
   t = t.replace(/\[[A-Za-z0-9_ ]{1,24}\]/g, ' '); // смайлы TikTok вида [rose]
-  // ник с кириллицей тоже (\w не понимает русские буквы); ник из двух слов («@Анна Петрова») — вторую часть с заглавной тоже убираем
-  if (S.skipMentions) t = t.replace(/@[\p{L}\p{N}_.-]+(\s+\p{Lu}[\p{L}\p{N}_.-]*)?/gu, '');
+  // @упоминание: вырезается «@» и одно слово ника; второе слово — только у известного ника из двух слов (см. mentions.js)
+  if (S.skipMentions) t = mentions.strip(t);
   t = t.replace(/(\p{L})\1{2,}/gu, '$1').replace(/\s+/g, ' ').trim(); // «приветттт» -> «привет»
   if (!t || !/[a-zа-яё0-9]/i.test(t)) return null;
   if (S.onlyRu && !/[а-яё]/i.test(t)) return null;
@@ -450,6 +451,7 @@ const since = { tiktok: 0, twitch: 0 };
 const BACKLOG_WINDOW = 20000, SKEW = 2000;
 const isBacklog = (m, platform) => !!(m.created && since[platform] && Date.now() - since[platform] < BACKLOG_WINDOW && m.created < since[platform] - SKEW);
 function handleChat(m, platform) {
+  mentions.remember(m.name); mentions.remember(m.id); // запоминаем всех, кто пишет, — по ним понятно, где кончается ник из двух слов
   if (!m.text || isBacklog(m, platform)) return; // пустые и старые сообщения не показываем и не озвучиваем
   const el = addMsg({ name: m.name, text: m.text, sub: m.isSub, avatar: m.avatar, platform });
   if (platform === 'twitch' ? !S.twChat : !S.ttChat) return; // озвучка этой платформы выключена — сообщение остаётся в ленте
@@ -998,6 +1000,7 @@ window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get vo
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.18.5': ['«Вырезать @упоминания»: убирается только «@ник», слова сообщения больше не пропадают (раньше «@vlad Привет всем» терял «Привет»)', 'Ник из двух слов вырезается целиком, если этот человек уже писал в чате'],
   '1.18.4': ['Озвучка: слева «Что озвучивать», «Голоса платформ» и «Студия озвучки», справа «Мои голоса»'],
   '1.18.2': ['«Перед эфиром» теперь над «Подключением»', 'Раздел «Голос» переименован в «Озвучка»', 'Виджеты: предпросмотр справа от виджетов чата, настройки ниже; «Топ лайков»: настройки слева, предпросмотр с кнопкой «Тест» справа'],
   '1.18.0': ['Топ лайков: упрощён — только бегунок «Сколько показывать» (от 5 до 10) и три переключателя', 'Раскладка фиксированная: по 5 в ряду, всё по центру'],
