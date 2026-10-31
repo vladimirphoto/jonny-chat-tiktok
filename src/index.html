@@ -113,6 +113,19 @@
               <label>Подарки и подписки</label>
               <div class="csel" id="eventVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
             </div>
+            <div class="card studio" id="studio">
+              <h2>Студия озвучки</h2>
+              <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
+              <div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <textarea id="studioText" rows="3" maxlength="200" placeholder="Например: Всем привет! Спасибо, что вы с нами в эфире!"></textarea>
+              <div class="chips" id="chips">
+                <button class="chip">Всем привет в эфире!</button>
+                <button class="chip">Спасибо за подарок!</button>
+                <button class="chip">Не забудьте подписаться</button>
+                <button class="chip">Отличный вопрос!</button>
+              </div>
+              <button class="btn ghost wide" id="btnStudio">▶ Озвучить фразу</button>
+            </div>
           </div>
           <div class="col-right">
           <div class="card">
@@ -127,19 +140,6 @@
             <input type="range" id="pitch" min="-30" max="30" value="0" /></div>
             <button class="btn primary" id="btnTest"></button>
           </div>
-            <div class="card studio" id="studio">
-              <h2>Студия озвучки</h2>
-              <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
-              <div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-              <textarea id="studioText" rows="3" maxlength="200" placeholder="Например: Всем привет! Спасибо, что вы с нами в эфире!"></textarea>
-              <div class="chips" id="chips">
-                <button class="chip">Всем привет в эфире!</button>
-                <button class="chip">Спасибо за подарок!</button>
-                <button class="chip">Не забудьте подписаться</button>
-                <button class="chip">Отличный вопрос!</button>
-              </div>
-              <button class="btn ghost wide" id="btnStudio">▶ Озвучить фразу</button>
-            </div>
           </div>
         </div>
       </section>

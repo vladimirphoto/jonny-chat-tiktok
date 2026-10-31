@@ -72,7 +72,7 @@ const PAGE_TEST = `(async () => {
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
     { const wh = $('[data-k=ttChat]').closest('.card'), rt = $('#voiceRoutes'), mv = $('#voices').closest('.card'), st = $('#studio'), rr2 = (e) => e.getBoundingClientRect();
-      add('ui', 'озвучка: слева «Что озвучивать», под ним «Голоса платформ»; справа «Мои голоса» и студия', wh === $('#tab-voice .col-left').firstElementChild && rt === wh.nextElementSibling && mv === $('#tab-voice .col-right').firstElementChild && st === mv.nextElementSibling && !!st); }
+      add('ui', 'озвучка: слева «Что озвучивать», «Голоса платформ» и студия; справа «Мои голоса»', wh === $('#tab-voice .col-left').firstElementChild && rt === wh.nextElementSibling && st === rt.nextElementSibling && mv === $('#tab-voice .col-right').firstElementChild && !!st); }
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
     // --- озвучка: отдельные кнопки для TikTok и Twitch ---
     const vb = (k) => document.querySelector('input[data-k=' + k + ']');
