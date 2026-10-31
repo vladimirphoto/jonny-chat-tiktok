@@ -1,0 +1,33 @@
+name: Build macOS dmg
+
+# Запускается вручную (Actions → Build macOS dmg → Run workflow) и прикладывает .dmg к релизу текущей версии.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EchoChat-LIVE-dmg
+          path: dist/*.dmg
+      - name: Read version
+        id: ver
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: ЭхоЧат LIVE ${{ steps.ver.outputs.v }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.dmg
