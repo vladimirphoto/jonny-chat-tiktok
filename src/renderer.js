@@ -315,7 +315,7 @@ function feedScheduleReturn() {
 }
 ['wheel', 'touchmove', 'pointerdown', 'keydown'].forEach((ev) => feed.addEventListener(ev, () => { feedUserAt = Date.now(); feedScheduleReturn(); }, { passive: true }));
 function renderMsg({ name, text, kind = '', sub = false, color, avatar = '', platform = '', giftImg = '' }) {
-  if (isPaused() && !/\bsys\b/.test(kind)) return document.createElement('div'); // на паузе сообщения чата не показываются и не озвучиваются
+  if (isPaused() && !/\bsys\b/.test(kind)) return document.createElement('div'); // на паузе новые сообщения в ленте не показываются (озвучка от паузы не зависит)
   $('.empty', feed)?.remove();
   const el = document.createElement('div');
   el.className = 'msg ' + kind;
@@ -383,8 +383,7 @@ function prefetch() { queue.slice(0, 3).forEach(ensureSynth); } // звук го
 
 let voiceCalls = 0; // сколько раз пытались озвучить (для автотеста)
 function enqueue(item, force = false) {
-  if (isPaused()) return;
-  voiceCalls++; // пауза относится только к ленте, озвучка идёт по настройкам «Что озвучивать»
+  voiceCalls++; // пауза относится только к ленте чата: озвучка идёт по настройкам на странице «Озвучка»
   if (queue.length >= QUEUE_MAX) queue.shift();
   item.preset = item.preset || selectedPreset();
   item.t = Date.now(); item.force = force;
@@ -452,9 +451,9 @@ async function pump() {
   } finally { busy = false; document.body.classList.remove('talking'); }
 }
 
+// пауза останавливает только ленту: звук и очередь озвучки не трогаем; при снятии лента возвращается вниз
 $('#paused').addEventListener('change', (e) => {
-  if (e.target.checked) { queue.length = 0; stopCurrent(); return; } // пауза: очередь сброшена, звук остановлен
-  feed.scrollTop = feed.scrollHeight;
+  if (!e.target.checked) feed.scrollTop = feed.scrollHeight;
 });
 
 /* ---------- события TikTok ---------- */
@@ -1011,10 +1010,11 @@ async function initLikesPreview() {
 /* ---------- старт ---------- */
 renderWTabs(); renderPills(); renderVoices(); refreshVol(); refreshRate(); refreshPitch(); refreshLen(); refreshWScale(); refreshWHeight(); refreshWFade(); syncControls(); pushWidget(); initPreview(); refreshDonateLink(); pushDonate(); refreshLikesLink(); window.echo.likesSet({ ...L });
 window.echo.voices().then((r) => applyCatalog(r && r.all)).catch(() => {});
-window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, setFeedReturnMs(v) { FEED_RETURN_MS = v; }, feedFromBottom, addMsg, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
+window.__echo = { K, UPD_EVERY_MS, get netOnline() { return netOnline; }, get voiceCalls() { return voiceCalls; }, setPauseMs(v) { PAUSE_MS = v; }, setFeedReturnMs(v) { FEED_RETURN_MS = v; }, stopAllVoice() { queue.length = 0; stopCurrent(); }, feedFromBottom, addMsg, get PAUSE_MS() { return PAUSE_MS; }, S, clean, speakName, renderVoices, builtin: BUILTIN, get presets() { return S.presets; }, since, ttPreset, twPreset, eventPreset, setNk };
 
 /* ---------- «Что нового» после обновления ---------- */
 const CHANGES = {
+  '1.19.2': ['Пауза на странице «Эфир» останавливает только ленту чата: озвучка сообщений, подарков и подписок идёт по настройкам на странице «Озвучка»'],
   '1.19.1': ['Лента чата сама возвращается вниз через 10 секунд после того, как её перестали листать (пока читаешь — новые сообщения её не сдёргивают)', 'Стрелка «можно листать» теперь кнопка: клик плавно опускает страницу до конца'],
   '1.19.0': ['Озвучка: голос для TikTok и Twitch выбирается в карточке голоса — выбери голос и нажми TikTok и/или Twitch', 'Голос подарков и подписок перенесён в «Что озвучивать»; карточка «Голоса платформ» убрана'],
   '1.18.4': ['Озвучка: слева «Что озвучивать», «Голоса платформ» и «Студия озвучки», справа «Мои голоса»'],

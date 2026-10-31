@@ -339,7 +339,7 @@ async function eventTests(win) {
   add('подключение: старое сообщение пропущено', !/до подключения/.test(feed3), feed3.replace(/\n+/g, ' / ').slice(0, 160));
   add('подключение: новое сообщение показано', /после подключения/.test(feed3));
   await q("window.__echo.since.tiktok = 0");
-  // пауза останавливает только ленту: сообщения идут, лента стоит на месте и сама возвращается к новому; озвучка работает
+  // пауза останавливает только ленту: новые сообщения в ленте не появляются, а озвучка идёт по настройкам страницы «Озвучка»
   await q("window.__echo.S.ttChat = false; window.__echo.S.twChat = false; window.__echo.S.noRepeat = false; document.querySelector('#btnClear').click();");
   for (let i = 0; i < 40; i++) send('tt:chat', { name: 'Ф' + i, text: 'заполнение ' + i, created: null });
   await wait(500);
@@ -349,7 +349,8 @@ async function eventTests(win) {
   await wait(300);
   const stP = JSON.parse(await q("JSON.stringify({ top: document.querySelector('#feed').scrollTop, lbl: document.querySelector('#pausedLbl').textContent, txt: document.querySelector('#feed').innerText })"));
   add('пауза: сообщение не попадает в ленту', !/во время паузы/.test(stP.txt));
-  add('пауза: озвучка не запускается', (await q('window.__echo.voiceCalls')) === callsP, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
+  add('пауза: озвучка продолжает работать (пауза — только для ленты)', (await q('window.__echo.voiceCalls')) > callsP, callsP + ' → ' + (await q('window.__echo.voiceCalls')));
+  await q('window.__echo.stopAllVoice()');
   add('пауза: таймера нет', stP.lbl === 'Пауза', stP.lbl);
   await wait(1300);
   add('пауза: остаётся включённой, пока не снимешь', await q("document.querySelector('#paused').checked") === true);
