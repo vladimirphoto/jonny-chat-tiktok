@@ -71,7 +71,8 @@ const PAGE_TEST = `(async () => {
     add('ui', 'кнопка ▶ при нажатии превращается в паузу', pb.classList.contains('active') && /rect/.test(pb.innerHTML) && /Остановить/.test($('#btnTest').textContent), pb.innerHTML.slice(0, 40) + ' | ' + $('#btnTest').textContent);
     pb.click(); await sleep(150);
     add('ui', 'повторное нажатие останавливает', !pb.classList.contains('active') && /path/.test(pb.innerHTML), pb.innerHTML.slice(0, 40));
-    add('ui', 'карточка «Голоса платформ» первая в правой колонке, студия под «Что озвучивать»', !!$('#voiceRoutes') && $('#voiceRoutes') === $('#tab-voice .col-right').firstElementChild && !!$('#studio') && !!$('#studio').previousElementSibling && $('#studio').previousElementSibling.querySelector('[data-k=ttChat]') !== null);
+    { const wh = $('[data-k=ttChat]').closest('.card'), rt = $('#voiceRoutes'), mv = $('#voices').closest('.card'), st = $('#studio'), rr2 = (e) => e.getBoundingClientRect();
+      add('ui', 'озвучка: слева «Что озвучивать», под ним «Голоса платформ»; справа «Мои голоса» и студия', wh === $('#tab-voice .col-left').firstElementChild && rt === wh.nextElementSibling && mv === $('#tab-voice .col-right').firstElementChild && st === mv.nextElementSibling && !!st); }
     add('ui', '«Только подписчики» убрано', !document.querySelector('[data-k=subsOnly]') && !/Только подписчики/.test(document.body.innerText));
     // --- озвучка: отдельные кнопки для TikTok и Twitch ---
     const vb = (k) => document.querySelector('input[data-k=' + k + ']');

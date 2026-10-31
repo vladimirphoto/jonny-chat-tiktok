@@ -92,6 +92,29 @@
       <section class="tab" id="tab-voice">
         <div class="cols">
           <div class="col-left">
+            <div class="card">
+              <h2>Что озвучивать</h2>
+              <p class="muted">Озвучку можно выключить отдельно для каждой платформы. Чат при этом остаётся в ленте и в виджете</p>
+              <div class="vgroup tt"><div class="vg-head">TikTok</div>
+                <div class="toggles"><label class="sw"><input type="checkbox" data-k="ttChat" checked /><i></i><span>Сообщения чата</span></label><label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label><label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label></div></div>
+              <div class="vgroup tw"><div class="vg-head">Twitch</div>
+                <div class="toggles"><label class="sw"><input type="checkbox" data-k="twChat" checked /><i></i><span>Сообщения чата</span></label></div></div>
+              <div class="vgroup"><div class="vg-head">Для всех платформ</div>
+                <div class="toggles"><label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник перед сообщением</span></label></div></div>
+              <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Нейро-голоса требуют интернет.</div>
+            </div>
+            <div class="card" id="voiceRoutes">
+              <h2>Голоса платформ</h2>
+              <p class="muted">Каждая платформа читается своим голосом</p>
+              <label>Чат TikTok</label>
+              <div class="csel" id="ttVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
+              <label>Чат Twitch</label>
+              <div class="csel" id="twVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
+              <label>Подарки и подписки</label>
+              <div class="csel" id="eventVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
+            </div>
+          </div>
+          <div class="col-right">
           <div class="card">
             <h2>Мои голоса</h2>
             <p class="muted">Нажми на карточку, чтобы прослушать голос и настроить скорость и тон</p>
@@ -104,29 +127,6 @@
             <input type="range" id="pitch" min="-30" max="30" value="0" /></div>
             <button class="btn primary" id="btnTest"></button>
           </div>
-          </div>
-          <div class="col-right">
-            <div class="card" id="voiceRoutes">
-              <h2>Голоса платформ</h2>
-              <p class="muted">Каждая платформа читается своим голосом</p>
-              <label>Чат TikTok</label>
-              <div class="csel" id="ttVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-              <label>Чат Twitch</label>
-              <div class="csel" id="twVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-              <label>Подарки и подписки</label>
-              <div class="csel" id="eventVoiceSel"><div class="csel-val"></div><svg class="csel-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><div class="csel-drop"></div></div>
-            </div>
-            <div class="card">
-              <h2>Что озвучивать</h2>
-              <p class="muted">Озвучку можно выключить отдельно для каждой платформы. Чат при этом остаётся в ленте и в виджете</p>
-              <div class="vgroup tt"><div class="vg-head">TikTok</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="ttChat" checked /><i></i><span>Сообщения чата</span></label><label class="sw"><input type="checkbox" data-k="gifts" checked /><i></i><span>Подарки</span></label><label class="sw"><input type="checkbox" data-k="follows" checked /><i></i><span>Новые подписки</span></label></div></div>
-              <div class="vgroup tw"><div class="vg-head">Twitch</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="twChat" checked /><i></i><span>Сообщения чата</span></label></div></div>
-              <div class="vgroup"><div class="vg-head">Для всех платформ</div>
-                <div class="toggles"><label class="sw"><input type="checkbox" data-k="readName" checked /><i></i><span>Читать ник перед сообщением</span></label></div></div>
-              <div class="note">Если зрители не слышат голос — проверь захват системного звука в OBS или TikTok LIVE Studio. Нейро-голоса требуют интернет.</div>
-            </div>
             <div class="card studio" id="studio">
               <h2>Студия озвучки</h2>
               <p class="muted">Напиши любую фразу — она прозвучит выбранным голосом.</p>
