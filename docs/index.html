@@ -111,7 +111,7 @@ footer a{color:var(--muted)}
 <h2>Как это выглядит</h2>
 <p class="sub">Настоящие экраны приложения.</p>
 <div class="tabs" id="tabs">
-<button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Виджеты</button><button data-i="4">Тарифы</button>
+<button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Виджеты</button><button data-i="4">Донаты</button><button data-i="5">Тарифы</button>
 </div>
 <div class="shot"><img id="pic" src="img/live.webp" alt="Вкладка «Эфир»" width="1600" height="1074"></div>
 <p class="cap" id="cap"></p>
@@ -150,7 +150,7 @@ var top=document.getElementById('top'),up=document.getElementById('up');
 function onScroll(){var y=window.scrollY||0;top.classList.toggle('sc',y>8);up.classList.toggle('show',y>500)}
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 up.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
-var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['widgets','Виджеты','Чат для OBS и TikTok LIVE Studio с живым предпросмотром'],['plans','Тарифы','Lite, Pro и партнёрская лицензия']];
+var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['widgets','Виджеты','Чат для OBS и TikTok LIVE Studio с живым предпросмотром'],['kaspi','Донаты','Донаты Каспи на экране: подключение iPhone, журнал уведомлений и виджет'],['plans','Тарифы','Lite, Pro и партнёрская лицензия']];
 var pic=document.getElementById('pic'),cap=document.getElementById('cap'),btns=document.querySelectorAll('#tabs button');
 function show(i){pic.src='img/'+S[i][0]+'.webp';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,k){b.classList.toggle('on',k===i)})}
 btns.forEach(function(b){b.addEventListener('click',function(){show(+b.dataset.i)})});
