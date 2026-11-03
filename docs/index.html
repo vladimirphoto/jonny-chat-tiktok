@@ -72,6 +72,16 @@ footer a{color:var(--muted)}
 #up.show{opacity:1;visibility:visible;transform:none}
 #up:hover{filter:brightness(1.12)}
 #up svg{width:22px;height:22px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;position:relative;margin-top:8px}
+.steps:before{content:"";position:absolute;top:44px;left:16%;right:16%;height:2px;background:linear-gradient(90deg,#8b5cf6,#ec4899);opacity:.45}
+.stp{position:relative;text-align:center;padding:28px 22px 26px;background:linear-gradient(180deg,rgba(139,92,246,.10),var(--card));border:1px solid var(--line);border-radius:20px}
+.stp .n{width:34px;height:34px;margin:0 auto 14px;display:grid;place-items:center;border-radius:50%;background:var(--g);font-weight:700;font-size:16px;box-shadow:0 6px 20px rgba(139,92,246,.45);position:relative;z-index:1}
+.stp .si{font-size:34px;line-height:1;margin-bottom:10px}
+.stp h3{margin:0 0 6px;font-size:20px}
+.stp p{margin:0;color:var(--muted);font-size:15px}
+.steps-end{text-align:center;margin-top:26px;color:var(--muted)}
+.steps-end b{color:var(--text)}
+@media(max-width:700px){.steps{grid-template-columns:1fr}.steps:before{display:none}}
 @media(max-width:700px){nav .links a:not(.nb){display:none}.hero{padding-top:104px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
@@ -80,7 +90,7 @@ footer a{color:var(--muted)}
 <header class="top" id="top">
 <div class="wrap"><nav>
 <a class="logo" href="#"><img src="img/icon.png" alt="">ЭхоЧат LIVE</a>
-<div class="links"><a href="#features">Возможности</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
+<div class="links"><a href="#start">Как начать</a><a href="#features">Возможности</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
 </nav></div>
 </header>
 
@@ -96,6 +106,17 @@ footer a{color:var(--muted)}
 <p class="note">3 дня все функции бесплатно, потом тариф Lite</p>
 <div class="shot"><img src="img/live.webp" alt="Главный экран ЭхоЧат LIVE" width="1600" height="1074"></div>
 </div>
+
+<section id="start">
+<h2>Запуск за <span class="g">3 шага</span></h2>
+<p class="sub">Без регистрации и сложной настройки.</p>
+<div class="steps">
+<div class="stp"><div class="n">1</div><div class="si">⬇️</div><h3>Скачайте программу</h3><p>Скачайте установщик и запустите ЭхоЧат LIVE на Windows.</p></div>
+<div class="stp"><div class="n">2</div><div class="si">🔗</div><h3>Введите ник стримера</h3><p>Нажмите «Подключить», и лента чата оживёт.</p></div>
+<div class="stp"><div class="n">3</div><div class="si">🎙️</div><h3>Выберите голос</h3><p>Один клик, и можно запускать эфир: чат уже читают вслух.</p></div>
+</div>
+<p class="steps-end"><a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a></p>
+</section>
 
 <section id="features">
 <h2>Возможности</h2>
@@ -136,7 +157,7 @@ footer a{color:var(--muted)}
 <div class="final">
 <div class="by">Разработано стримером для стримеров</div>
 <h2>Попробуйте <span class="g">ЭхоЧат LIVE</span></h2>
-<p>Скачайте файл с «Setup» в названии, введите ник стримера, и чат заговорит.</p>
+<p>Скачайте файл с «Setup» в названии, введите ник стримера, выберите голос, и чат заговорит.</p>
 <a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a>
 </div>
 </section>
