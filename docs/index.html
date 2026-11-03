@@ -1,3 +1,169 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ЭхоЧат LIVE</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b12;color:#ecebf5;font:16px/1.5 "Segoe UI",system-ui,sans-serif}main{max-width:520px;padding:24px}h1{margin:0 0 8px}a{color:#a78bfa}</style></head>
-<body><main><h1>ЭхоЧат LIVE</h1><p>Здесь живут страницы виджетов чата и донатов для TikTok LIVE Studio и OBS. Ссылку на виджет показывает само приложение: вкладка «Виджеты» → «Копировать».</p><p><a href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases">Скачать приложение</a></p></main></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми голосами</title>
+<meta name="description" content="Программа для Windows: озвучка чата TikTok LIVE и Twitch нейро-голосами, виджеты для OBS и TikTok LIVE Studio, донаты Каспи на экран стрима.">
+<meta property="og:title" content="ЭхоЧат LIVE — озвучка чата TikTok LIVE">
+<meta property="og:description" content="10 живых голосов, фильтры, виджеты для OBS, донаты Каспи. Скачать для Windows.">
+<meta property="og:image" content="img/live.webp">
+<link rel="icon" href="img/icon.png">
+<style>
+:root{--bg:#0a0a12;--card:#13131d;--line:#25253a;--text:#efeef8;--muted:#9c9bb6;--v:#8b5cf6;--p:#ec4899;--g:linear-gradient(135deg,#8b5cf6,#ec4899)}
+*{box-sizing:border-box}html{color-scheme:dark;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 "Segoe UI",system-ui,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(700px 500px at 15% -5%,rgba(139,92,246,.28),transparent),radial-gradient(600px 500px at 90% 10%,rgba(236,72,153,.18),transparent)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
+.logo img{width:36px;height:36px;border-radius:9px}
+nav .links a{color:var(--muted);text-decoration:none;margin-left:20px;font-size:15px}
+nav .links a:hover{color:var(--text)}
+.btn{display:inline-block;background:var(--g);color:#fff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:12px;box-shadow:0 8px 30px rgba(139,92,246,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none}
+.hero{text-align:center;padding:56px 0 24px}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--muted);font-size:14px;margin-bottom:18px}
+h1{font-size:clamp(34px,6.5vw,60px);line-height:1.1;margin:0 0 16px;letter-spacing:-1px}
+h1 span{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);font-size:19px;max-width:640px;margin:0 auto 28px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.note{color:var(--muted);font-size:14px;margin-top:14px}
+.shot{margin:40px auto 0;border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 80px rgba(139,92,246,.18)}
+.shot img{display:block;width:100%;height:auto}
+section{padding:36px 0}
+h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.5px}
+.sub{color:var(--muted);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.ic{font-size:26px;margin-bottom:8px}
+.row{display:grid;grid-template-columns:1fr 1.3fr;gap:36px;align-items:center;padding:28px 0}
+.row.rev{grid-template-columns:1.3fr 1fr}.row.rev .txt{order:2}
+.row .txt h3{font-size:26px;margin:0 0 10px}
+.row .txt p{color:var(--muted);margin:0 0 12px}
+.row ul{padding:0;margin:0;list-style:none;color:var(--muted)}
+.row li{padding-left:24px;position:relative;margin:6px 0}
+.row li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
+.voices{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.voices span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 14px;font-size:14px;color:var(--text)}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.plan{position:relative}
+.plan.hot{border-color:var(--v);background:linear-gradient(180deg,rgba(139,92,246,.14),var(--card))}
+.plan .tag{position:absolute;top:-12px;right:18px;background:var(--g);font-size:12px;font-weight:700;padding:3px 12px;border-radius:99px}
+.plan .name{color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-size:13px}
+.plan .price{font-size:38px;font-weight:700;margin:4px 0 14px}
+.plan .price small{font-size:15px;color:var(--muted);font-weight:400}
+.plan ul{list-style:none;padding:0;margin:0 0 20px;color:var(--muted)}
+.plan li{padding-left:24px;position:relative;margin:7px 0}
+.plan li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
+.plan li.no:before{content:"—";color:#6b6a85}
+.plan .btn{display:block;text-align:center;padding:12px}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.step{counter-increment:s}
+.step:before{content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--g);font-weight:700;margin-bottom:10px}
+.final{text-align:center;padding:56px 24px;margin:36px 0;border-radius:24px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12))}
+.final p{color:var(--muted);margin:0 0 22px}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;color:var(--muted);font-size:14px}
+footer a{color:var(--muted)}
+@media(max-width:760px){.row,.row.rev{grid-template-columns:1fr;gap:18px}.row.rev .txt{order:0}nav .links a:not(.dl){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+<a class="logo" href="#"><img src="img/icon.png" alt="">ЭхоЧат LIVE</a>
+<div class="links"><a href="#features">Возможности</a><a href="#plans">Тарифы</a><a href="#start">Как начать</a><a class="dl" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
+</nav>
+
+<header class="hero">
+<div class="badge">Для Windows · TikTok LIVE и Twitch</div>
+<h1>Чат вашего стрима<br>читают <span>живые голоса</span></h1>
+<p class="lead">Нейро-озвучка сообщений, подарков и подписок, виджеты для OBS и TikTok LIVE Studio и донаты Каспи прямо на экране эфира.</p>
+<div class="cta">
+<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a>
+<a class="btn ghost" href="#plans">Тарифы</a>
+</div>
+<p class="note">3 дня все функции бесплатно, потом бесплатный тариф Lite</p>
+<div class="shot"><img src="img/live.webp" alt="Главный экран ЭхоЧат LIVE: лента чата, счётчики зрителей, лайков и подарков" width="1600" height="1074"></div>
+</header>
+
+<section id="features">
+<h2>Всё для озвучки эфира</h2>
+<p class="sub">Подключение по нику, и чат уже говорит. Никаких ключей и сложных настроек.</p>
+<div class="grid">
+<div class="card"><div class="ic">🎙️</div><h3>10 нейро-голосов</h3><p>Русские Светлана и Дмитрий и мультиязычные голоса Microsoft. Озвучка без ключей и карты.</p></div>
+<div class="card"><div class="ic">💬</div><h3>Чат, подарки, подписки</h3><p>Читаются сообщения, благодарности за подарки и новые подписки. Каждый источник включается отдельно.</p></div>
+<div class="card"><div class="ic">📺</div><h3>TikTok и Twitch сразу</h3><p>Мультистрим: у каждой платформы свой голос, сообщения Twitch читаются анонимно.</p></div>
+<div class="card"><div class="ic">🛡️</div><h3>Умные фильтры</h3><p>Команды, ссылки, повторы, мат, @упоминания и эмодзи не попадут в озвучку.</p></div>
+<div class="card"><div class="ic">🎚️</div><h3>Скорость, тон, громкость</h3><p>Подстройте голос под себя, поставьте паузу, когда нужна тишина.</p></div>
+<div class="card"><div class="ic">🔄</div><h3>Сам обновляется</h3><p>Новая версия ставится по кнопке или автоматически. Значок в трее держит озвучку под рукой.</p></div>
+</div>
+</section>
+
+<section>
+<div class="row">
+<div class="txt"><h3>Эфир под контролем</h3><p>Лента чата, счётчики зрителей, лайков, подарков и подписок, время в эфире. Всё видно в одном окне.</p>
+<ul><li>Подключение по нику автора</li><li>Озвучиваются только свежие сообщения</li><li>Пауза ленты без потери сообщений</li></ul></div>
+<div class="shot" style="margin:0"><img src="img/live.webp" alt="Вкладка «Эфир»" loading="lazy" width="1600" height="1074"></div>
+</div>
+<div class="row rev">
+<div class="txt"><h3>Голоса на любой вкус</h3><p>Выберите голос для TikTok и отдельный для Twitch. Прослушайте образец одной кнопкой.</p>
+<div class="voices"><span>Светлана</span><span>Дмитрий</span><span>Ава</span><span>Эмма</span><span>Вивьен</span><span>Серафина</span><span>Эндрю</span><span>Брайан</span><span>Реми</span><span>Флориан</span></div></div>
+<div class="shot" style="margin:0"><img src="img/voice.webp" alt="Вкладка «Озвучка»: выбор голосов" loading="lazy" width="1600" height="1074"></div>
+</div>
+<div class="row">
+<div class="txt"><h3>Фильтры, которые экономят нервы</h3><p>Решайте, что голос прочитает вслух. В ленте и виджете остаются все сообщения.</p>
+<ul><li>Без команд, ссылок и повторов</li><li>Без мата, эмодзи и @упоминаний</li><li>Только русский и обрезка длинных сообщений</li></ul></div>
+<div class="shot" style="margin:0"><img src="img/filters.webp" alt="Вкладка «Фильтры»" loading="lazy" width="1600" height="1074"></div>
+</div>
+</section>
+
+<section>
+<h2>Виджеты и донаты Каспи <span style="font-size:14px;background:var(--g);padding:2px 10px;border-radius:99px;vertical-align:middle">PRO</span></h2>
+<p class="sub">Покажите чат и донаты зрителям прямо в эфире.</p>
+<div class="grid">
+<div class="card"><div class="ic">🧩</div><h3>Виджет чата</h3><p>Чат TikTok и Twitch на прозрачном фоне для OBS («Браузер») и TikTok LIVE Studio («Ссылка»). Аватарки, иконки платформ, подарки, масштаб и исчезающие сообщения.</p></div>
+<div class="card"><div class="ic">❤️</div><h3>Топ лайков</h3><p>Отдельный виджет с лидерами по лайкам, настройки и тестовая кнопка внутри приложения.</p></div>
+<div class="card"><div class="ic">💸</div><h3>Донаты Каспи на экране</h3><p>Имя, сумма и картинка в тему суммы, голос и звук доната. Подключается с iPhone через команду, QR-код в приложении.</p></div>
+</div>
+</section>
+
+<section id="plans">
+<h2>Тарифы</h2>
+<p class="sub">Начните бесплатно: первые 3 дня открыты все функции.</p>
+<div class="plans">
+<div class="card plan"><div class="name">Lite</div><div class="price">Бесплатно</div>
+<ul><li>Эфир и озвучка чата</li><li>Фильтры</li><li>Бесплатные обновления Lite</li><li class="no">Виджеты</li><li class="no">Донаты Каспи</li></ul>
+<a class="btn ghost" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
+<div class="card plan hot"><div class="tag">Рекомендуем</div><div class="name">Pro</div><div class="price">5 000 ₸ <small>/ 30 дней</small></div>
+<ul><li>Всё из Lite</li><li>Виджеты чата и топ лайков</li><li>Донаты Каспи на экран стрима</li><li>Перенос на другой компьютер</li></ul>
+<a class="btn" href="https://t.me/artavenuekz">Купить Pro</a></div>
+<div class="card plan"><div class="name">Партнёрская лицензия</div><div class="price">Lifetime Pro</div>
+<ul><li>Все возможности Pro</li><li>Без продлений</li><li>Бесплатно за продвижение программы</li></ul>
+<a class="btn ghost" href="https://t.me/artavenuekz">Узнать подробнее</a></div>
+</div>
+<div class="shot" style="margin-top:28px"><img src="img/plans.webp" alt="Вкладка «Лицензия» с тарифами" loading="lazy" width="1600" height="1074"></div>
+</section>
+
+<section id="start">
+<h2>Как начать</h2>
+<p class="sub">От скачивания до первой озвученной фразы пара минут.</p>
+<div class="steps">
+<div class="card step"><h3>Скачайте</h3><p>Нажмите «Скачать» и выберите файл с «Setup» в названии.</p></div>
+<div class="card step"><h3>Установите</h3><p>Запустите установщик и откройте ЭхоЧат LIVE.</p></div>
+<div class="card step"><h3>Подключитесь</h3><p>Запустите TikTok LIVE, введите ник и нажмите «Подключить».</p></div>
+<div class="card step"><h3>Выберите голос</h3><p>Во вкладке «Озвучка» выберите голос, и чат заговорит.</p></div>
+</div>
+<div class="final">
+<h2>Попробуйте ЭхоЧат LIVE</h2>
+<p>Windows 10 и 11. Пробный период 3 дня со всеми функциями.</p>
+<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a>
+</div>
+</section>
+</div>
+<footer>© ЭхоЧат LIVE · Исходный код закрыт, все права защищены · <a href="https://t.me/artavenuekz">Написать автору</a></footer>
+</body>
+</html>
