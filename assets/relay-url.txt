@@ -1,0 +1,2 @@
+# Адрес сервера приёма донатов (Cloudflare Worker, деплой из relay-worker/)
+https://echochat-relay.vavanphoto.workers.dev
