@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми голосами</title>
+<meta name="description" content="Программа для Windows: озвучка чата TikTok LIVE и Twitch нейро-голосами, виджеты для OBS, донаты Каспи на экран стрима.">
+<meta property="og:title" content="ЭхоЧат LIVE — озвучка чата TikTok LIVE">
+<meta property="og:description" content="10 живых голосов, фильтры, виджеты для OBS, донаты Каспи. Скачать для Windows.">
+<meta property="og:image" content="img/live.webp">
+<link rel="icon" href="img/icon.png">
+<style>
+:root{--bg:#0a0a12;--card:#13131d;--line:#25253a;--text:#efeef8;--muted:#9c9bb6;--v:#8b5cf6;--g:linear-gradient(135deg,#8b5cf6,#ec4899)}
+*{box-sizing:border-box}
+html{color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 "Segoe UI",system-ui,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(700px 500px at 15% -5%,rgba(139,92,246,.28),transparent),radial-gradient(600px 500px at 90% 10%,rgba(236,72,153,.18),transparent)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header.top{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(10,10,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+header.top.sc{border-color:var(--line)}
+nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
+.logo img{width:34px;height:34px;border-radius:9px}
+nav .links{display:flex;align-items:center;gap:26px}
+nav .links a{color:var(--muted);text-decoration:none;font-size:15px;transition:color .15s}
+nav .links a:hover{color:var(--text)}
+nav .links a.nb{color:#fff;background:var(--g);padding:8px 18px;border-radius:10px;font-weight:600}
+.btn{display:inline-block;background:var(--g);color:#fff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:12px;box-shadow:0 8px 30px rgba(139,92,246,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none}
+.hero{text-align:center;padding:120px 0 16px}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--muted);font-size:14px;margin-bottom:18px}
+h1{font-size:clamp(34px,6.5vw,60px);line-height:1.1;margin:0 0 16px;letter-spacing:-1px}
+h1 span,h2 span.g{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);font-size:19px;max-width:600px;margin:0 auto 28px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.note{color:var(--muted);font-size:14px;margin-top:14px}
+.shot{border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 80px rgba(139,92,246,.18)}
+.shot img{display:block;width:100%;height:auto}
+.hero .shot{margin-top:40px}
+section{padding:56px 0 8px}
+h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.5px}
+.sub{color:var(--muted);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.ic{font-size:26px;margin-bottom:8px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tabs button{font:inherit;font-size:15px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 18px;cursor:pointer;transition:all .15s}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{color:#fff;background:var(--g);border-color:transparent}
+.cap{color:var(--muted);margin:16px 0 0;text-align:center;min-height:26px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:8px}
+.plan{position:relative;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--v);background:linear-gradient(180deg,rgba(139,92,246,.14),var(--card))}
+.plan .tag{position:absolute;top:-12px;right:18px;background:var(--g);font-size:12px;font-weight:700;padding:3px 12px;border-radius:99px}
+.plan .name{color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-size:13px}
+.plan .price{font-size:36px;font-weight:700;margin:4px 0 14px}
+.plan .price small{font-size:15px;color:var(--muted);font-weight:400}
+.plan ul{list-style:none;padding:0;margin:0 0 20px;color:var(--muted);flex:1}
+.plan li{padding-left:24px;position:relative;margin:7px 0}
+.plan li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
+.plan li.no:before{content:"—";color:#6b6a85}
+.plan .btn{text-align:center;padding:12px}
+.final{text-align:center;padding:52px 24px;margin:56px 0 40px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12))}
+.final p{color:var(--muted);margin:0 0 22px}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;color:var(--muted);font-size:14px}
+footer a{color:var(--muted)}
+#up{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:60;width:48px;height:48px;border-radius:50%;border:0;background:var(--g);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 8px 28px rgba(139,92,246,.5);opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .25s,transform .25s,visibility .25s}
+#up.show{opacity:1;visibility:visible;transform:none}
+#up:hover{filter:brightness(1.12)}
+#up svg{width:22px;height:22px}
+@media(max-width:700px){nav .links a:not(.nb){display:none}.hero{padding-top:104px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+<div class="wrap"><nav>
+<a class="logo" href="#"><img src="img/icon.png" alt="">ЭхоЧат LIVE</a>
+<div class="links"><a href="#features">Возможности</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
+</nav></div>
+</header>
+
+<div class="wrap">
+<div class="hero">
+<div class="badge">Для Windows · TikTok LIVE и Twitch</div>
+<h1>Чат вашего стрима<br>читают <span>живые голоса</span></h1>
+<p class="lead">Нейро-озвучка чата, виджеты для OBS и донаты Каспи на экране эфира.</p>
+<div class="cta">
+<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a>
+<a class="btn ghost" href="#plans">Тарифы</a>
+</div>
+<p class="note">3 дня все функции бесплатно, потом тариф Lite</p>
+<div class="shot"><img src="img/live.webp" alt="Главный экран ЭхоЧат LIVE" width="1600" height="1074"></div>
+</div>
+
+<section id="features">
+<h2>Возможности</h2>
+<p class="sub">Подключение по нику, и чат уже говорит. Без ключей и сложных настроек.</p>
+<div class="grid">
+<div class="card"><div class="ic">🎙️</div><h3>10 нейро-голосов</h3><p>Озвучка сообщений, подарков и подписок. Отдельный голос для TikTok и Twitch.</p></div>
+<div class="card"><div class="ic">🛡️</div><h3>Умные фильтры</h3><p>Без команд, ссылок, повторов, мата, @упоминаний и эмодзи.</p></div>
+<div class="card"><div class="ic">🧩</div><h3>Виджеты для OBS</h3><p>Чат и топ лайков на прозрачном фоне для OBS и TikTok LIVE Studio.</p></div>
+<div class="card"><div class="ic">💸</div><h3>Донаты Каспи</h3><p>Имя и сумма доната на экране стрима. Подключение с iPhone по QR.</p></div>
+</div>
+</section>
+
+<section id="screens">
+<h2>Как это выглядит</h2>
+<p class="sub">Настоящие экраны приложения.</p>
+<div class="tabs" id="tabs">
+<button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Тарифы</button>
+</div>
+<div class="shot"><img id="pic" src="img/live.webp" alt="Вкладка «Эфир»" width="1600" height="1074"></div>
+<p class="cap" id="cap"></p>
+</section>
+
+<section id="plans">
+<h2>Тарифы</h2>
+<p class="sub">Первые 3 дня открыты все функции.</p>
+<div class="plans">
+<div class="card plan"><div class="name">Lite</div><div class="price">Бесплатно</div>
+<ul><li>Эфир и озвучка чата</li><li>Фильтры</li><li class="no">Виджеты</li><li class="no">Донаты Каспи</li></ul>
+<a class="btn ghost" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать</a></div>
+<div class="card plan hot"><div class="tag">Рекомендуем</div><div class="name">Pro</div><div class="price">5 000 ₸ <small>/ 30 дней</small></div>
+<ul><li>Всё из Lite</li><li>Виджеты чата и топ лайков</li><li>Донаты Каспи на экран</li><li>Перенос на другой ПК</li></ul>
+<a class="btn" href="https://t.me/artavenuekz">Купить Pro</a></div>
+<div class="card plan"><div class="name">Партнёрская</div><div class="price">Lifetime Pro</div>
+<ul><li>Все возможности Pro</li><li>Без продлений</li><li>За продвижение программы</li></ul>
+<a class="btn ghost" href="https://t.me/artavenuekz">Узнать подробнее</a></div>
+</div>
+
+<div class="final">
+<h2>Попробуйте <span class="g">ЭхоЧат LIVE</span></h2>
+<p>Скачайте файл с «Setup» в названии, введите ник стримера, и чат заговорит.</p>
+<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Скачать для Windows</a>
+</div>
+</section>
+</div>
+
+<footer>© ЭхоЧат LIVE · Все права защищены · <a href="https://t.me/artavenuekz">Написать автору</a></footer>
+
+<button id="up" type="button" aria-label="Наверх"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+
+<script>
+(function(){
+var top=document.getElementById('top'),up=document.getElementById('up');
+function onScroll(){var y=window.scrollY||0;top.classList.toggle('sc',y>8);up.classList.toggle('show',y>500)}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+up.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['plans','Тарифы','Lite, Pro и партнёрская лицензия']];
+var pic=document.getElementById('pic'),cap=document.getElementById('cap'),btns=document.querySelectorAll('#tabs button');
+function show(i){pic.src='img/'+S[i][0]+'.webp';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,k){b.classList.toggle('on',k===i)})}
+btns.forEach(function(b){b.addEventListener('click',function(){show(+b.dataset.i)})});
+show(0);
+})();
+</script>
+</body>
+</html>
