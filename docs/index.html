@@ -8,218 +8,550 @@
 <meta property="og:title" content="ЭхоЧат LIVE — озвучка чата TikTok LIVE">
 <meta property="og:description" content="10 живых голосов, оверлей чата, виджеты для OBS, 2D-аватар, донаты Каспи и DonationAlerts. Скачать для Windows.">
 <meta property="og:image" content="img/live.webp">
+<meta name="theme-color" content="#0c0816">
 <link rel="icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a12;--card:#13131d;--line:#25253a;--text:#efeef8;--muted:#9c9bb6;--v:#8b5cf6;--g:linear-gradient(135deg,#8b5cf6,#ec4899)}
+:root{
+  --ink:#0c0816;--panel:#171025;--panel2:#1e1530;--line:#2d2245;--text:#f3effa;--muted:#a69cc0;
+  --v:#8b5cf6;--p:#ff4d8d;--live:#ff3b5c;--ok:#3ddc97;
+  --g:linear-gradient(120deg,#8b5cf6,#ff4d8d);
+  --disp:"Unbounded","Onest","Segoe UI",system-ui,sans-serif;
+  --body:"Onest","Segoe UI",system-ui,sans-serif;
+}
 *{box-sizing:border-box}
-html{color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:76px}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 "Segoe UI",system-ui,sans-serif;overflow-x:hidden}
-body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(700px 500px at 15% -5%,rgba(139,92,246,.28),transparent),radial-gradient(600px 500px at 90% 10%,rgba(236,72,153,.18),transparent)}
-.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-header.top{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(10,10,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
-header.top.sc{border-color:var(--line)}
-nav{display:flex;align-items:center;justify-content:space-between;height:64px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
-.logo img{width:34px;height:34px;border-radius:9px}
-nav .links{display:flex;align-items:center;gap:26px}
-nav .links a{color:var(--muted);text-decoration:none;font-size:15px;transition:color .15s}
-nav .links a:hover{color:var(--text)}
-nav .links a.nb{color:#fff;background:var(--g);padding:8px 18px;border-radius:10px;font-weight:600}
-.btn{display:inline-block;background:var(--g);color:#fff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:12px;box-shadow:0 8px 30px rgba(139,92,246,.35);transition:transform .15s}
-.btn:hover{transform:translateY(-2px)}
-.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none}
-.hero{text-align:center;padding:120px 0 16px}
-.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--muted);font-size:14px;margin-bottom:18px}
-h1{font-size:clamp(34px,6.5vw,60px);line-height:1.1;margin:0 0 16px;letter-spacing:-1px}
-h1 span,h2 span.g{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
-.lead{color:var(--muted);font-size:19px;max-width:600px;margin:0 auto 28px}
-.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.note{color:var(--muted);font-size:14px;margin-top:14px}
-.shot{border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 80px rgba(139,92,246,.18)}
-.shot img{display:block;width:100%;height:auto}
-.hero .shot{margin-top:40px}
-section{padding:56px 0 8px}
-h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.5px}
-.sub{color:var(--muted);margin:0 0 28px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
-.nw{position:absolute;top:14px;right:14px;background:var(--g);color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 10px;border-radius:99px}
-.spot{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch}
-.spot .card{padding:28px}
-.spot h3{font-size:22px}
-.spot ul{list-style:none;padding:0;margin:14px 0 0;color:var(--muted)}
-.spot li{padding-left:24px;position:relative;margin:9px 0}
-.spot li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
-.spot ol{margin:14px 0 0;padding-left:20px;color:var(--muted)}
-.spot ol li{padding-left:4px;margin:10px 0}
-.spot ol li:before{content:none}
-.spot ol b{color:var(--text)}
-.spot .hotc{border-color:var(--v);background:linear-gradient(180deg,rgba(139,92,246,.14),var(--card))}
-@media(max-width:760px){.spot{grid-template-columns:1fr}}
-.card h3{margin:0 0 6px;font-size:18px}
-.card p{margin:0;color:var(--muted);font-size:15px}
-.ic{font-size:26px;margin-bottom:8px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.tabs button{font:inherit;font-size:15px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 18px;cursor:pointer;transition:all .15s}
+html{color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--ink);color:var(--text);font:400 16px/1.6 var(--body);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background-image:radial-gradient(rgba(139,92,246,.16) 1px,transparent 1px);background-size:26px 26px;mask-image:linear-gradient(180deg,#000,transparent 70%);-webkit-mask-image:linear-gradient(180deg,#000,transparent 70%)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--p);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+
+/* header */
+.hd{position:fixed;inset:0 0 auto 0;z-index:50;padding-top:env(safe-area-inset-top,0);background:rgba(12,8,22,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .2s}
+.hd.sc{border-color:var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none;font:700 15px var(--disp);letter-spacing:-.01em}
+.logo img{width:36px;height:36px;border-radius:10px}
+.links{display:flex;align-items:center;gap:28px}
+.links a{text-decoration:none;color:var(--muted);font-size:15px;transition:color .15s}
+.links a:hover{color:var(--text)}
+.links a.dl{color:#fff;background:var(--g);padding:9px 20px;border-radius:12px;font-weight:600}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font:600 16px var(--body);color:#fff;background:var(--g);padding:15px 28px;border-radius:14px;box-shadow:0 10px 34px rgba(139,92,246,.4);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(255,77,141,.35)}
+.btn.out{background:transparent;border:1px solid var(--line);box-shadow:none}
+.btn.out:hover{border-color:var(--v);box-shadow:none}
+.btn svg{width:19px;height:19px}
+
+/* hero */
+.hero{padding:132px 0 24px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:99px;padding:6px 15px 6px 12px;color:var(--muted);font-size:14px;margin-bottom:22px;background:rgba(23,16,37,.7)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 rgba(255,59,92,.7);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(255,59,92,0)}100%{box-shadow:0 0 0 0 rgba(255,59,92,0)}}
+h1{font:700 clamp(31px,4.5vw,54px)/1.1 var(--disp);letter-spacing:-.035em;margin:0 0 20px}
+.lead{font-size:18px;color:var(--muted);max-width:480px;margin:0 0 30px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.fine{color:var(--muted);font-size:14px;margin:16px 0 0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.chips span{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:4px 12px}
+
+/* app window mock */
+.win{background:var(--panel);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 120px rgba(139,92,246,.22)}
+.win .bar{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);font-weight:600;font-size:15px}
+.win .bar small{margin-left:auto;font-weight:400;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:7px}
+.win .bar small i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.feed{padding:14px;display:flex;flex-direction:column;gap:9px;height:392px;overflow:hidden;justify-content:flex-end}
+.msg{display:flex;gap:11px;align-items:flex-start;background:var(--panel2);border:1px solid transparent;border-radius:14px;padding:10px 13px;animation:in .35s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+.msg.gift{background:linear-gradient(90deg,rgba(255,77,141,.16),var(--panel2))}
+.msg.say{border-color:var(--v);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 14px var(--body);color:#fff}
+.mb{min-width:0;flex:1}
+.nm{display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px}
+.pl{font-size:11px;font-weight:600;border-radius:5px;padding:0 6px;background:rgba(255,255,255,.1);color:var(--muted)}
+.pl.tw{background:rgba(145,70,255,.3);color:#d6c0ff}
+.sub{font-size:11px;font-weight:700;border-radius:6px;padding:0 7px;background:var(--g);color:#fff}
+.tx{font-size:15px;color:#e5def5;overflow-wrap:anywhere}
+.eq{display:none;margin-left:auto;align-self:center;gap:3px;height:20px;align-items:center}
+.msg.say .eq{display:flex}
+.eq b{display:block;width:3px;border-radius:2px;background:var(--p);height:6px;animation:eq 0.9s ease-in-out infinite}
+.eq b:nth-child(2){animation-delay:.15s}.eq b:nth-child(3){animation-delay:.3s}.eq b:nth-child(4){animation-delay:.45s}.eq b:nth-child(5){animation-delay:.2s}
+@keyframes eq{50%{height:20px}}
+
+/* sections */
+.sec{padding:96px 0 0}
+h2{font:600 clamp(24px,3.3vw,38px)/1.15 var(--disp);letter-spacing:-.03em;margin:0 0 12px;max-width:720px}
+.sub2{color:var(--muted);font-size:17px;max-width:560px;margin:0 0 38px}
+
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.bx{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}
+.bx h3{font:600 19px/1.25 var(--disp);letter-spacing:-.02em;margin:0 0 8px}
+.bx p{margin:0;color:var(--muted);font-size:15px}
+.bx .vis{margin-top:auto}
+.new{position:absolute;top:18px;right:18px;font-size:12px;font-weight:700;color:#fff;background:var(--g);border-radius:99px;padding:2px 11px}
+.bx.hot{background:linear-gradient(160deg,rgba(139,92,246,.2),var(--panel) 60%)}
+
+/* voice visual */
+.rng{display:grid;gap:12px}
+.rng div{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.rng i{position:relative;height:6px;border-radius:4px;background:var(--line)}
+.rng i:before{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);border-radius:4px;background:var(--g)}
+.rng i:after{content:"";position:absolute;top:50%;left:var(--w);width:16px;height:16px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.wave{display:flex;align-items:center;gap:4px;height:44px;margin-bottom:6px}
+.wave b{flex:1;max-width:6px;border-radius:3px;background:var(--g);height:var(--h);animation:eq2 1.4s ease-in-out infinite;animation-delay:calc(var(--i)*-.09s)}
+@keyframes eq2{50%{transform:scaleY(.35)}}
+
+/* filters */
+.fl{display:flex;flex-wrap:wrap;gap:8px}
+.fl button{font:500 14px var(--body);color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:7px 14px 7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+.fl button:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.fl button.off{color:var(--muted);text-decoration:line-through;opacity:.7}
+.fl button.off:before{background:#5a4d78}
+.hint{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* overlay mock */
+.ov{background:#0f0a1b;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ov .top{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.ov .live{background:var(--live);color:#fff;font-weight:700;font-size:12px;border-radius:6px;padding:1px 8px}
+.ov .top b{color:var(--text);font-variant-numeric:tabular-nums}
+.ov .top span{margin-left:auto}
+.ov .l{padding:12px 14px;display:grid;gap:7px;font-size:14px}
+.ov .l div{color:#e5def5}.ov .l b{color:#ffb4d1;margin-right:6px}
+.ov .l .sb{background:var(--g);color:#fff;font-size:10px;font-weight:700;border-radius:5px;padding:0 6px;margin-right:6px}
+
+/* pin */
+.pin{background:var(--panel2);border:1px solid var(--v);border-radius:14px;padding:13px 15px;font-size:14px;position:relative}
+.pin b{display:block;color:#ffb4d1;margin-bottom:2px}
+.times{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.times span{font-size:13px;border:1px solid var(--line);border-radius:99px;padding:3px 11px;color:var(--muted)}
+.times span.on{background:var(--g);color:#fff;border-color:transparent}
+
+/* tops */
+.tops{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tp{background:#0f0a1b;border:1px solid var(--line);border-radius:16px;padding:14px;min-height:150px}
+.tp small{display:block;color:var(--muted);font-size:12px;margin-bottom:10px}
+.likes{display:flex;gap:10px;align-items:flex-end;position:relative;padding-top:30px}
+.likes .u{position:relative;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex:none}
+.likes .u em{position:absolute;bottom:-6px;right:-4px;font:700 10px var(--body);font-style:normal;background:#0f0a1b;border:1px solid var(--line);border-radius:99px;padding:0 5px;color:var(--text)}
+.likes .u2{animation:shake 4.4s infinite}
+.hand{position:absolute;left:4px;top:0;font-size:22px;line-height:1;animation:slap 4.4s infinite;transform-origin:left center}
+@keyframes slap{0%,40%{opacity:0;transform:translate(-4px,14px) scale(.6)}50%{opacity:1;transform:translate(0,0) scale(1)}58%{opacity:1;transform:translate(46px,10px) scale(1)}66%,100%{opacity:0;transform:translate(46px,10px) scale(.8)}}
+@keyframes shake{0%,56%,72%,100%{transform:none}60%{transform:translateX(5px) rotate(6deg)}64%{transform:translateX(-4px) rotate(-5deg)}68%{transform:translateX(2px)}}
+.gl{display:grid;gap:8px}
+.gl div{display:flex;align-items:center;gap:9px;font-size:13px}
+.gl .u{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px;color:#fff;flex:none}
+.gl .first{animation:jump 2.2s ease-in-out infinite}
+.gl .first .u{box-shadow:0 0 0 3px rgba(255,77,141,.35),0 0 18px rgba(255,77,141,.8)}
+@keyframes jump{50%{transform:translateY(-4px)}}
+
+/* alert + donations */
+.toast{display:flex;align-items:center;gap:14px;background:linear-gradient(90deg,rgba(139,92,246,.35),rgba(255,77,141,.25));border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:14px 18px}
+.toast .av{width:46px;height:46px;font-size:18px}
+.toast b{display:block;font-size:16px}
+.toast span{color:#e5def5;font-size:14px}
+.don{display:flex;align-items:center;gap:14px;background:#0f0a1b;border:1px solid var(--line);border-radius:18px;padding:14px 18px}
+.don .sum{font:700 22px var(--disp);letter-spacing:-.02em}
+.don .who{color:var(--muted);font-size:14px}
+.don .pic{margin-left:auto;width:48px;height:48px;border-radius:12px;background:var(--g);display:grid;place-items:center;font-size:24px}
+.mini{font-size:13px;color:var(--muted);margin-top:12px}
+.upd{display:flex;align-items:center;gap:12px;background:#0f0a1b;border:1px solid var(--line);border-radius:16px;padding:13px 16px;font-size:14px}
+.upd .b2{margin-left:auto;background:var(--g);border-radius:10px;padding:6px 14px;font-weight:600;font-size:13px}
+.upd .ok{color:var(--ok)}
+
+/* avatar spotlight */
+.avs{display:grid;grid-template-columns:1.1fr 1fr;gap:44px;align-items:center}
+.stage{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.vcam,.vout{position:relative;aspect-ratio:3/4;border-radius:22px;overflow:hidden;border:1px solid var(--line)}
+.vcam{background:#120b20}
+.vcam:after{content:"камера";position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+.vout{background:conic-gradient(#1e1530 25%,#251a3a 0 50%,#1e1530 0 75%,#251a3a 0) 0 0/22px 22px}
+.vout:after{content:"виджет для OBS";position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+.stage svg{display:block;width:100%;height:100%}
+.arrow{color:var(--p);font-size:26px}
+.sway{transform-origin:100px 190px;animation:sway 5s ease-in-out infinite}
+@keyframes sway{25%{transform:rotate(4deg)}75%{transform:rotate(-4deg)}}
+.blink{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.talk{transform-origin:center;transform-box:fill-box;animation:talk 1.1s ease-in-out infinite}
+@keyframes talk{50%{transform:scaleY(.35)}}
+.lm{fill:var(--ok);animation:lm 1.1s ease-in-out infinite}
+@keyframes lm{50%{opacity:.35}}
+.checks{list-style:none;padding:0;margin:22px 0 26px;display:grid;gap:11px}
+.checks li{position:relative;padding-left:30px;color:#d8cfee}
+.checks li:before{content:"";position:absolute;left:0;top:7px;width:16px;height:9px;border-left:2.5px solid var(--ok);border-bottom:2.5px solid var(--ok);transform:rotate(-45deg) scale(.9)}
+
+/* screens */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tabs button{font:500 15px var(--body);color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 20px;cursor:pointer;transition:all .15s}
 .tabs button:hover{color:var(--text)}
 .tabs button.on{color:#fff;background:var(--g);border-color:transparent}
-.cap{color:var(--muted);margin:16px 0 0;text-align:center;min-height:26px}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:8px}
-.plan{position:relative;display:flex;flex-direction:column}
-.plan.hot{border-color:var(--v);background:linear-gradient(180deg,rgba(139,92,246,.14),var(--card))}
-.plan .tag{position:absolute;top:-12px;right:18px;background:var(--g);font-size:12px;font-weight:700;padding:3px 12px;border-radius:99px}
-.plan .name{color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-size:13px}
-.plan .price{font-size:36px;font-weight:700;margin:4px 0 14px}
-.plan .price small{font-size:15px;color:var(--muted);font-weight:400}
-.plan ul{list-style:none;padding:0;margin:0 0 20px;color:var(--muted);flex:1}
-.plan li{padding-left:24px;position:relative;margin:7px 0}
-.plan li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
-.plan li.no:before{content:"—";color:#6b6a85}
-.plan .btn{text-align:center;padding:12px}
-.final{text-align:center;padding:52px 24px;margin:56px 0 40px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12))}
-.by{display:inline-block;font-size:14px;font-weight:600;letter-spacing:.3px;color:#fff;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.5);border-radius:99px;padding:4px 16px;margin-bottom:16px}
-.final p{color:var(--muted);margin:0 0 22px}
-footer{border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;color:var(--muted);font-size:14px}
+.shot{border-radius:20px;border:1px solid var(--line);overflow:hidden;background:var(--panel);box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 90px rgba(139,92,246,.14)}
+.shot .tb{display:flex;align-items:center;gap:9px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.shot .tb img{width:18px;height:18px;border-radius:5px}
+.shot img.pic{display:block;width:100%;height:auto}
+.cap{color:var(--muted);margin:16px 0 0;min-height:26px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+.st{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px}
+.st:before{content:counter(s);display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--g);font:700 16px var(--disp);margin-bottom:16px}
+.st h3{font:600 18px var(--disp);letter-spacing:-.02em;margin:0 0 7px}
+.st p{margin:0;color:var(--muted);font-size:15px}
+
+/* plans */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:stretch}
+.plan{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:28px;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--v);background:linear-gradient(170deg,rgba(139,92,246,.22),var(--panel) 65%)}
+.plan .rec{position:absolute;top:-13px;right:22px;background:var(--g);font-size:12px;font-weight:700;border-radius:99px;padding:3px 13px}
+.plan .nm2{color:var(--muted);font-size:15px}
+.plan .pr{font:700 30px var(--disp);letter-spacing:-.03em;margin:6px 0 20px}
+.plan .pr small{font:400 15px var(--body);color:var(--muted);letter-spacing:0}
+.plan ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px;flex:1;align-content:start}
+.plan li{position:relative;padding-left:26px;font-size:15px;color:#d8cfee}
+.plan li:before{content:"";position:absolute;left:1px;top:7px;width:12px;height:7px;border-left:2px solid var(--ok);border-bottom:2px solid var(--ok);transform:rotate(-45deg)}
+.plan li.no{color:#7d7298}
+.plan li.no:before{width:10px;height:0;border-left:0;border-bottom:2px solid #5a4d78;transform:none;top:12px}
+
+/* faq */
+.faq{display:grid;gap:10px;max-width:820px}
+.faq details{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:0 20px}
+.faq summary{cursor:pointer;list-style:none;padding:17px 0;font-weight:600;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";color:var(--p);font-size:22px;line-height:1.1;transition:transform .2s}
+.faq details[open] summary:after{transform:rotate(45deg)}
+.faq p{margin:0 0 18px;color:var(--muted)}
+
+/* final */
+.final{margin:96px 0 48px;border-radius:32px;border:1px solid var(--line);padding:60px 28px;text-align:center;background:radial-gradient(500px 260px at 50% 0%,rgba(139,92,246,.35),transparent),var(--panel)}
+.final h2{margin:0 auto 12px}
+.final p{color:var(--muted);margin:0 auto 26px;max-width:480px}
+footer{border-top:1px solid var(--line);padding:26px 0 44px;text-align:center;color:var(--muted);font-size:14px}
 footer a{color:var(--muted)}
-#up{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:60;width:48px;height:48px;border-radius:50%;border:0;background:var(--g);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 8px 28px rgba(139,92,246,.5);opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .25s,transform .25s,visibility .25s}
+#up{position:fixed;right:max(20px,env(safe-area-inset-right,0));bottom:max(20px,env(safe-area-inset-bottom,0));z-index:60;width:48px;height:48px;border-radius:50%;border:0;background:var(--g);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 8px 28px rgba(139,92,246,.5);opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .25s,transform .25s,visibility .25s}
 #up.show{opacity:1;visibility:visible;transform:none}
-#up:hover{filter:brightness(1.12)}
 #up svg{width:22px;height:22px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;position:relative;margin-top:8px}
-.steps:before{content:"";position:absolute;top:44px;left:16%;right:16%;height:2px;background:linear-gradient(90deg,#8b5cf6,#ec4899);opacity:.45}
-.stp{position:relative;text-align:center;padding:28px 22px 26px;background:linear-gradient(180deg,rgba(139,92,246,.10),var(--card));border:1px solid var(--line);border-radius:20px}
-.stp .n{width:34px;height:34px;margin:0 auto 14px;display:grid;place-items:center;border-radius:50%;background:var(--g);font-weight:700;font-size:16px;box-shadow:0 6px 20px rgba(139,92,246,.45);position:relative;z-index:1}
-.stp .si{font-size:34px;line-height:1;margin-bottom:10px}
-.stp h3{margin:0 0 6px;font-size:20px}
-.stp p{margin:0;color:var(--muted);font-size:15px}
-.steps-end{text-align:center;margin-top:26px;color:var(--muted)}
-.steps-end b{color:var(--text)}
-@media(max-width:700px){.steps{grid-template-columns:1fr}.steps:before{display:none}}
-@media(max-width:700px){nav .links a:not(.nb){display:none}.hero{padding-top:104px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+/* responsive */
+@media(max-width:980px){
+  .hero,.avs{grid-template-columns:1fr}
+  .hero{padding-top:112px}
+  .s2,.s3,.s4{grid-column:span 6}
+  .plans,.steps{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .links a:not(.dl){display:none}
+  .sec{padding-top:72px}
+  .tops{grid-template-columns:1fr}
+  .stage{grid-template-columns:1fr 1fr}.arrow{display:none}
+  .feed{height:360px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*:before,*:after{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
-<header class="top" id="top">
-<div class="wrap"><nav>
+
+<header class="hd" id="hd">
+<div class="wrap"><nav class="nav">
 <a class="logo" href="#"><img src="img/icon.png" alt="">ЭхоЧат LIVE</a>
-<div class="links"><a href="#start">Как начать</a><a href="#features">Возможности</a><a href="#avatar">Аватар</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
+<div class="links">
+<a href="#features">Возможности</a><a href="#avatar">Аватар</a><a href="#screens">Скриншоты</a><a href="#start">Как начать</a><a href="#plans">Тарифы</a>
+<a class="dl" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a>
+</div>
 </nav></div>
 </header>
 
-<div class="wrap">
+<main class="wrap">
+
+<!-- HERO -->
 <div class="hero">
-<div class="badge">Для Windows · TikTok LIVE и Twitch</div>
-<h1>Чат вашего стрима<br>читают <span>живые голоса</span></h1>
-<p class="lead">Нейро-озвучка чата, оверлей и виджеты для OBS, 2D-аватар и донаты на экране эфира.</p>
+<div>
+<div class="tag"><span class="dot"></span>Для Windows, TikTok LIVE и Twitch</div>
+<h1>Чат вашего стрима читают живые голоса</h1>
+<p class="lead">Нейро-озвучка чата, оверлей и виджеты для OBS, 2D-аватар и донаты прямо на экране эфира.</p>
 <div class="cta">
-<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать для Windows</a>
-<a class="btn ghost" href="#plans">Тарифы</a>
+<a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>Скачать для Windows</a>
+<a class="btn out" href="#features">Смотреть возможности</a>
 </div>
-<p class="note">3 дня все функции бесплатно, потом тариф Lite</p>
-<div class="shot"><img src="img/live.webp" alt="Главный экран ЭхоЧат LIVE" width="1600" height="1074"></div>
+<p class="fine">Первые 3 дня открыты все функции, потом остаётся бесплатный тариф Lite.</p>
+<div class="chips"><span>Без регистрации</span><span>Автообновление</span><span>Сворачивается в трей</span></div>
 </div>
 
-<section id="start">
-<h2>Запуск за <span class="g">3 шага</span></h2>
-<p class="sub">Без регистрации и сложной настройки.</p>
-<div class="steps">
-<div class="stp"><div class="n">1</div><div class="si">⬇️</div><h3>Скачайте программу</h3><p>Скачайте установщик и запустите ЭхоЧат LIVE на Windows.</p></div>
-<div class="stp"><div class="n">2</div><div class="si">🔗</div><h3>Введите ник стримера</h3><p>Нажмите «Подключить», и лента чата оживёт.</p></div>
-<div class="stp"><div class="n">3</div><div class="si">🎙️</div><h3>Выберите голос</h3><p>Один клик, и можно запускать эфир: чат уже читают вслух.</p></div>
+<div class="win" aria-label="Демонстрация: приложение читает чат вслух">
+<div class="bar"><img src="img/icon.png" alt="" width="22" height="22" style="border-radius:6px">Лента чата<small><i></i>озвучка включена</small></div>
+<div class="feed" id="feed"></div>
 </div>
-<p class="steps-end"><a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать для Windows</a></p>
+</div>
+
+<!-- FEATURES -->
+<section class="sec" id="features">
+<h2>Всё для эфира в одной программе</h2>
+<p class="sub2">Подключение по нику, и чат уже говорит. Без ключей и сложных настроек.</p>
+
+<div class="bento">
+
+<div class="bx s3 hot">
+<div><h3>10 нейро-голосов</h3><p>Озвучка сообщений, подарков и подписок. Отдельный голос для TikTok и Twitch, свои скорость, тон и громкость.</p></div>
+<div class="vis">
+<div class="wave" id="wave"></div>
+<div class="rng"><div>Скорость<i style="--w:62%"></i></div><div>Тон<i style="--w:45%"></i></div><div>Громкость<i style="--w:80%"></i></div></div>
+</div>
+</div>
+
+<div class="bx s3">
+<div><h3>Умные фильтры</h3><p>Голос не читает лишнее. Нажмите на фильтр, чтобы увидеть, как он выглядит в списке.</p></div>
+<div class="vis">
+<div class="fl" id="fl">
+<button>Команды</button><button>Ссылки</button><button>Повторы</button><button>Мат</button><button>@упоминания</button><button>Эмодзи</button>
+</div>
+<p class="hint" id="flh">Зелёные фильтры включены: такие сообщения не озвучиваются.</p>
+</div>
+</div>
+
+<div class="bx s4">
+<div><h3>Оверлей чата</h3><p>Окно поверх всех окон, как чат в TikTok LIVE Studio: чат TikTok и Twitch, счётчики эфира, подарки, репосты и лайки сердечками. В OBS добавляется «Захватом окна».</p></div>
+<div class="vis ov">
+<div class="top"><span class="live" style="margin-left:0">LIVE</span><b>00:42:18</b><span>842 зрителя · 48 210 лайков · 6 подарков</span></div>
+<div class="l">
+<div><b>DJ_Max</b>Поставьте лайк, ребята!</div>
+<div><span class="sb">SUB</span><b>Света</b>Здравствуйте из Алматы 👋</div>
+<div><b>Marina_KZ</b>🎁 отправил(а) «Роза» ×5</div>
+</div>
+</div>
+</div>
+
+<div class="bx s2">
+<div><h3>Закреп сообщения</h3><p>Закрепите сообщение на срок от 1 минуты до конца эфира, и оно появится в виджете чата.</p></div>
+<div class="vis">
+<div class="pin"><b>Тимур777</b>Когда будет розыгрыш?</div>
+<div class="times"><span>1 мин</span><span class="on">10 мин</span><span>до конца эфира</span></div>
+</div>
+</div>
+
+<div class="bx s3">
+<div><h3>Виджеты для OBS</h3><p>Чат, топ лайков и топ подарков на прозрачном фоне для OBS и TikTok LIVE Studio. Исчезающие сообщения по вашим настройкам.</p></div>
+<div class="vis tops">
+<div class="tp"><small>Топ лайков</small>
+<div class="likes"><span class="hand">🤜</span>
+<div class="u" style="background:#ff4d8d">А<em>1</em></div>
+<div class="u u2" style="background:#8b5cf6">М<em>2</em></div>
+<div class="u" style="background:#38bdf8">И<em>3</em></div></div></div>
+<div class="tp"><small>Топ подарков</small>
+<div class="gl">
+<div class="first"><span class="u" style="background:#ff4d8d">М</span>Marina_KZ</div>
+<div><span class="u" style="background:#8b5cf6">Д</span>DJ_Max</div>
+<div><span class="u" style="background:#38bdf8">Т</span>Тимур777</div>
+</div></div>
+</div>
+</div>
+
+<div class="bx s3">
+<div><h3>Оповещения о подписках</h3><p>Плашка с аватаркой и ником на экране стрима. 8 дизайнов, своя картинка и свой звук, предпросмотр.</p></div>
+<div class="vis">
+<div class="toast"><span class="av" style="background:#ff4d8d">С</span><div><b>Света</b><span>подписалась на канал</span></div></div>
+</div>
+</div>
+
+<div class="bx s3">
+<div><h3>Донаты Каспи</h3><p>Имя, сумма и картинка доната на экране стрима. 8 дизайнов, свой звук. Журнал уведомлений в приложении.</p></div>
+<div class="vis">
+<div class="don"><div><div class="sum">5 000 ₸</div><div class="who">Айгерим</div></div><div class="pic">💜</div></div>
+<p class="mini">Подключение через iPhone по QR. Нужен iOS 27.</p>
+</div>
+</div>
+
+<div class="bx s3">
+<span class="new">НОВОЕ</span>
+<div><h3>DonationAlerts</h3><p>Донаты на экране стрима в реальном времени: вход в один клик, 8 шаблонов, свои картинки и звуки, озвучка доната.</p></div>
+<div class="vis">
+<div class="don"><div><div class="sum">1 000 ₽</div><div class="who">Алексей: удачного эфира!</div></div><div class="pic">🎉</div></div>
+</div>
+</div>
+
+<div class="bx s6" style="grid-column:span 6;flex-direction:row;align-items:center;flex-wrap:wrap;gap:22px">
+<div style="flex:1 1 320px"><h3>Автообновление</h3><p>Приложение само проверяет новые версии и обновляется по кнопке. Ничего скачивать вручную не нужно.</p></div>
+<div class="upd" style="flex:0 1 380px"><span class="ok">●</span>Доступна новая версия<span class="b2">Обновить</span></div>
+</div>
+
+</div>
 </section>
 
-<section id="features">
-<h2>Возможности</h2>
-<p class="sub">Подключение по нику, и чат уже говорит. Без ключей и сложных настроек.</p>
-<div class="grid">
-<div class="card"><div class="ic">🎙️</div><h3>10 нейро-голосов</h3><p>Озвучка сообщений, подарков и подписок. Отдельный голос для TikTok и Twitch, свои скорость, тон и громкость.</p></div>
-<div class="card"><div class="ic">🛡️</div><h3>Умные фильтры</h3><p>Без команд, ссылок, повторов, мата, @упоминаний и эмодзи.</p></div>
-<div class="card"><span class="nw">НОВОЕ</span><div class="ic">🧑‍🎤</div><h3>2D-аватар</h3><p>Live2D-персонаж повторяет ваше лицо с веб-камеры: голову, глаза, брови и рот. Виджет для OBS и TikTok LIVE Studio.</p></div>
-<div class="card"><span class="nw">НОВОЕ</span><div class="ic">🔔</div><h3>DonationAlerts</h3><p>Донаты на экране стрима в реальном времени: вход в один клик, 8 шаблонов, свои картинки и звуки, озвучка.</p></div>
-<div class="card"><div class="ic">💸</div><h3>Донаты Каспи</h3><p>Имя, сумма и картинка доната на экране стрима. 8 дизайнов, свой звук. Подключение с iPhone по QR.</p></div>
-<div class="card"><div class="ic">🪟</div><h3>Оверлей чата</h3><p>Окно поверх всех окон, как чат в TikTok LIVE Studio: чат TikTok и Twitch, счётчики эфира, подарки, репосты и лайки сердечками. В OBS добавляется «Захватом окна».</p></div>
-<div class="card"><div class="ic">🧩</div><h3>Виджеты для OBS</h3><p>Чат, топ лайков и топ подарков на прозрачном фоне для OBS и TikTok LIVE Studio. Исчезающие сообщения по вашим настройкам.</p></div>
-<div class="card"><div class="ic">🎉</div><h3>Оповещения о подписках</h3><p>Плашка с аватаркой и ником на экране стрима. 8 дизайнов, своя картинка и свой звук, предпросмотр.</p></div>
-<div class="card"><div class="ic">📌</div><h3>Закреп сообщения</h3><p>Закрепите сообщение в оверлее на срок от 1 минуты до конца эфира, и оно появится в виджете чата на стриме.</p></div>
-<div class="card"><div class="ic">🔄</div><h3>Автообновление</h3><p>Приложение само проверяет новые версии и обновляется по кнопке. Ничего скачивать вручную не нужно.</p></div>
-</div>
-</section>
-
-<section id="avatar">
-<h2>2D-аватар <span class="g">для вашего стрима</span></h2>
-<p class="sub">Персонаж повторяет ваше лицо в реальном времени. Камера нужна только программе: картинка с неё не покидает ваш компьютер.</p>
-<div class="spot">
-<div class="card hotc"><span class="nw">НОВОЕ</span>
-<h3>Что умеет</h3>
-<ul>
-<li>Повторяет голову, глаза, брови и рот с веб-камеры</li>
-<li>Образцы моделей Haru, Hiyori и Mao, а свои модели добавляются папкой или .zip</li>
+<!-- AVATAR -->
+<section class="sec" id="avatar">
+<div class="avs">
+<div>
+<h2>2D-аватар повторяет ваше лицо</h2>
+<p class="sub2" style="margin-bottom:0">Live2D-персонаж с веб-камеры: голова, глаза, брови и рот. Камера нужна только программе, картинка с неё не покидает ваш компьютер.</p>
+<ul class="checks">
+<li>Образцы моделей Haru, Hiyori и Mao, свои модели добавляются папкой или .zip</li>
 <li>Калибровка, зеркало, размер и положение: колесо мыши меняет размер, левая кнопка двигает</li>
 <li>Прозрачный или зелёный фон для OBS и TikTok LIVE Studio</li>
 <li>Бесплатные Live2D-модели можно найти по кнопке в приложении</li>
-</ul></div>
-<div class="card">
-<h3>Как включить</h3>
-<ol>
-<li>Откройте вкладку <b>«2D Аватар»</b> и один раз скачайте компоненты.</li>
-<li>Включите камеру и выберите модель.</li>
-<li>Скопируйте ссылку на виджет в OBS или TikTok LIVE Studio.</li>
-</ol>
-<p style="margin-top:14px;font-size:14px">Аватар входит в тариф Pro.</p>
+</ul>
+<p class="fine" style="margin:0">Откройте вкладку «2D Аватар», один раз скачайте компоненты, включите камеру и скопируйте ссылку на виджет. Аватар входит в тариф Pro.</p>
+</div>
+
+<div class="stage" aria-hidden="true">
+<div class="vcam">
+<svg viewBox="0 0 200 267"><g class="sway">
+<ellipse cx="100" cy="125" rx="52" ry="64" fill="none" stroke="#6d5a99" stroke-width="2" stroke-dasharray="5 5"/>
+<g class="lm"><circle cx="80" cy="112" r="3.5"/><circle cx="120" cy="112" r="3.5"/><circle cx="72" cy="98" r="3"/><circle cx="128" cy="98" r="3"/><circle cx="100" cy="132" r="3"/><circle cx="84" cy="160" r="3"/><circle cx="100" cy="166" r="3"/><circle cx="116" cy="160" r="3"/><circle cx="68" cy="130" r="3"/><circle cx="132" cy="130" r="3"/></g>
+<path d="M30 267c4-48 36-66 70-66s66 18 70 66" fill="none" stroke="#6d5a99" stroke-width="2" stroke-dasharray="5 5"/>
+</g></svg></div>
+<div class="arrow">➜</div>
+<div class="vout">
+<svg viewBox="0 0 200 267"><g class="sway">
+<path d="M30 267c4-48 36-66 70-66s66 18 70 66z" fill="#8b5cf6"/>
+<rect x="88" y="176" width="24" height="30" rx="8" fill="#f2c9b3"/>
+<ellipse cx="100" cy="122" rx="52" ry="62" fill="#f8d9c6"/>
+<path d="M44 118c-6-52 28-76 60-76s58 22 52 78c-8-26-22-44-46-48-22 12-46 20-66 46z" fill="#ff4d8d"/>
+<path d="M60 96q12-8 24-2" stroke="#4a2740" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M116 94q12-6 24 2" stroke="#4a2740" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<g class="blink"><ellipse cx="80" cy="114" rx="8" ry="10" fill="#2a1840"/></g>
+<g class="blink"><ellipse cx="120" cy="114" rx="8" ry="10" fill="#2a1840"/></g>
+<circle cx="83" cy="110" r="2.5" fill="#fff"/><circle cx="123" cy="110" r="2.5" fill="#fff"/>
+<ellipse cx="66" cy="136" rx="9" ry="5" fill="#ff8fb3" opacity=".55"/><ellipse cx="134" cy="136" rx="9" ry="5" fill="#ff8fb3" opacity=".55"/>
+<g class="talk"><ellipse cx="100" cy="158" rx="12" ry="9" fill="#7a1f44"/></g>
+</g></svg></div>
 </div>
 </div>
 </section>
 
-<section id="screens">
-<h2>Как это выглядит</h2>
-<p class="sub">Настоящие экраны приложения.</p>
+<!-- SCREENS -->
+<section class="sec" id="screens">
+<h2>Как выглядит приложение</h2>
+<p class="sub2">Настоящие экраны ЭхоЧат LIVE.</p>
 <div class="tabs" id="tabs">
 <button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Виджеты</button><button data-i="4">Донаты</button><button data-i="5">Тарифы</button>
 </div>
-<div class="shot"><img id="pic" src="img/live.webp" alt="Вкладка «Эфир»" width="1600" height="1074"></div>
+<div class="shot"><div class="tb"><img src="img/icon.png" alt="">ЭхоЧат LIVE</div><img class="pic" id="pic" src="img/live.webp" alt="Вкладка «Эфир»" width="1600" height="1083"></div>
 <p class="cap" id="cap"></p>
 </section>
 
-<section id="plans">
+<!-- START -->
+<section class="sec" id="start">
+<h2>Запуск за 3 шага</h2>
+<p class="sub2">Без регистрации и сложной настройки.</p>
+<div class="steps">
+<div class="st"><h3>Скачайте программу</h3><p>Скачайте установщик и запустите ЭхоЧат LIVE на Windows.</p></div>
+<div class="st"><h3>Введите ник стримера</h3><p>Нажмите «Подключить», и лента чата оживёт.</p></div>
+<div class="st"><h3>Выберите голос</h3><p>Один клик, и можно запускать эфир: чат уже читают вслух.</p></div>
+</div>
+</section>
+
+<!-- PLANS -->
+<section class="sec" id="plans">
 <h2>Тарифы</h2>
-<p class="sub">Первые 3 дня открыты все функции.</p>
+<p class="sub2">Первые 3 дня открыты все функции.</p>
 <div class="plans">
-<div class="card plan"><div class="name">Lite</div><div class="price">Бесплатно</div>
+<div class="plan"><div class="nm2">Lite</div><div class="pr">Бесплатно</div>
 <ul><li>Эфир и озвучка чата</li><li>Фильтры</li><li class="no">Виджеты и оверлей чата</li><li class="no">Донаты Каспи и DonationAlerts</li><li class="no">2D-аватар</li></ul>
-<a class="btn ghost" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
-<div class="card plan hot"><div class="tag">Рекомендуем</div><div class="name">Pro</div><div class="price">5 000 ₸ <small>/ 30 дней</small></div>
+<a class="btn out" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
+<div class="plan hot"><span class="rec">Рекомендуем</span><div class="nm2">Pro</div><div class="pr">5 000 ₸ <small>/ 30 дней</small></div>
 <ul><li>Всё из Lite</li><li>Оверлей чата и закреп сообщений</li><li>Виджеты: чат, топ лайков, топ подарков, оповещения</li><li>Донаты Каспи и DonationAlerts на экран</li><li>2D-аватар по камере</li><li>Перенос на другой ПК</li></ul>
 <a class="btn" href="https://t.me/artavenuekz">Купить Pro</a></div>
-<div class="card plan"><div class="name">Партнёрская</div><div class="price">Lifetime Pro</div>
+<div class="plan"><div class="nm2">Партнёрская</div><div class="pr">Lifetime Pro</div>
 <ul><li>Все возможности Pro</li><li>Без продлений</li><li>За продвижение программы</li></ul>
-<a class="btn ghost" href="https://t.me/artavenuekz">Узнать подробнее</a></div>
+<a class="btn out" href="https://t.me/artavenuekz">Узнать подробнее</a></div>
 </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="faq">
+<h2>Частые вопросы</h2>
+<p class="sub2">Коротко о главном.</p>
+<div class="faq">
+<details><summary>Нужна ли регистрация?</summary><p>Нет. Скачайте установщик, введите ник стримера и нажмите «Подключить».</p></details>
+<details><summary>С какими платформами работает?</summary><p>С TikTok LIVE и Twitch. Для каждой платформы можно выбрать свой голос.</p></details>
+<details><summary>Что будет через 3 дня?</summary><p>Первые 3 дня открыты все функции. Потом остаётся бесплатный тариф Lite: эфир, озвучка чата и фильтры.</p></details>
+<details><summary>Как подключить донаты Каспи?</summary><p>Через команду на iPhone по QR-коду. Нужен iOS 27, пошаговая инструкция есть во вкладке «Донаты Каспи».</p></details>
+<details><summary>Видит ли кто-то картинку с камеры аватара?</summary><p>Нет. Камера нужна только программе, картинка с неё не покидает ваш компьютер.</p></details>
+<details><summary>Как обновляется программа?</summary><p>Приложение само проверяет новые версии и обновляется по кнопке. Скачивать ничего вручную не нужно.</p></details>
+<details><summary>Как купить Pro?</summary><p>Подробности и покупка во вкладке «Лицензия» в приложении. Или напишите автору в Telegram.</p></details>
+</div>
+</section>
 
 <div class="final">
-<div class="by">Разработано стримером для стримеров</div>
-<h2>Попробуйте <span class="g">ЭхоЧат LIVE</span></h2>
+<h2>Попробуйте ЭхоЧат LIVE</h2>
 <p>Скачайте файл, введите ник стримера, выберите голос, и чат заговорит.</p>
 <a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать для Windows</a>
 </div>
-</section>
-</div>
+</main>
 
-<footer>© ЭхоЧат LIVE · Разработано стримером для стримеров · Все права защищены · <a href="https://t.me/artavenuekz">Написать автору</a></footer>
+<footer>© ЭхоЧат LIVE. Разработано стримером для стримеров. Все права защищены. <a href="https://t.me/artavenuekz">Написать автору</a></footer>
 
 <button id="up" type="button" aria-label="Наверх"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 
 <script>
 (function(){
-var top=document.getElementById('top'),up=document.getElementById('up');
-function onScroll(){var y=window.scrollY||0;top.classList.toggle('sc',y>8);up.classList.toggle('show',y>500)}
+var $=function(i){return document.getElementById(i)};
+var hd=$('hd'),up=$('up');
+function onScroll(){var y=window.scrollY||0;hd.classList.toggle('sc',y>8);up.classList.toggle('show',y>600)}
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 up.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+
+/* hero chat demo */
+var COL=['#ff4d8d','#8b5cf6','#38bdf8','#f59e0b','#10b981','#ef4444'];
+var M=[
+['tt','DJ_Max','Поставьте лайк, ребята!'],
+['tt','Света','Здравствуйте из Алматы 👋','sub'],
+['tw','Max','Привет из Twitch!'],
+['tt','Тимур777','Когда будет розыгрыш?'],
+['tt','Marina_KZ','🎁 отправил(а) «Роза» ×5','gift'],
+['tt','Айгерим','Голос как живой!'],
+['tt','Данияр','Читает вообще без ошибок'],
+['tw','Kate_play','Привет из Twitch, стример!'],
+['tt','Света','➕ подписался(ась) на канал','gift']
+];
+var feed=$('feed'),k=0;
+function mk(m,say){
+ var d=document.createElement('div');d.className='msg'+(m[3]==='gift'?' gift':'')+(say?' say':'');
+ var a=document.createElement('div');a.className='av';a.textContent=m[1].charAt(0).toUpperCase();a.style.background=COL[(m[1].length+m[1].charCodeAt(0))%COL.length];
+ var b=document.createElement('div');b.className='mb';
+ var n=document.createElement('div');n.className='nm';
+ var p=document.createElement('span');p.className='pl'+(m[0]==='tw'?' tw':'');p.textContent=m[0]==='tw'?'Twitch':'TikTok';
+ n.appendChild(document.createTextNode(m[1]));n.appendChild(p);
+ if(m[3]==='sub'){var s=document.createElement('span');s.className='sub';s.textContent='SUB';n.appendChild(s)}
+ var t=document.createElement('div');t.className='tx';t.textContent=m[2];
+ b.appendChild(n);b.appendChild(t);
+ var e=document.createElement('div');e.className='eq';e.innerHTML='<b></b><b></b><b></b><b></b><b></b>';
+ d.appendChild(a);d.appendChild(b);d.appendChild(e);return d;
+}
+function push(){
+ var prev=feed.querySelector('.say');if(prev)prev.classList.remove('say');
+ feed.appendChild(mk(M[k%M.length],true));k++;
+ while(feed.children.length>5)feed.removeChild(feed.firstChild);
+}
+for(var i=0;i<4;i++){push()}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce){setInterval(push,2400)}
+
+/* voice wave */
+var w=$('wave'),hs=[40,70,50,90,60,100,45,80,55,95,65,85,50,75,40,90,60,70,45,85,55,95,50,65];
+hs.forEach(function(h,i){var b=document.createElement('b');b.style.setProperty('--h',h+'%');b.style.setProperty('--i',i);w.appendChild(b)});
+
+/* filters */
+var fh=$('flh');
+Array.prototype.forEach.call($('fl').children,function(b){
+ b.addEventListener('click',function(){
+  b.classList.toggle('off');
+  var off=b.classList.contains('off');
+  fh.textContent=off?('Фильтр «'+b.textContent+'» выключен: такие сообщения будут озвучены.'):('Фильтр «'+b.textContent+'» включён: такие сообщения не озвучиваются.');
+ });
+});
+
+/* screenshots */
 var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['widgets','Виджеты','Чат для OBS и TikTok LIVE Studio с живым предпросмотром'],['kaspi','Донаты','Донаты Каспи на экране: подключение iPhone, журнал уведомлений и виджет'],['plans','Тарифы','Lite, Pro и партнёрская лицензия']];
-var pic=document.getElementById('pic'),cap=document.getElementById('cap'),btns=document.querySelectorAll('#tabs button');
-function show(i){pic.src='img/'+S[i][0]+'.webp';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,k){b.classList.toggle('on',k===i)})}
+var pic=$('pic'),cap=$('cap'),btns=document.querySelectorAll('#tabs button');
+function show(i){pic.src='img/'+S[i][0]+'.webp';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,j){b.classList.toggle('on',j===i)})}
 btns.forEach(function(b){b.addEventListener('click',function(){show(+b.dataset.i)})});
 show(0);
 })();
