@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ЭхоЧат LIVE — озвучка чата TikTok LIVE живыми голосами</title>
-<meta name="description" content="Программа для Windows: озвучка чата TikTok LIVE и Twitch нейро-голосами, виджеты для OBS, донаты Каспи на экран стрима.">
+<meta name="description" content="Программа для Windows: озвучка чата TikTok LIVE и Twitch нейро-голосами, оверлей чата, виджеты для OBS, 2D-аватар, донаты Каспи и DonationAlerts на экран стрима.">
 <meta property="og:title" content="ЭхоЧат LIVE — озвучка чата TikTok LIVE">
-<meta property="og:description" content="10 живых голосов, фильтры, виджеты для OBS, донаты Каспи. Скачать для Windows.">
+<meta property="og:description" content="10 живых голосов, оверлей чата, виджеты для OBS, 2D-аватар, донаты Каспи и DonationAlerts. Скачать для Windows.">
 <meta property="og:image" content="img/live.webp">
 <link rel="icon" href="img/icon.png">
 <style>
@@ -42,7 +42,20 @@ section{padding:56px 0 8px}
 h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.5px}
 .sub{color:var(--muted);margin:0 0 28px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.nw{position:absolute;top:14px;right:14px;background:var(--g);color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 10px;border-radius:99px}
+.spot{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch}
+.spot .card{padding:28px}
+.spot h3{font-size:22px}
+.spot ul{list-style:none;padding:0;margin:14px 0 0;color:var(--muted)}
+.spot li{padding-left:24px;position:relative;margin:9px 0}
+.spot li:before{content:"✓";position:absolute;left:0;color:#34d399;font-weight:700}
+.spot ol{margin:14px 0 0;padding-left:20px;color:var(--muted)}
+.spot ol li{padding-left:4px;margin:10px 0}
+.spot ol li:before{content:none}
+.spot ol b{color:var(--text)}
+.spot .hotc{border-color:var(--v);background:linear-gradient(180deg,rgba(139,92,246,.14),var(--card))}
+@media(max-width:760px){.spot{grid-template-columns:1fr}}
 .card h3{margin:0 0 6px;font-size:18px}
 .card p{margin:0;color:var(--muted);font-size:15px}
 .ic{font-size:26px;margin-bottom:8px}
@@ -90,7 +103,7 @@ footer a{color:var(--muted)}
 <header class="top" id="top">
 <div class="wrap"><nav>
 <a class="logo" href="#"><img src="img/icon.png" alt="">ЭхоЧат LIVE</a>
-<div class="links"><a href="#start">Как начать</a><a href="#features">Возможности</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
+<div class="links"><a href="#start">Как начать</a><a href="#features">Возможности</a><a href="#avatar">Аватар</a><a href="#screens">Скриншоты</a><a href="#plans">Тарифы</a><a class="nb" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
 </nav></div>
 </header>
 
@@ -98,7 +111,7 @@ footer a{color:var(--muted)}
 <div class="hero">
 <div class="badge">Для Windows · TikTok LIVE и Twitch</div>
 <h1>Чат вашего стрима<br>читают <span>живые голоса</span></h1>
-<p class="lead">Нейро-озвучка чата, виджеты для OBS и донаты Каспи на экране эфира.</p>
+<p class="lead">Нейро-озвучка чата, оверлей и виджеты для OBS, 2D-аватар и донаты на экране эфира.</p>
 <div class="cta">
 <a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать для Windows</a>
 <a class="btn ghost" href="#plans">Тарифы</a>
@@ -122,10 +135,41 @@ footer a{color:var(--muted)}
 <h2>Возможности</h2>
 <p class="sub">Подключение по нику, и чат уже говорит. Без ключей и сложных настроек.</p>
 <div class="grid">
-<div class="card"><div class="ic">🎙️</div><h3>10 нейро-голосов</h3><p>Озвучка сообщений, подарков и подписок. Отдельный голос для TikTok и Twitch.</p></div>
+<div class="card"><div class="ic">🎙️</div><h3>10 нейро-голосов</h3><p>Озвучка сообщений, подарков и подписок. Отдельный голос для TikTok и Twitch, свои скорость, тон и громкость.</p></div>
 <div class="card"><div class="ic">🛡️</div><h3>Умные фильтры</h3><p>Без команд, ссылок, повторов, мата, @упоминаний и эмодзи.</p></div>
-<div class="card"><div class="ic">🧩</div><h3>Виджеты для OBS</h3><p>Чат и топ лайков на прозрачном фоне для OBS и TikTok LIVE Studio.</p></div>
-<div class="card"><div class="ic">💸</div><h3>Донаты Каспи</h3><p>Имя и сумма доната на экране стрима. Подключение с iPhone по QR.</p></div>
+<div class="card"><span class="nw">НОВОЕ</span><div class="ic">🧑‍🎤</div><h3>2D-аватар</h3><p>Live2D-персонаж повторяет ваше лицо с веб-камеры: голову, глаза, брови и рот. Виджет для OBS и TikTok LIVE Studio.</p></div>
+<div class="card"><span class="nw">НОВОЕ</span><div class="ic">🔔</div><h3>DonationAlerts</h3><p>Донаты на экране стрима в реальном времени: вход в один клик, 8 шаблонов, свои картинки и звуки, озвучка.</p></div>
+<div class="card"><div class="ic">💸</div><h3>Донаты Каспи</h3><p>Имя, сумма и картинка доната на экране стрима. 8 дизайнов, свой звук. Подключение с iPhone по QR.</p></div>
+<div class="card"><div class="ic">🪟</div><h3>Оверлей чата</h3><p>Окно поверх всех окон, как чат в TikTok LIVE Studio: чат TikTok и Twitch, счётчики эфира, подарки, репосты и лайки сердечками. В OBS добавляется «Захватом окна».</p></div>
+<div class="card"><div class="ic">🧩</div><h3>Виджеты для OBS</h3><p>Чат, топ лайков и топ подарков на прозрачном фоне для OBS и TikTok LIVE Studio. Исчезающие сообщения по вашим настройкам.</p></div>
+<div class="card"><div class="ic">🎉</div><h3>Оповещения о подписках</h3><p>Плашка с аватаркой и ником на экране стрима. 8 дизайнов, своя картинка и свой звук, предпросмотр.</p></div>
+<div class="card"><div class="ic">📌</div><h3>Закреп сообщения</h3><p>Закрепите сообщение в оверлее на срок от 1 минуты до конца эфира, и оно появится в виджете чата на стриме.</p></div>
+<div class="card"><div class="ic">🔄</div><h3>Автообновление</h3><p>Приложение само проверяет новые версии и обновляется по кнопке. Ничего скачивать вручную не нужно.</p></div>
+</div>
+</section>
+
+<section id="avatar">
+<h2>2D-аватар <span class="g">для вашего стрима</span></h2>
+<p class="sub">Персонаж повторяет ваше лицо в реальном времени. Камера нужна только программе: картинка с неё не покидает ваш компьютер.</p>
+<div class="spot">
+<div class="card hotc"><span class="nw">НОВОЕ</span>
+<h3>Что умеет</h3>
+<ul>
+<li>Повторяет голову, глаза, брови и рот с веб-камеры</li>
+<li>Образцы моделей Haru, Hiyori и Mao, а свои модели добавляются папкой или .zip</li>
+<li>Калибровка, зеркало, размер и положение: колесо мыши меняет размер, левая кнопка двигает</li>
+<li>Прозрачный или зелёный фон для OBS и TikTok LIVE Studio</li>
+<li>Бесплатные Live2D-модели можно найти по кнопке в приложении</li>
+</ul></div>
+<div class="card">
+<h3>Как включить</h3>
+<ol>
+<li>Откройте вкладку <b>«2D Аватар»</b> и один раз скачайте компоненты.</li>
+<li>Включите камеру и выберите модель.</li>
+<li>Скопируйте ссылку на виджет в OBS или TikTok LIVE Studio.</li>
+</ol>
+<p style="margin-top:14px;font-size:14px">Аватар входит в тариф Pro.</p>
+</div>
 </div>
 </section>
 
@@ -144,10 +188,10 @@ footer a{color:var(--muted)}
 <p class="sub">Первые 3 дня открыты все функции.</p>
 <div class="plans">
 <div class="card plan"><div class="name">Lite</div><div class="price">Бесплатно</div>
-<ul><li>Эфир и озвучка чата</li><li>Фильтры</li><li class="no">Виджеты</li><li class="no">Донаты Каспи</li></ul>
+<ul><li>Эфир и озвучка чата</li><li>Фильтры</li><li class="no">Виджеты и оверлей чата</li><li class="no">Донаты Каспи и DonationAlerts</li><li class="no">2D-аватар</li></ul>
 <a class="btn ghost" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></div>
 <div class="card plan hot"><div class="tag">Рекомендуем</div><div class="name">Pro</div><div class="price">5 000 ₸ <small>/ 30 дней</small></div>
-<ul><li>Всё из Lite</li><li>Виджеты чата и топ лайков</li><li>Донаты Каспи на экран</li><li>Перенос на другой ПК</li></ul>
+<ul><li>Всё из Lite</li><li>Оверлей чата и закреп сообщений</li><li>Виджеты: чат, топ лайков, топ подарков, оповещения</li><li>Донаты Каспи и DonationAlerts на экран</li><li>2D-аватар по камере</li><li>Перенос на другой ПК</li></ul>
 <a class="btn" href="https://t.me/artavenuekz">Купить Pro</a></div>
 <div class="card plan"><div class="name">Партнёрская</div><div class="price">Lifetime Pro</div>
 <ul><li>Все возможности Pro</li><li>Без продлений</li><li>За продвижение программы</li></ul>
