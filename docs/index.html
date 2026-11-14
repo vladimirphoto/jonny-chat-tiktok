@@ -430,7 +430,7 @@ footer a{color:var(--muted)}
 <h2>Как выглядит приложение</h2>
 <p class="sub2">Настоящие экраны ЭхоЧат LIVE.</p>
 <div class="tabs" id="tabs">
-<button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Виджеты</button><button data-i="4">Донаты</button><button data-i="5">Тарифы</button>
+<button class="on" data-i="0">Эфир</button><button data-i="1">Озвучка</button><button data-i="2">Фильтры</button><button data-i="3">Виджеты</button><button data-i="4">Топ лайков</button><button data-i="5">Топ подарков</button><button data-i="6">Оверлей чата</button><button data-i="7">Аватар</button><button data-i="8">Донаты Каспи</button><button data-i="9">DonationAlerts</button><button data-i="10">Лицензия</button><button data-i="11">Настройки</button>
 </div>
 <div class="shot"><div class="tb"><img src="img/icon.png" alt="">ЭхоЧат LIVE</div><img class="pic" id="pic" src="img/live.webp" alt="Вкладка «Эфир»" width="1600" height="1083"></div>
 <p class="cap" id="cap"></p>
@@ -549,9 +549,9 @@ Array.prototype.forEach.call($('fl').children,function(b){
 });
 
 /* screenshots */
-var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['widgets','Виджеты','Чат для OBS и TikTok LIVE Studio с живым предпросмотром'],['kaspi','Донаты','Донаты Каспи на экране: подключение iPhone, журнал уведомлений и виджет'],['plans','Тарифы','Lite, Pro и партнёрская лицензия']];
+var S=[['live','Эфир','Лента чата, счётчики зрителей, лайков и подарков'],['voice','Озвучка','Выбор голоса для каждой платформы'],['filters','Фильтры','Что голос читает вслух, а что пропускает'],['widgets','Виджеты','Чат для OBS и TikTok LIVE Studio с живым предпросмотром'],['likes','Топ лайков','Лучшие зрители по лайкам: квадратные или круглые аватарки на выбор'],['gifts','Топ подарков','Кто отправил больше всего монет: список с круглыми или квадратными аватарками'],['overlay','Оверлей чата','Окно чата TikTok и Twitch поверх всех окон, прозрачность и горячие клавиши'],['avatar','Аватар','2D- и 3D-персонаж, который повторяет ваше лицо с веб-камеры'],['kaspi','Донаты Каспи','Донаты Каспи на экране: подключение iPhone по QR, видеоинструкция и виджет'],['da','DonationAlerts','Донаты DonationAlerts: вход в один клик, шаблоны, картинка и звук'],['plans','Лицензия','Тариф, ключ и срок действия, а ниже Lite, Pro и партнёрская лицензия'],['settings','Настройки','Окно и трей, автозапуск с Windows и обновления']];
 var pic=$('pic'),cap=$('cap'),btns=document.querySelectorAll('#tabs button');
-function show(i){pic.src='img/'+S[i][0]+'.webp';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,j){b.classList.toggle('on',j===i)})}
+function show(i){pic.src='img/'+S[i][0]+'.webp?v=3523';pic.alt='Вкладка «'+S[i][1]+'»';cap.textContent=S[i][2];btns.forEach(function(b,j){b.classList.toggle('on',j===i)})}
 btns.forEach(function(b){b.addEventListener('click',function(){show(+b.dataset.i)})});
 show(0);
 })();
