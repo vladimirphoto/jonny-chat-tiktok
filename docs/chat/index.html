@@ -137,30 +137,40 @@ function mine(d){
   var w=null,i;
   if(MYID)for(i=0;i<L.length;i++)if(L[i].id===MYID){w=L[i];break;}
   if(!w&&!MYID&&(OV.alignTt||OV.alignTw))for(i=0;i<L.length;i++)if((!OV.alignTt||L[i].tt===OV.alignTt)&&(!OV.alignTw||L[i].tw===OV.alignTw)){w=L[i];break;}
+  var byId=!!w;
   if(!w)w=L[0];
   for(k in w)if(k!=='id'&&k!=='tt'&&k!=='tw')out[k]=w[k];
+  if(byId){out.alignTt=w.tt==='right'?'right':'left';out.alignTw=w.tw==='right'?'right':'left';out._la=true;}
   return out;
 }
 var told=false;
 // «готово» для предпросмотра в приложении: настройки получены и применены
 function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'ready'},'*');}catch(_){}}
 function bind(es){
-  es.addEventListener('settings',function(e){var d=JSON.parse(e.data),pv=d._previewHeight;PV=pv===true||(!!pv&&pv===MYID);S=Object.assign(S,mine(d),OV);apply();if(d.widgets||d.scale!==undefined)tellReady();});
+  es.addEventListener('settings',function(e){var d=JSON.parse(e.data),pv=d._previewHeight;PV=pv===true||(!!pv&&pv===MYID);var mm=mine(d);S=Object.assign(S,mm,mm._la?{}:OV);apply();if(d.widgets||d.scale!==undefined)tellReady();});
   es.addEventListener('msg',function(e){add(JSON.parse(e.data));});
   es.addEventListener('clear',function(){root.innerHTML='';});
   es.addEventListener('pin',function(e){setPin(JSON.parse(e.data));});
 }
+var PK_PORT='echochat_port';
+function lastPort(){try{return +localStorage.getItem(PK_PORT)||0;}catch(_){return 0;}}
+function savePort(p){try{localStorage.setItem(PK_PORT,String(p));}catch(_){}}
 function connect(){
   if(!REMOTE){var es0=new EventSource('/events');bind(es0);return;}
+  // порт, на котором приложение уже находили, пробуем первым; с ним ждём дольше (медленный ответ — не повод бросать)
+  var first=lastPort(),order=PORTS.slice(),k0=order.indexOf(first);
+  if(k0>0){order.splice(k0,1);order.unshift(first);}else if(k0<0)first=0;
   var i=0;
   (function probe(){
-    var port=PORTS[i%PORTS.length];i++;
-    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,t;
-    function fail(){if(got)return;clearTimeout(t);es.close();offline();setTimeout(probe,PORTS.length>1&&i%PORTS.length?30:2500);}
-    t=setTimeout(fail,1500);
-    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
-    es.onerror=function(){if(got)offline();else fail();};
-    es.onopen=function(){if(got)online();};
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},port===first?3000:1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);savePort(port);online();}});
+    // связь оборвалась уже после подключения: браузер сам пробует тот же адрес, но если приложение перезапустилось на другом порту, он не найдёт его никогда.
+    // Поэтому через 6 секунд без связи закрываем поток и ищем приложение заново по всем портам
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
     bind(es);
   })();
 }
