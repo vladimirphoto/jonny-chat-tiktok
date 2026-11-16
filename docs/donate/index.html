@@ -92,6 +92,18 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .card.v-top.d-arc .art{width:130px;height:130px;font-size:76px}
 .card.v-top.d-arc .nm{font-size:27px}
 .card.v-top.d-candy,.card.v-top.d-glass{border-radius:34px}
+/* своя картинка (S.imageV): на экране только она — без рамки, фона, обводок и теней карточки; имя и сумма остаются в стиле выбранного оформления.
+   Фона у карточки нет, поэтому тексту добавлены тени для читаемости на любом кадре */
+.card.bare{background:none!important;border:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:0!important;overflow:visible}
+.card.bare::after{display:none}
+.card.bare .cap,.card.bare .nm,.card.bare .ms{text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 9px rgba(0,0,0,.7)}
+.card.bare .am{text-shadow:0 2px 6px rgba(0,0,0,.85),0 0 18px color-mix(in srgb,var(--ac,#f14635) 55%,transparent)}
+.card.bare.d-neon .am{text-shadow:0 0 8px var(--ac,#22d3ee),0 0 22px var(--ac,#22d3ee),0 2px 5px rgba(0,0,0,.85)}
+.card.bare.d-party .am{text-shadow:none;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.card.bare.d-gold .am{text-shadow:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.85))}
+.card.bare.d-arc .am{text-shadow:3px 3px 0 #ff3df2}
+.card.bare.d-glass .am{text-shadow:0 0 16px var(--ac,#f14635),0 1px 8px rgba(0,0,0,.7)}
+.card.bare.d-min .cap,.card.bare.d-min .nm,.card.bare.d-min .am,.card.bare.d-min .ms,.card.bare.d-candy .cap,.card.bare.d-candy .nm,.card.bare.d-candy .am,.card.bare.d-candy .ms{text-shadow:0 0 3px #fff,0 0 8px #fff,0 0 14px rgba(255,255,255,.8)}
 @keyframes shine{0%{left:-60%}55%,100%{left:130%}}
 @keyframes arc{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:none}}
 @keyframes fadeb{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
@@ -151,7 +163,7 @@ function show(d){
   var t=tierOf(+d.amount||0);
   var c=document.createElement('div');var ds=designOf();c.className='card'+(DCLS[ds]?' '+DCLS[ds]:'')+(S.layout==='side'?'':' v-top');c.style.setProperty('--ac',t.ac);
   var a=document.createElement('div');a.className='art';
-  if(imgUrl){a.className='art img';var im=document.createElement('img');im.alt='';im.src=imgUrl;a.appendChild(im);}else a.textContent=t.art;
+  if(imgUrl){a.className='art img';c.classList.add('bare');var im=document.createElement('img');im.alt='';im.src=imgUrl;a.appendChild(im);}else a.textContent=t.art;
   var x=document.createElement('div');x.className='tx';
   var cap=document.createElement('div');cap.className='cap';cap.textContent='Донат · '+t.cap;
   var nm=document.createElement('div');nm.className='nm';nm.textContent=d.name||'Аноним';
