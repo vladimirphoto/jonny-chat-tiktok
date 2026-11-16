@@ -152,21 +152,16 @@ function bind(es){
   es.addEventListener('clear',function(){root.innerHTML='';});
   es.addEventListener('pin',function(e){setPin(JSON.parse(e.data));});
 }
-var PK_PORT='echochat_port';
-function lastPort(){try{return +localStorage.getItem(PK_PORT)||0;}catch(_){return 0;}}
-function savePort(p){try{localStorage.setItem(PK_PORT,String(p));}catch(_){}}
 function connect(){
   if(!REMOTE){var es0=new EventSource('/events');bind(es0);return;}
-  // порт, на котором приложение уже находили, пробуем первым; с ним ждём дольше (медленный ответ — не повод бросать)
-  var first=lastPort(),order=PORTS.slice(),k0=order.indexOf(first);
-  if(k0>0){order.splice(k0,1);order.unshift(first);}else if(k0<0)first=0;
-  var i=0;
+  // приложение слушает несколько соседних портов, а у браузера предел 6 потоков на порт, поэтому каждая страница начинает с случайного из первых пяти
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
   (function probe(){
     var port=order[i%order.length];i++;
     var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
     function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
-    t=setTimeout(function(){if(!got)again();},port===first?3000:1500);
-    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);savePort(port);online();}});
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
     // связь оборвалась уже после подключения: браузер сам пробует тот же адрес, но если приложение перезапустилось на другом порту, он не найдёт его никогда.
     // Поэтому через 6 секунд без связи закрываем поток и ищем приложение заново по всем портам
     es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};

@@ -191,15 +191,18 @@ function bind(es){
 }
 function connect(){
   if(!REMOTE){bind(new EventSource('/events'));return;}
-  var i=0;
+  // приложение слушает несколько соседних портов, а у браузера предел 6 потоков на порт, поэтому каждая страница начинает с случайного из первых пяти
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
   (function probe(){
-    var port=PORTS[i%PORTS.length];i++;
-    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,t;
-    function fail(){if(got)return;clearTimeout(t);es.close();offline();setTimeout(probe,PORTS.length>1&&i%PORTS.length?30:2500);}
-    t=setTimeout(fail,1500);
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
     es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);BASE='http://127.0.0.1:'+port;online();}});
-    es.onerror=function(){if(got)offline();else fail();};
-    es.onopen=function(){if(got)online();};
+    // связь оборвалась уже после подключения: браузер сам пробует тот же адрес, но если приложение перезапустилось на другом порту, он не найдёт его никогда.
+    // Поэтому через 6 секунд без связи закрываем поток и ищем приложение заново по всем портам
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
     bind(es);
   })();
 }
