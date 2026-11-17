@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ЭхоЧат LIVE — озвучка чата TikTok LIVE и Twitch живыми голосами</title>
-<meta name="description" content="Программа для Windows: нейро-озвучка чата TikTok LIVE и Twitch, оверлей чата, виджеты для OBS, 2D и 3D аватар по камере, донаты Каспи и DonationAlerts на экране стрима. Lite бесплатно, Pro 7 990 ₸ один раз.">
+<meta name="description" content="Программа для Windows и Mac (M1 и новее): нейро-озвучка чата TikTok LIVE и Twitch, оверлей чата, виджеты для OBS, 2D и 3D аватар по камере, донаты Каспи и DonationAlerts на экране стрима. Lite бесплатно, Pro 7 990 ₸ один раз.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ЭхоЧат LIVE — чат вашего стрима читают живые голоса">
 <meta property="og:description" content="Озвучка чата, оверлей, виджеты для OBS, аватар по камере и донаты на экране. Lite бесплатно, 3 дня полный доступ.">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ЭхоЧат LIVE","operatingSystem":"Windows","applicationCategory":"MultimediaApplication","description":"Озвучка чата TikTok LIVE и Twitch, оверлей, виджеты для OBS, аватар по камере, донаты Каспи и DonationAlerts.","offers":[{"@type":"Offer","name":"Lite","price":"0","priceCurrency":"KZT"},{"@type":"Offer","name":"Pro","price":"7990","priceCurrency":"KZT"}]}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ЭхоЧат LIVE","operatingSystem":"Windows, macOS","applicationCategory":"MultimediaApplication","description":"Озвучка чата TikTok LIVE и Twitch, оверлей, виджеты для OBS, аватар по камере, донаты Каспи и DonationAlerts.","offers":[{"@type":"Offer","name":"Lite","price":"0","priceCurrency":"KZT"},{"@type":"Offer","name":"Pro","price":"7990","priceCurrency":"KZT"}]}
 </script>
 <style>
 :root{
@@ -269,6 +269,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radiu
 .hearts i{position:absolute;bottom:0;right:0;font-style:normal;font-size:16px;opacity:0;animation:hrt 3.6s linear infinite}
 .hearts i:nth-child(2){animation-delay:-.9s;right:10px}.hearts i:nth-child(3){animation-delay:-1.8s;right:4px}.hearts i:nth-child(4){animation-delay:-2.6s;right:14px}
 @keyframes hrt{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translateY(-190px) translateX(-14px) scale(1.2)}}
+code{font:600 13px ui-monospace,Menlo,monospace;padding:2px 7px;border-radius:7px;background:var(--panel2);color:#e8e4ff;word-break:break-all}
 kbd{font:600 12px var(--body);padding:3px 8px;border-radius:7px;border:1px solid var(--line);border-bottom-width:2px;background:var(--panel)}
 
 /* scene: avatar */
@@ -442,13 +443,14 @@ footer a:hover{color:#fff}
 <section class="hero">
   <div class="wrap">
     <div>
-      <span class="pill"><s></s>Для TikTok LIVE и Twitch · Windows</span>
+      <span class="pill"><s></s>Для TikTok LIVE и Twitch · Windows и Mac</span>
       <h1>Чат вашего стрима читают <span class="gt">живые голоса</span></h1>
       <p class="lead">Озвучка чата, оверлей, виджеты для OBS, аватар по камере и донаты прямо на экране эфира. Одна программа вместо пяти.</p>
       <div class="cta">
         <a class="btn pri" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Скачать для Windows</a>
-        <a class="btn" href="#features">Смотреть возможности</a>
+        <a class="btn" data-mac href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.8-2.2c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-.9-2.5-3.9zM14.2 5.7c.6-.8 1.1-1.8.9-2.9-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1.1.1 2.1-.5 2.8-1.3z"/></svg>Для Mac (M1 и новее)</a>
       </div>
+      <p class="ver" style="margin-top:14px"><a href="#features" style="text-decoration:underline;text-underline-offset:4px">Смотреть возможности</a></p>
       <div class="trust">
         <span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.4l3 3 6-6.6"/></svg>3 дня всё открыто</span>
         <span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.4l3 3 6-6.6"/></svg>Lite бесплатно навсегда</span>
@@ -766,7 +768,7 @@ footer a:hover{color:#fff}
 
     <div class="qg">
       <div class="q rv"><div class="ic">🔄</div><h3>Автообновление</h3><p>Приложение само проверяет новые версии и обновляется по кнопке или автоматически. Скачивать вручную не нужно.</p></div>
-      <div class="q rv"><div class="ic">🖥️</div><h3>Трей и автозапуск</h3><p>Сворачивается к часам, запускается вместе с Windows и не мешает. Ставится и удаляется как обычная программа.</p></div>
+      <div class="q rv"><div class="ic">🖥️</div><h3>Трей и автозапуск</h3><p>В Windows сворачивается к часам, запускается вместе с системой и не мешает. Ставится и удаляется как обычная программа.</p></div>
       <div class="q rv"><div class="ic">⌨️</div><h3>Горячие клавиши</h3><p>Открывайте и закрывайте оверлей сочетанием клавиш из любой программы. Сочетание можно поменять.</p></div>
       <div class="q rv"><div class="ic">❄️</div><h3>Зимний режим</h3><p>Кнопка-снежинка в шапке включает снегопад в окне программы. Для уюта и настроения.</p></div>
     </div>
@@ -778,7 +780,7 @@ footer a:hover{color:#fff}
   <div class="wrap">
     <div class="sec-head rv"><span class="kick">Как начать</span><h2>Запуск за три шага</h2><p>Без регистрации и сложной настройки.</p></div>
     <div class="steps">
-      <div class="st3 rv"><h3>Скачайте установщик</h3><p>Запустите файл Setup. Программа появится в списке установленных и в трее.</p></div>
+      <div class="st3 rv"><h3>Скачайте установщик</h3><p>Windows: запустите файл Setup, программа появится в списке установленных и в трее. Mac: откройте .dmg и перетащите программу в «Программы».</p></div>
       <div class="st3 rv"><h3>Введите ник стримера</h3><p>Нажмите «Подключить», и лента чата TikTok оживёт. Twitch добавляется отдельно.</p></div>
       <div class="st3 rv"><h3>Выберите голос</h3><p>Один клик на вкладке «Озвучка», и чат уже читают вслух. Остальное настроите по ходу.</p></div>
     </div>
@@ -850,7 +852,8 @@ footer a:hover{color:#fff}
       <details><summary>Pro — это подписка?</summary><p>Нет. Pro стоит 7 990 ₸ и оплачивается один раз, без продлений.</p></details>
       <details><summary>Как купить Pro?</summary><p>Напишите автору в Telegram, оплатите переводом на карту, пришлите чек и получите ключ. Ключ вводится во вкладке «Лицензия» в приложении.</p></details>
       <details><summary>Можно перенести лицензию на другой компьютер?</summary><p>Да. Нажмите «Освободить устройство» во вкладке «Лицензия» и введите ключ на новом компьютере. Если старый недоступен, автор сбросит устройства.</p></details>
-      <details><summary>Какие платформы поддерживаются?</summary><p>TikTok LIVE и Twitch, для каждой можно выбрать свой голос. Программа работает на Windows.</p></details>
+      <details><summary>Как установить на Mac?</summary><p>Скачайте .dmg и перетащите программу в «Программы». Она не подписана сертификатом Apple, поэтому при первом запуске macOS её блокирует: откройте «Системные настройки → Конфиденциальность и безопасность» и нажмите «Всё равно открыть». Если пишет «повреждено», выполните в Терминале: <code>xattr -cr "/Applications/EchoChat LIVE.app"</code>. Версия для Intel-маков не собирается.</p></details>
+      <details><summary>Какие платформы поддерживаются?</summary><p>TikTok LIVE и Twitch, для каждой можно выбрать свой голос. Программа есть для Windows и для Mac на чипах Apple Silicon (M1 и новее).</p></details>
       <details><summary>Голоса работают без интернета?</summary><p>Нет, нейро-голоса работают через интернет. Если синтез не удался, сообщение пропускается, а при сбое Fish Audio фразу читает Edge.</p></details>
       <details><summary>Что такое Fish Audio и это платно?</summary><p>Это каталог живых голосов fish.audio, подключается по вашему API-ключу, который хранится на вашем компьютере в зашифрованном виде. Основная модель сервиса платная. Если на счёте нет средств, приложение само пробует бесплатную модель.</p></details>
       <details><summary>Как показать виджеты в TikTok LIVE Studio и OBS?</summary><p>Скопируйте ссылку виджета: в OBS это источник «Браузер», в TikTok LIVE Studio — «Ссылка». Оверлей чата и окно аватара добавляются источником «Захват окна».</p></details>
@@ -881,8 +884,8 @@ footer a:hover{color:#fff}
 <section class="fin">
   <div class="wrap rv">
     <h2>Пусть ваш чат <span class="gt">заговорит</span></h2>
-    <p>Скачайте файл, введите ник стримера, выберите голос.</p>
-    <div class="cta"><a class="btn pri" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Скачать для Windows</a></div>
+    <p>Скачайте файл для Windows или Mac, введите ник стримера, выберите голос.</p>
+    <div class="cta"><a class="btn pri" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Скачать для Windows</a><a class="btn" data-mac href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.8-2.2c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-.9-2.5-3.9zM14.2 5.7c.6-.8 1.1-1.8.9-2.9-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1.1.1 2.1-.5 2.8-1.3z"/></svg>Для Mac (M1 и новее)</a></div>
   </div>
 </section>
 </main>
@@ -902,6 +905,7 @@ footer a:hover{color:#fff}
 
   /* version from GitHub (silent on failure) */
   try{fetch('https://api.github.com/repos/vladimirphoto/jonny-chat-tiktok/releases/latest').then(function(r){return r.json()}).then(function(j){
+    if(j&&j.assets){j.assets.forEach(function(a){if(/mac-arm64\.dmg$/.test(a.name))$$('[data-mac]').forEach(function(l){l.href=a.browser_download_url})})}
     if(j&&j.tag_name){var d=j.published_at?new Date(j.published_at).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}):'';
       $('#ver').textContent='Актуальная версия '+j.tag_name.replace(/^v/,'')+(d?' · от '+d:'')}
   }).catch(function(){})}catch(e){}
