@@ -85,6 +85,12 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .a-candy .cap{color:#b9808a}
 .a-candy .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#d9577a;filter:none}
 .a-candy .hp{color:#ff8fae;text-shadow:0 0 10px rgba(255,130,160,.6)}.a-candy .hp.v{color:#ffb8c6}
+/* ---- плашки-картинки (дизайны из assets/plates) ---- */
+.pl{position:relative;flex:none;zoom:.72;background-repeat:no-repeat;background-size:100% 100%}
+.pl .pa{position:absolute;box-sizing:border-box;background:#17171d center/cover no-repeat;display:grid;place-items:center;color:#fff;font-weight:800;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI",sans-serif;line-height:1}
+.pl .pt{position:absolute;display:flex;align-items:center;white-space:nowrap;font-style:italic;font-family:"Segoe UI Black","Segoe UI",Arial,sans-serif;line-height:1.1}
+.pl .pn{color:#fff;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.75)}
+.pl .ps{font-weight:800;text-shadow:0 0 12px currentColor}
 @keyframes flick{0%{opacity:0}8%{opacity:1}12%{opacity:.3}18%{opacity:1}24%{opacity:.55}32%,100%{opacity:1}}
 @keyframes slide{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
 @keyframes boing{0%{opacity:0;transform:scale(.3) rotate(-6deg)}50%{opacity:1;transform:scale(1.08) rotate(2deg)}70%{transform:scale(.96)}100%{opacity:1;transform:none}}
@@ -104,6 +110,21 @@ var CONF=['#f58aa0','#d7a8ff','#8ea2ff','#f3d68a','#ffffff'];
 function designOf(){return DESIGNS.indexOf(S.design)>=0?S.design:'classic';}
 var stage=document.getElementById('stage');
 var BASE='',imgUrl='',imgFor=0;
+var PL={classic:{f:'classic',w:650,h:238,av:[144, 150, 68, 'c'],nm:[272, 96, 486, 146],sb:[262, 162, 560, 200],ac:'#e66bff'},heart:{f:'heart',w:659,h:234,av:null,nm:[256, 86, 470, 140],sb:[258, 150, 568, 196],ac:'#b77bff'},gold:{f:'gold',w:684,h:237,av:[149, 131, 53, 'c'],nm:[296, 82, 512, 132],sb:[296, 132, 596, 190],ac:'#ffb703'},cyan:{f:'cyan',w:676,h:206,av:[131, 106, 56, 'c'],nm:[248, 64, 436, 108],sb:[250, 112, 528, 152],ac:'#22b8ff'},goldoval:{f:'goldoval',w:678,h:231,av:[144, 135, 62, 'c'],nm:[272, 80, 498, 129],sb:[278, 136, 572, 180],ac:'#ffc531'},paper:{f:'paper',w:692,h:209,av:[141, 113, 46, 's'],nm:[252, 58, 450, 108],sb:[260, 114, 540, 160],ac:'#b25cff'},pink:{f:'pink',w:643,h:237,av:[137, 123, 62, 'c'],nm:[296, 80, 494, 128],sb:[296, 134, 586, 178],ac:'#ff4f93'},cat:{f:'cat',w:658,h:278,av:[117, 185, 60, 'c'],nm:[258, 140, 458, 190],sb:[258, 198, 538, 240],ac:'#b878ff'}};
+var PMAP={classic:'classic',neon:'cyan',minimal:'paper',party:'pink',gold:'goldoval',arcade:'gold',glass:'heart',candy:'cat'};
+// плашка-картинка: ник, строка под ником и аватарка (или значок) кладутся поверх готовой картинки
+function plateFit(t,s,max){var fs=max,bw=t.getBoundingClientRect().width;t.style.fontSize=fs+'px';while(fs>14&&s.getBoundingClientRect().width>bw+1){fs-=2;t.style.fontSize=fs+'px';}}
+function plateEl(ds,name,sub,avUrl,fb,fbBg){
+  var p=PL[PMAP[ds]||'classic'],el=document.createElement('div');el.className='pl';el.style.width=p.w+'px';el.style.height=p.h+'px';
+  el.style.backgroundImage='url("'+BASE+'/plate/'+p.f+'")';
+  if(p.av){var a=document.createElement('div'),r=p.av[2];a.className='pa';a.style.cssText='left:'+(p.av[0]-r)+'px;top:'+(p.av[1]-r)+'px;width:'+r*2+'px;height:'+r*2+'px;border-radius:'+(p.av[3]==='s'?'10px':'50%')+';font-size:'+Math.round(r*1.05)+'px';
+    if(avUrl)a.style.backgroundImage='url("'+avUrl.replace(/"/g,'%22')+'")';else{if(fbBg)a.style.background=fbBg;a.textContent=fb||'';}
+    el.appendChild(a);}
+  function line(cls,b,txt,max,col){var t=document.createElement('div'),s=document.createElement('span');t.className='pt '+cls;t.style.cssText='left:'+b[0]+'px;top:'+b[1]+'px;width:'+(b[2]-b[0])+'px;height:'+(b[3]-b[1])+'px';
+    if(col)t.style.color=col;s.textContent=txt;t.appendChild(s);el.appendChild(t);requestAnimationFrame(function(){plateFit(t,s,max);});}
+  line('pn',[p.nm[0],p.nm[1],p.sb[2],p.nm[3]],name,46);line('ps',p.sb,sub,34,p.ac);
+  return el;
+}
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
 function zoomOf(){return Math.max(40,Math.min(250,+S.scale||100))/100;}
@@ -152,6 +173,11 @@ function hearts(box,total){
 }
 function build(d,still){
   var c=document.createElement('div'),ds=designOf();c.className='al'+(DCLS[ds]?' '+DCLS[ds]:'')+(still?' still':'');
+  if(!imgUrl){
+    var pn=String(d.name||'Гость'),pa=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
+    c.appendChild(plateEl(ds,pn,'♥ подписался',S.showAvatar?pa:'',S.showAvatar?pn.charAt(0).toUpperCase():'',S.showAvatar?colorOf(pn):'#17171d'));
+    c.style.zoom=zoomOf();return c;
+  }
   c.appendChild(visual());
   var p=document.createElement('div');
   var nm=String(d.name||'Гость');
