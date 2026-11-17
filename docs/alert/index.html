@@ -13,19 +13,57 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .vis .glow{transform-origin:80px 80px;animation:glow 1.6s ease-in-out infinite}
 .vis .plus{transform-origin:118px 42px;animation:plus .9s cubic-bezier(.2,1.6,.4,1) .35s both}
 .vis .pic{display:block;max-width:340px;max-height:240px;object-fit:contain;filter:drop-shadow(0 10px 26px rgba(0,0,0,.55));animation:bob 2.6s ease-in-out infinite}
-.plate{position:relative;display:flex;align-items:center;gap:16px;min-width:300px;max-width:560px;padding:14px 32px 14px 16px;box-sizing:border-box;border-radius:28px;color:#fff;overflow:hidden;
- background:linear-gradient(135deg,rgba(28,22,48,.95),rgba(56,26,66,.95));border:1px solid rgba(255,255,255,.18);
- box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 2px rgba(255,92,147,.7),0 0 38px rgba(255,92,147,.5)}
-.plate.noav{padding-left:32px}
-.plate:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 2.8s ease-in-out .6s infinite}
-.av{position:relative;flex:none;width:72px;height:72px;border-radius:50%;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-size:32px;font-weight:800;color:#fff;
- box-shadow:0 0 0 3px #ff5c93,0 0 20px rgba(255,92,147,.75)}
+/* ---- плашка подписчика: четыре фирменных оформления (S.design): Аврора, Эквалайзер, Кристалл, Орбита ---- */
+.plate{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-width:300px;max-width:560px;padding:14px 36px 14px 16px;box-sizing:border-box;color:#fff}
+.plate.noav{padding-left:34px}
+.av{position:relative;flex:none;width:72px;height:72px;border-radius:50%;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-size:32px;font-weight:800;color:#fff}
 .tx{position:relative;min-width:0;text-align:left}
-.cap{font-size:13px;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.72)}
-.nm{margin-top:2px;font-size:36px;font-weight:900;line-height:1.12;word-break:break-word;background:linear-gradient(90deg,#fff 30%,#ffb8d2);-webkit-background-clip:text;background-clip:text;color:transparent;
- filter:drop-shadow(0 2px 10px rgba(255,92,147,.45))}
-.hp{position:absolute;bottom:20%;font-style:normal;line-height:1;opacity:0;pointer-events:none;color:#ff5c93;text-shadow:0 0 12px rgba(255,92,147,.9);animation:rise 2.6s ease-out both}
-.hp.v{color:#b79cff;text-shadow:0 0 12px rgba(139,92,246,.9)}
+.nm{font-size:34px;font-weight:800;line-height:1.1;word-break:break-word}
+.cap{margin-top:3px;font-size:16px;font-weight:600;color:#c4b5fd}
+.hp{position:absolute;bottom:20%;font-style:normal;line-height:1;opacity:0;pointer-events:none;color:#ec4899;text-shadow:0 0 12px rgba(236,72,153,.9);animation:rise 2.6s ease-out both}
+.hp.v{color:#a78bfa;text-shadow:0 0 12px rgba(139,92,246,.9)}
+/* Аврора: тёмное стекло, по рамке бежит фиолетово-розовый свет */
+.a-aurora{animation:fadeb .7s ease-out both}
+.a-aurora .plate{border-radius:28px;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.5),rgba(236,72,153,.4));box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 44px rgba(139,92,246,.32)}
+.a-aurora .plate:before{content:"";position:absolute;z-index:-2;left:50%;top:50%;width:760px;height:760px;margin:-380px 0 0 -380px;background:conic-gradient(from 0deg,transparent 0 52%,#8b5cf6 68%,#ec4899 84%,#fff 90%,transparent 94%);animation:spin 4.5s linear infinite}
+.a-aurora .plate:after{content:"";position:absolute;z-index:-1;inset:2px;border-radius:26px;background:radial-gradient(120% 140% at 0% 0%,rgba(139,92,246,.28),transparent 55%),linear-gradient(150deg,#15122b,#0a0a14)}
+.a-aurora .av{box-shadow:0 0 0 3px rgba(167,139,250,.9),0 0 24px rgba(236,72,153,.5)}
+.a-aurora .nm{background:linear-gradient(90deg,#fff 40%,#f5d0fe 75%,#fbcfe8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.a-aurora .cap{color:#c4b5fd}
+/* Эквалайзер: столбики из логотипа приложения качаются сбоку */
+.a-eq{animation:slide .5s cubic-bezier(.2,.9,.3,1) both}
+.a-eq .plate{padding-right:96px;border-radius:18px;background:linear-gradient(135deg,#16122e,#0a0a14);border:1px solid rgba(139,92,246,.45);box-shadow:0 18px 46px rgba(0,0,0,.55),0 0 34px rgba(139,92,246,.22),inset 0 1px 0 rgba(255,255,255,.08)}
+.a-eq .av{border-radius:18px;box-shadow:0 0 0 2px rgba(236,72,153,.85),0 0 18px rgba(236,72,153,.35)}
+.a-eq .nm{color:#fff;font-weight:900;letter-spacing:.2px}
+.a-eq .cap{color:#f9a8d4}
+.eqb{position:absolute;right:28px;top:50%;height:48px;margin-top:-24px;display:flex;align-items:flex-end;gap:5px}
+.eqb i{display:block;width:7px;height:100%;border-radius:4px;background:linear-gradient(0deg,#8b5cf6,#ec4899);transform-origin:50% 100%;animation:eq 1s ease-in-out infinite}
+.eqb i:nth-child(2){animation-duration:.78s;animation-delay:-.25s}.eqb i:nth-child(3){animation-duration:1.15s;animation-delay:-.6s}.eqb i:nth-child(4){animation-duration:.9s;animation-delay:-.4s}.eqb i:nth-child(5){animation-duration:1.05s;animation-delay:-.1s}
+.a-eq .hp{color:#f472b6}
+/* Кристалл: срезанные углы и голографическая фольга со скользящим бликом */
+.a-crystal{animation:cut .6s cubic-bezier(.2,.9,.3,1) both;filter:drop-shadow(0 0 16px rgba(139,92,246,.5)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.a-crystal .plate{--cut:22px;padding:16px 40px 16px 22px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);background-size:300% 100%;animation:holo 7s linear infinite;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.a-crystal .plate:before{content:"";position:absolute;z-index:-1;inset:2px;clip-path:polygon(calc(var(--cut) - 1px) 0,100% 0,100% calc(100% - var(--cut) + 1px),calc(100% - var(--cut) + 1px) 100%,0 100%,0 calc(var(--cut) - 1px));background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 2px,transparent 2px 12px),linear-gradient(160deg,#18142f,#0a0a15)}
+.a-crystal .plate:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:30%;transform:skewX(-22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
+.a-crystal .av{width:76px;height:76px;border-radius:0;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%)}
+.a-crystal .nm{font-size:32px;font-style:italic;font-weight:800;letter-spacing:.6px}
+.a-crystal .cap{color:#67e8f9}
+.a-crystal .hp{color:#67e8f9;text-shadow:0 0 12px rgba(34,211,238,.9)}.a-crystal .hp.v{color:#e9d5ff}
+/* Орбита: матовая капсула, вокруг аватарки крутится светящееся кольцо */
+.a-orbit .plate{padding:10px 40px 10px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
+.a-orbit .plate.noav{padding-left:36px}
+.a-orbit .av{margin:7px}
+.a-orbit .av:before{content:"";position:absolute;inset:-7px;border-radius:50%;border:2.5px solid transparent;border-top-color:#ec4899;border-right-color:#a78bfa;filter:drop-shadow(0 0 6px rgba(236,72,153,.8));animation:spin 2.2s linear infinite}
+.a-orbit .av:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1.5px solid rgba(255,255,255,.13)}
+.a-orbit .nm{font-weight:700;font-size:32px}
+.a-orbit .cap{color:#f9a8d4}
+.a-orbit .hp{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.8)}.a-orbit .hp.v{color:#c4b5fd}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes eq{0%,100%{transform:scaleY(.22)}50%{transform:scaleY(1)}}
+@keyframes holo{to{background-position:-300% 0}}
+@keyframes slide{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
+@keyframes cut{from{opacity:0;transform:translateX(34px) skewX(-10deg)}to{opacity:1;transform:none}}
+@keyframes fadeb{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @keyframes pop{from{opacity:0;transform:translateY(34px) scale(.6)}to{opacity:1;transform:none}}
 @keyframes bye{to{opacity:0;transform:translateY(-18px) scale(.94)}}
 @keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.11)}28%{transform:scale(1)}42%{transform:scale(1.07)}56%{transform:scale(1)}}
@@ -34,97 +72,18 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 @keyframes bob{50%{transform:translateY(-7px) rotate(-1.5deg)}}
 @keyframes shine{0%{left:-60%}55%,100%{left:130%}}
 @keyframes rise{0%{opacity:0;transform:translate(0,0) scale(.5)}12%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-230px) scale(1.15) rotate(var(--rot))}}
-/* ---- оформления плашки (S.design): Графит (classic), Неон, Жемчуг, Закат, Золото, Изумруд, Лёд, Кошечка ---- */
-.plate{background:linear-gradient(150deg,#1b1c28,#11121a) padding-box,linear-gradient(135deg,#ff9cc0,rgba(255,255,255,.07) 48%,#ff5c93) border-box;border:1.5px solid transparent;border-radius:28px;box-shadow:0 18px 48px rgba(0,0,0,.55),0 0 40px rgba(255,92,147,.22)}
-.av{box-shadow:0 0 0 2px rgba(255,92,147,.8),0 0 16px rgba(255,92,147,.45)}
-.nm{font-weight:800}
-.a-neon{animation:flick .8s both}
-.a-neon .plate{background:#070b14;border:1.5px solid #22d3ee;border-radius:18px;box-shadow:0 0 0 1px rgba(34,211,238,.12),0 0 34px rgba(34,211,238,.38),inset 0 0 36px rgba(34,211,238,.09)}
-.a-neon .plate:after{display:none}
-.a-neon .av{border-radius:14px;box-shadow:0 0 0 1.5px rgba(34,211,238,.8),0 0 14px rgba(34,211,238,.5)}
-.a-neon .cap{color:#22d3ee;letter-spacing:3px}
-.a-neon .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;filter:none;text-transform:uppercase;font-size:30px;letter-spacing:1.5px;font-weight:700;text-shadow:0 0 10px #22d3ee,0 0 24px rgba(34,211,238,.7)}
-.a-neon .hp{color:#22d3ee;text-shadow:0 0 12px #22d3ee}.a-neon .hp.v{color:#e879f9;text-shadow:0 0 12px #e879f9}
-.a-min{animation:slide .5s cubic-bezier(.2,.9,.3,1) both}
-.a-min .plate{background:linear-gradient(145deg,#fff,#f3efe9);color:#1d1b22;border:1px solid rgba(0,0,0,.05);border-radius:46px;padding:10px 32px 10px 10px;min-width:260px;box-shadow:0 14px 36px rgba(20,16,30,.28),inset 0 1px 0 #fff}
-.a-min .plate:after{display:none}
-.a-min .av{width:64px;height:64px;box-shadow:none}
-.a-min .cap{font-size:12px;color:#8a8794}
-.a-min .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#1d1b22;filter:none;font-size:28px}
-.a-party{animation:boing .85s both}
-.a-party .plate{background:linear-gradient(135deg,#f58aa0,#b65bd6 52%,#5f5cf0);border:1px solid rgba(255,255,255,.4);border-radius:30px;box-shadow:0 16px 42px rgba(95,60,200,.45),inset 0 1px 0 rgba(255,255,255,.45)}
-.a-party .plate:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.26),transparent)}
-.a-party .av{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-.a-party .cap{color:rgba(255,255,255,.9)}
-.a-party .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;filter:none;text-shadow:0 1px 8px rgba(60,20,110,.35)}
-.hp.cf{width:7px;height:12px;border-radius:2px;background:var(--c);text-shadow:none;font-size:0}
-.a-gold .plate{background:linear-gradient(135deg,#17110a,#2b1f0d 55%,#17110a) padding-box,linear-gradient(135deg,#f7e3a1,#b8862b 40%,#f3d68a 70%,#8a6118) border-box;border-radius:20px;box-shadow:0 18px 46px rgba(0,0,0,.55),0 0 36px rgba(214,170,70,.28)}
-.a-gold .plate:after{background:linear-gradient(90deg,transparent,rgba(255,244,190,.24),transparent)}
-.a-gold .av{box-shadow:0 0 0 2px rgba(232,196,110,.85),0 0 16px rgba(214,170,70,.5)}
-.a-gold .cap{color:#e0bf72;letter-spacing:2px}
-.a-gold .nm{background:linear-gradient(180deg,#fff3c2,#e0a82e);-webkit-background-clip:text;background-clip:text;color:transparent;filter:none;font-family:Georgia,"Times New Roman",serif}
-.a-gold .hp{color:#e8c46e;text-shadow:0 0 10px rgba(232,196,110,.8)}.a-gold .hp.v{color:#fff1a8}
-.a-arc{animation:arc .45s cubic-bezier(.2,.9,.3,1.05) both;will-change:transform,opacity}
-.a-arc .plate{background:linear-gradient(145deg,#06201b,#0b3a2f) padding-box,linear-gradient(135deg,#6ee7b7,rgba(110,231,183,.12) 45%,#d9bd7a) border-box;border-radius:20px;box-shadow:0 18px 46px rgba(0,0,0,.55),0 0 34px rgba(52,211,153,.22)}
-.a-arc .plate:after{background:linear-gradient(90deg,transparent,rgba(190,255,230,.16),transparent)}
-.a-arc .av{box-shadow:0 0 0 2px rgba(110,231,183,.8),0 0 14px rgba(52,211,153,.4)}
-.a-arc .cap{color:#7fe8c0;letter-spacing:2px}
-.a-arc .nm{background:linear-gradient(180deg,#eafff6,#5eead4);-webkit-background-clip:text;background-clip:text;color:transparent;filter:none;font-size:32px}
-.a-arc .hp{color:#6ee7b7;text-shadow:0 0 10px rgba(110,231,183,.7)}.a-arc .hp.v{color:#e7d28f}
-.a-glass{animation:fadeb .7s ease-out both}
-.a-glass .plate{background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.06)),rgba(20,24,46,.4);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.45);border-radius:30px;box-shadow:0 16px 44px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.6);text-shadow:0 1px 8px rgba(0,0,0,.5)}
-.a-glass .av{box-shadow:0 0 0 2px rgba(255,255,255,.7)}
-.a-glass .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;filter:none}
-.a-glass .hp{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.8)}.a-glass .hp.v{color:#cfe3ff}
-.a-candy{animation:wob .8s both}
-.a-candy .plate{overflow:visible;background:linear-gradient(145deg,#fff6ee,#ffe4d6);color:#5b3a3d;border:1.5px solid rgba(255,255,255,.9);border-radius:32px;box-shadow:0 16px 40px rgba(210,120,110,.35),inset 0 -2px 0 rgba(240,170,150,.25)}
-.a-candy .plate:before,.a-candy .plate:after{content:"";position:absolute;top:-13px;bottom:auto;width:34px;height:30px;clip-path:polygon(50% 0,100% 100%,0 100%);background:radial-gradient(ellipse at 50% 92%,#ffb8c6 0 34%,transparent 36%),#ffe1d0;animation:none}
-.a-candy .plate:before{left:30px;transform:rotate(-8deg)}
-.a-candy .plate:after{left:auto;right:30px;transform:rotate(8deg)}
-.a-candy .av{box-shadow:0 0 0 2px #ffd2c2,0 0 12px rgba(240,150,130,.4)}
-.a-candy .cap{color:#b9808a}
-.a-candy .nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#d9577a;filter:none}
-.a-candy .hp{color:#ff8fae;text-shadow:0 0 10px rgba(255,130,160,.6)}.a-candy .hp.v{color:#ffb8c6}
-/* ---- плашки-картинки (дизайны из assets/plates) ---- */
-.pl{position:relative;flex:none;zoom:.72;background-repeat:no-repeat;background-size:100% 100%}
-.pl .pa{position:absolute;box-sizing:border-box;background:#17171d center/cover no-repeat;display:grid;place-items:center;color:#fff;font-weight:800;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI",sans-serif;line-height:1}
-.pl .pt{position:absolute;display:flex;align-items:center;white-space:nowrap;font-style:italic;font-family:"Segoe UI Black","Segoe UI",Arial,sans-serif;line-height:1.1}
-.pl .pn{color:#fff;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.75)}
-.pl .ps{font-weight:800;text-shadow:0 0 12px currentColor}
-@keyframes flick{0%{opacity:0}8%{opacity:1}12%{opacity:.3}18%{opacity:1}24%{opacity:.55}32%,100%{opacity:1}}
-@keyframes slide{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
-@keyframes boing{0%{opacity:0;transform:scale(.3) rotate(-6deg)}50%{opacity:1;transform:scale(1.08) rotate(2deg)}70%{transform:scale(.96)}100%{opacity:1;transform:none}}
-@keyframes arc{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:none}}
-@keyframes fadeb{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
-@keyframes wob{0%{opacity:0;transform:scale(.5) rotate(8deg)}40%{opacity:1;transform:scale(1.06) rotate(-4deg)}60%{transform:rotate(3deg)}80%{transform:rotate(-1.5deg)}100%{opacity:1;transform:none}}
 </style></head><body>
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
 <div id="stage" class="c m"></div>
 <script>
 var PREVIEW=/[?&]preview=1/.test(location.search);
-var S={duration:6,scale:100,align:'center',vpos:'middle',showAvatar:true,imageV:0,design:'classic'};
-var DESIGNS=['classic','neon','minimal','party','gold','arcade','glass','candy'];
-var DCLS={neon:'a-neon',minimal:'a-min',party:'a-party',gold:'a-gold',arcade:'a-arc',glass:'a-glass',candy:'a-candy'};
-var HGLYPH={gold:'\u2605',arcade:'\u25c6',glass:'\u2726'};
-var CONF=['#f58aa0','#d7a8ff','#8ea2ff','#f3d68a','#ffffff'];
-function designOf(){return DESIGNS.indexOf(S.design)>=0?S.design:'classic';}
+var S={duration:6,scale:100,align:'center',vpos:'middle',showAvatar:true,imageV:0,design:'aurora'};
+var DESIGNS=['aurora','eq','crystal','orbit'];
+var DCLS={aurora:'a-aurora',eq:'a-eq',crystal:'a-crystal',orbit:'a-orbit'};
+var HGLYPH={eq:'\u266a',crystal:'\u25c6',orbit:'\u2726'}; // что летит вверх вокруг плашки (у Авроры — сердечки)
+function designOf(){return DESIGNS.indexOf(S.design)>=0?S.design:'aurora';}
 var stage=document.getElementById('stage');
 var BASE='',imgUrl='',imgFor=0;
-var PL={classic:{f:'classic',w:650,h:238,av:[144, 150, 68, 'c'],nm:[272, 96, 486, 146],sb:[262, 162, 560, 200],ac:'#e66bff'},heart:{f:'heart',w:659,h:234,av:null,nm:[256, 86, 470, 140],sb:[258, 150, 568, 196],ac:'#b77bff'},gold:{f:'gold',w:684,h:237,av:[149, 131, 53, 'c'],nm:[296, 82, 512, 132],sb:[296, 132, 596, 190],ac:'#ffb703'},cyan:{f:'cyan',w:676,h:206,av:[131, 106, 56, 'c'],nm:[248, 64, 436, 108],sb:[250, 112, 528, 152],ac:'#22b8ff'},goldoval:{f:'goldoval',w:678,h:231,av:[144, 135, 62, 'c'],nm:[272, 80, 498, 129],sb:[278, 136, 572, 180],ac:'#ffc531'},paper:{f:'paper',w:692,h:209,av:[141, 113, 46, 's'],nm:[252, 58, 450, 108],sb:[260, 114, 540, 160],ac:'#b25cff'},pink:{f:'pink',w:643,h:237,av:[137, 123, 62, 'c'],nm:[296, 80, 494, 128],sb:[296, 134, 586, 178],ac:'#ff4f93'},cat:{f:'cat',w:658,h:278,av:[117, 185, 60, 'c'],nm:[258, 140, 458, 190],sb:[258, 198, 538, 240],ac:'#b878ff'}};
-var PMAP={classic:'classic',neon:'cyan',minimal:'paper',party:'pink',gold:'goldoval',arcade:'gold',glass:'heart',candy:'cat'};
-// плашка-картинка: ник, строка под ником и аватарка (или значок) кладутся поверх готовой картинки
-function plateFit(t,s,max){var fs=max,bw=t.getBoundingClientRect().width;t.style.fontSize=fs+'px';while(fs>14&&s.getBoundingClientRect().width>bw+1){fs-=2;t.style.fontSize=fs+'px';}}
-function plateEl(ds,name,sub,avUrl,fb,fbBg){
-  var p=PL[PMAP[ds]||'classic'],el=document.createElement('div');el.className='pl';el.style.width=p.w+'px';el.style.height=p.h+'px';
-  el.style.backgroundImage='url("'+BASE+'/plate/'+p.f+'")';
-  if(p.av){var a=document.createElement('div'),r=p.av[2];a.className='pa';a.style.cssText='left:'+(p.av[0]-r)+'px;top:'+(p.av[1]-r)+'px;width:'+r*2+'px;height:'+r*2+'px;border-radius:'+(p.av[3]==='s'?'10px':'50%')+';font-size:'+Math.round(r*1.05)+'px';
-    if(avUrl)a.style.backgroundImage='url("'+avUrl.replace(/"/g,'%22')+'")';else{if(fbBg)a.style.background=fbBg;a.textContent=fb||'';}
-    el.appendChild(a);}
-  function line(cls,b,txt,max,col){var t=document.createElement('div'),s=document.createElement('span');t.className='pt '+cls;t.style.cssText='left:'+b[0]+'px;top:'+b[1]+'px;width:'+(b[2]-b[0])+'px;height:'+(b[3]-b[1])+'px';
-    if(col)t.style.color=col;s.textContent=txt;t.appendChild(s);el.appendChild(t);requestAnimationFrame(function(){plateFit(t,s,max);});}
-  line('pn',[p.nm[0],p.nm[1],p.sb[2],p.nm[3]],name,46);line('ps',p.sb,sub,34,p.ac);
-  return el;
-}
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
 function zoomOf(){return Math.max(40,Math.min(250,+S.scale||100))/100;}
@@ -159,26 +118,22 @@ function visual(){
   }else v.innerHTML=HEART;
   return v;
 }
-// летящие вверх сердечки вокруг плашки
+// летящие вверх значки вокруг плашки (сердечки, ноты, ромбики или звёздочки — по дизайну)
 function hearts(box,total){
   var n=22,i;
   for(i=0;i<n;i++){
     var h=document.createElement('i'),ds=designOf();h.className='hp'+(i%3===0?' v':'');
-    if(ds==='party'){h.className='hp cf';h.style.setProperty('--c',CONF[i%CONF.length]);}else h.textContent=HGLYPH[ds]||'\u2665';
+    h.textContent=HGLYPH[ds]||'\u2665';
     h.style.left=(8+Math.random()*84)+'%';h.style.fontSize=(14+Math.random()*20)+'px';
     h.style.setProperty('--dx',(Math.random()*90-45)+'px');h.style.setProperty('--rot',(Math.random()*50-25)+'deg');
     h.style.animationDelay=(.15+Math.random()*Math.max(1,total*.55))+'s';h.style.animationDuration=(2.1+Math.random()*1.4)+'s';
     box.appendChild(h);
   }
 }
+function eqBars(){var e=document.createElement('div');e.className='eqb';e.innerHTML='<i></i><i></i><i></i><i></i><i></i>';return e;}
 function build(d,still){
-  var c=document.createElement('div'),ds=designOf();c.className='al'+(DCLS[ds]?' '+DCLS[ds]:'')+(still?' still':'');
-  if(!imgUrl){
-    var pn=String(d.name||'Гость'),pa=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
-    c.appendChild(plateEl(ds,pn,'♥ подписался',S.showAvatar?pa:'',S.showAvatar?pn.charAt(0).toUpperCase():'',S.showAvatar?colorOf(pn):'#17171d'));
-    c.style.zoom=zoomOf();return c;
-  }
-  c.appendChild(visual());
+  var ds=designOf(),c=document.createElement('div');c.className='al '+DCLS[ds]+(still?' still':'');
+  if(imgUrl)c.appendChild(visual()); // своя картинка стоит над плашкой
   var p=document.createElement('div');
   var nm=String(d.name||'Гость');
   var av=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
@@ -190,9 +145,10 @@ function build(d,still){
     p.appendChild(a);
   }
   var x=document.createElement('div');x.className='tx';
-  var cap=document.createElement('div');cap.className='cap';cap.textContent='Новый подписчик';
   var n=document.createElement('div');n.className='nm';n.textContent=nm;
-  x.appendChild(cap);x.appendChild(n);p.appendChild(x);
+  var cap=document.createElement('div');cap.className='cap';cap.textContent='\u2665 подписался';
+  x.appendChild(n);x.appendChild(cap);p.appendChild(x);
+  if(ds==='eq')p.appendChild(eqBars());
   c.appendChild(p);
   c.style.zoom=zoomOf();
   return c;
