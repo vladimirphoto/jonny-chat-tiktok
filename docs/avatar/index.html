@@ -18,13 +18,22 @@ var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
 var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
 var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
 var SHOWMSG=window.parent!==window||Q.has('debug'); // подсказки об ошибках видны в предпросмотре приложения, а в OBS страница остаётся чистой
-var bub=document.getElementById('bub'),bubT=null,bubSw=null,bubX=0,BUB_SHIFT=12; // облачко стоит над головой и смещается случайно лишь на ±BUB_SHIFT px (в приложении ползунок «Сдвиг облачка», 0 — не двигается)
+var bub=document.getElementById('bub'),bubT=null,bubSw=null,bubX=0,BUB_SHIFT=5,BUB_GAP=5,BUB_TAIL=13; // облачко стоит на 5 px выше головы (хвостик не в счёт) и смещается случайно максимум на 5 px
 function bubFill(n,t){bub.textContent='';var a=document.createElement('div');a.className='bn';a.textContent=n;var b=document.createElement('div');b.className='bt';b.textContent=t;if(n)bub.appendChild(a);bub.appendChild(b);}
+var headY=null; // высота макушки на экране: ищем самый верхний видимый пиксель модели (в рамке модели вокруг головы бывает пустое место)
+function headTop(){
+  if(!model||!app)return null;if(headY!==null)return headY;
+  var b=model.getBounds(),y=b.y;
+  try{var c=app.renderer.extract.canvas(model),w=c.width,h=c.height,d=c.getContext('2d').getImageData(0,0,w,h).data,row=-1;
+    for(var r=0;r<h&&row<0;r++)for(var x=0;x<w;x+=2)if(d[(r*w+x)*4+3]>40){row=r;break;}
+    if(row>=0)y=b.y+row*b.height/h;}catch(_){}
+  headY=y;return y;}
 function bubShow(n,t){
   bub.className='';bubFill(n,t);
   var lim=Math.max(0,Math.min(BUB_SHIFT,(window.innerWidth-bub.offsetWidth)/2-6)),x=0;
   for(var i=0;i<6;i++){x=Math.round((Math.random()*2-1)*lim);if(lim<6||Math.abs(x-bubX)>=Math.min(8,lim))break;}
-  bubX=x;bub.style.transition='none';bub.style.setProperty('--bx',x+'px');void bub.offsetWidth;bub.style.transition=''; // положение ставим без анимации, пока облачко невидимо
+  var ht=headTop(),H=window.innerHeight,bo=ht!=null&&isFinite(ht)?Math.max(0,Math.min(H-bub.offsetHeight-4,H-ht+BUB_GAP+BUB_TAIL)):null;
+  bubX=x;bub.style.transition='none';bub.style.setProperty('--bx',x+'px');bub.style.setProperty('--by',bo===null?'70%':Math.round(bo)+'px');void bub.offsetWidth;bub.style.transition=''; // положение ставим без анимации, пока облачко невидимо
   void bub.offsetWidth;bub.className='on';
   clearTimeout(bubT);bubT=setTimeout(function(){bub.className='';},Math.max(3500,Math.min(14000,t.length*90+2000)));}
 function showBub(d){if(S&&S.bubOn===false)return;var n=String(d.name||'').slice(0,40),t=String(d.text||'').slice(0,300);if(!t)return;
@@ -54,6 +63,7 @@ function libs(){
   return libsP;
 }
 function layout(){
+  headY=null;
   if(!model||!app)return;
   var iw=model.internalModel.width||1,ih=model.internalModel.height||1,W=window.innerWidth,H=window.innerHeight;
   var k=Math.min(W/iw,H/ih)*0.95*((+S.scale||100)/100);
@@ -98,10 +108,10 @@ function loadModel(){
     try{console.error('avatar',e);}catch(_){}
   });
 }
-function bubStyle(){BUB_SHIFT=Math.max(0,Math.min(60,S.bubShift===undefined?12:+S.bubShift||0));if(S.bubOn===false){bub.className='';clearTimeout(bubT);clearTimeout(bubSw);} // переключатель выключили: убираем уже показанное облачко
+function bubStyle(){if(S.bubOn===false){bub.className='';clearTimeout(bubT);clearTimeout(bubSw);} // переключатель выключили: убираем уже показанное облачко
   var st=document.documentElement.style,hx=/^#[0-9a-fA-F]{6}$/;
   st.setProperty('--bbg',hx.test(S.bubColor)?S.bubColor:'#ffffff');st.setProperty('--btx',hx.test(S.bubText)?S.bubText:'#1f1b2e');
-  st.setProperty('--by',Math.max(0,Math.min(95,S.bubY===undefined?70:+S.bubY||0))+'%');st.setProperty('--bwt',S.bubBold?'700':'400');st.setProperty('--bw',Math.max(120,Math.min(700,+S.bubWidth||320))+'px');st.setProperty('--bl',String(Math.max(1,Math.min(12,Math.round(+S.bubLines)||5))));st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
+  st.setProperty('--bwt',S.bubBold?'700':'400');st.setProperty('--bw',Math.max(120,Math.min(700,+S.bubWidth||320))+'px');st.setProperty('--bl',String(Math.max(1,Math.min(12,Math.round(+S.bubLines)||5))));st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
 function apply(){
   document.body.style.background=S.bg==='green'?'#00b140':'transparent';bubStyle();
   if(S.ready===false){say('Компоненты аватара ещё не установлены: вкладка «Аватар» в ЭхоЧат → «Скачать компоненты».');return;}
