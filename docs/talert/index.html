@@ -1,0 +1,214 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Подписки Twitch</title>
+<style>
+html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%}
+#stage{position:fixed;inset:0;display:flex;padding:18px;box-sizing:border-box}
+#stage.l{justify-content:flex-start}#stage.c{justify-content:center}#stage.r{justify-content:flex-end}
+#stage.t{align-items:flex-start}#stage.m{align-items:center}#stage.b{align-items:flex-end}
+.al{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:560px;animation:pop .8s cubic-bezier(.2,1.5,.35,1) both}
+.al.out{animation:bye .5s ease-in both}
+.al.still{animation:none}
+.vis{position:relative;display:grid;place-items:center;min-width:170px;min-height:170px}
+.vis svg{width:170px;height:170px;overflow:visible}
+.vis .heart{transform-origin:80px 84px;animation:beat 1.6s ease-in-out infinite}
+.vis .glow{transform-origin:80px 80px;animation:glow 1.6s ease-in-out infinite}
+.vis .plus{transform-origin:118px 42px;animation:plus .9s cubic-bezier(.2,1.6,.4,1) .35s both}
+.vis .pic{display:block;max-width:340px;max-height:240px;object-fit:contain;filter:drop-shadow(0 10px 26px rgba(0,0,0,.55));animation:bob 2.6s ease-in-out infinite}
+/* ---- плашка подписчика: четыре фирменных оформления (S.design): Аврора, Эквалайзер, Кристалл, Орбита ---- */
+.plate{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-width:300px;max-width:560px;padding:14px 36px 14px 16px;box-sizing:border-box;color:#fff}
+.plate.noav{padding-left:34px}
+.av{position:relative;flex:none;width:72px;height:72px;border-radius:50%;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-size:32px;font-weight:800;color:#fff}
+.tx{position:relative;min-width:0;text-align:left}
+.nm{font-size:34px;font-weight:800;line-height:1.1;word-break:break-word}
+.cap{margin-top:3px;font-size:16px;font-weight:600;color:#c4b5fd}
+.hp{position:absolute;bottom:20%;font-style:normal;line-height:1;opacity:0;pointer-events:none;color:#ec4899;text-shadow:0 0 12px rgba(236,72,153,.9);animation:rise 2.6s ease-out both}
+.hp.v{color:#a78bfa;text-shadow:0 0 12px rgba(139,92,246,.9)}
+/* Аврора: тёмное стекло, по рамке бежит фиолетово-розовый свет */
+.a-aurora{animation:fadeb .7s ease-out both}
+.a-aurora .plate{border-radius:28px;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.5),rgba(236,72,153,.4));box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 44px rgba(139,92,246,.32)}
+.a-aurora .plate:before{content:"";position:absolute;z-index:-2;left:50%;top:50%;width:760px;height:760px;margin:-380px 0 0 -380px;background:conic-gradient(from 0deg,transparent 0 52%,#8b5cf6 68%,#ec4899 84%,#fff 90%,transparent 94%);animation:spin 4.5s linear infinite}
+.a-aurora .plate:after{content:"";position:absolute;z-index:-1;inset:2px;border-radius:26px;background:radial-gradient(120% 140% at 0% 0%,rgba(139,92,246,.28),transparent 55%),linear-gradient(150deg,#15122b,#0a0a14)}
+.a-aurora .av{box-shadow:0 0 0 3px rgba(167,139,250,.9),0 0 24px rgba(236,72,153,.5)}
+.a-aurora .nm{background:linear-gradient(90deg,#fff 40%,#f5d0fe 75%,#fbcfe8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.a-aurora .cap{color:#c4b5fd}
+/* Эквалайзер: столбики из логотипа приложения качаются сбоку */
+.a-eq{animation:slide .5s cubic-bezier(.2,.9,.3,1) both}
+.a-eq .plate{padding-right:96px;border-radius:18px;background:linear-gradient(135deg,#16122e,#0a0a14);border:1px solid rgba(139,92,246,.45);box-shadow:0 18px 46px rgba(0,0,0,.55),0 0 34px rgba(139,92,246,.22),inset 0 1px 0 rgba(255,255,255,.08)}
+.a-eq .av{border-radius:18px;box-shadow:0 0 0 2px rgba(236,72,153,.85),0 0 18px rgba(236,72,153,.35)}
+.a-eq .nm{color:#fff;font-weight:900;letter-spacing:.2px}
+.a-eq .cap{color:#f9a8d4}
+.eqb{position:absolute;right:28px;top:50%;height:48px;margin-top:-24px;display:flex;align-items:flex-end;gap:5px}
+.eqb i{display:block;width:7px;height:100%;border-radius:4px;background:linear-gradient(0deg,#8b5cf6,#ec4899);transform-origin:50% 100%;animation:eq 1s ease-in-out infinite}
+.eqb i:nth-child(2){animation-duration:.78s;animation-delay:-.25s}.eqb i:nth-child(3){animation-duration:1.15s;animation-delay:-.6s}.eqb i:nth-child(4){animation-duration:.9s;animation-delay:-.4s}.eqb i:nth-child(5){animation-duration:1.05s;animation-delay:-.1s}
+.a-eq .hp{color:#f472b6}
+/* Кристалл: срезанные углы и голографическая фольга со скользящим бликом */
+.a-crystal{animation:cut .6s cubic-bezier(.2,.9,.3,1) both;filter:drop-shadow(0 0 16px rgba(139,92,246,.5)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.a-crystal .plate{--cut:22px;padding:16px 40px 16px 22px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);background-size:300% 100%;animation:holo 7s linear infinite;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.a-crystal .plate:before{content:"";position:absolute;z-index:-1;inset:2px;clip-path:polygon(calc(var(--cut) - 1px) 0,100% 0,100% calc(100% - var(--cut) + 1px),calc(100% - var(--cut) + 1px) 100%,0 100%,0 calc(var(--cut) - 1px));background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 2px,transparent 2px 12px),linear-gradient(160deg,#18142f,#0a0a15)}
+.a-crystal .plate:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:30%;transform:skewX(-22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
+.a-crystal .av{width:76px;height:76px;border-radius:0;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%)}
+.a-crystal .nm{font-size:32px;font-style:italic;font-weight:800;letter-spacing:.6px}
+.a-crystal .cap{color:#67e8f9}
+.a-crystal .hp{color:#67e8f9;text-shadow:0 0 12px rgba(34,211,238,.9)}.a-crystal .hp.v{color:#e9d5ff}
+/* Орбита: матовая капсула, вокруг аватарки крутится светящееся кольцо */
+.a-orbit .plate{padding:10px 40px 10px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
+.a-orbit .plate.noav{padding-left:36px}
+.a-orbit .av{margin:7px}
+.a-orbit .av:before{content:"";position:absolute;inset:-7px;border-radius:50%;border:2.5px solid transparent;border-top-color:#ec4899;border-right-color:#a78bfa;filter:drop-shadow(0 0 6px rgba(236,72,153,.8));animation:spin 2.2s linear infinite}
+.a-orbit .av:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1.5px solid rgba(255,255,255,.13)}
+.a-orbit .nm{font-weight:700;font-size:32px}
+.a-orbit .cap{color:#f9a8d4}
+.a-orbit .hp{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.8)}.a-orbit .hp.v{color:#c4b5fd}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes eq{0%,100%{transform:scaleY(.22)}50%{transform:scaleY(1)}}
+@keyframes holo{to{background-position:-300% 0}}
+@keyframes slide{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
+@keyframes cut{from{opacity:0;transform:translateX(34px) skewX(-10deg)}to{opacity:1;transform:none}}
+@keyframes fadeb{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes pop{from{opacity:0;transform:translateY(34px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes bye{to{opacity:0;transform:translateY(-18px) scale(.94)}}
+@keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.11)}28%{transform:scale(1)}42%{transform:scale(1.07)}56%{transform:scale(1)}}
+@keyframes glow{0%,100%{opacity:.55;transform:scale(.92)}14%{opacity:1;transform:scale(1.12)}}
+@keyframes plus{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}
+@keyframes bob{50%{transform:translateY(-7px) rotate(-1.5deg)}}
+@keyframes shine{0%{left:-60%}55%,100%{left:130%}}
+@keyframes rise{0%{opacity:0;transform:translate(0,0) scale(.5)}12%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-230px) scale(1.15) rotate(var(--rot))}}
+</style></head><body>
+<div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
+<div id="stage" class="c m"></div>
+<script>
+var PREVIEW=/[?&]preview=1/.test(location.search);
+var S={duration:6,scale:100,align:'center',vpos:'middle',showAvatar:true,imageV:0,design:'aurora'};
+var DESIGNS=['aurora','eq','crystal','orbit'];
+var DCLS={aurora:'a-aurora',eq:'a-eq',crystal:'a-crystal',orbit:'a-orbit'};
+var HGLYPH={eq:'\u266a',crystal:'\u25c6',orbit:'\u2726'}; // что летит вверх вокруг плашки (у Авроры — сердечки)
+function designOf(){return DESIGNS.indexOf(S.design)>=0?S.design:'aurora';}
+var stage=document.getElementById('stage');
+var BASE='',imgUrl='',imgFor=0;
+var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
+function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
+function zoomOf(){return Math.max(40,Math.min(250,+S.scale||100))/100;}
+function apply(){
+  stage.className=PREVIEW?'c m':({left:'l',center:'c',right:'r'}[S.align]||'c')+' '+({top:'t',center:'m',middle:'m',bottom:'b'}[S.vpos]||'m');
+  var c=stage.firstChild;if(c&&c.style)c.style.zoom=zoomOf();
+}
+// своя картинка: берём у приложения один раз на версию и держим в памяти (так же, как страница ходит за настройками — через CORS)
+function loadImage(){
+  var v=+S.imageV||0;
+  if(!v){if(imgUrl){URL.revokeObjectURL(imgUrl);imgUrl='';}imgFor=0;return Promise.resolve();}
+  if(imgFor===v&&imgUrl)return Promise.resolve();
+  return fetch(BASE+'/talert-image?v='+v,{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){
+    if(imgUrl)URL.revokeObjectURL(imgUrl);imgUrl=URL.createObjectURL(b);imgFor=v;
+  }).catch(function(){if(imgUrl){URL.revokeObjectURL(imgUrl);}imgUrl='';imgFor=v;});
+}
+var HEART='<svg viewBox="0 0 160 160" aria-hidden="true"><defs>'
+ +'<linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7aa8"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>'
+ +'<radialGradient id="gl"><stop offset="0" stop-color="#ff5c93" stop-opacity=".6"/><stop offset="1" stop-color="#ff5c93" stop-opacity="0"/></radialGradient>'
+ +'<linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>'
+ +'<circle class="glow" cx="80" cy="80" r="78" fill="url(#gl)"/>'
+ +'<g class="heart"><path d="M80 134C24 96 18 56 43 42c17-9 32-2 37 12 5-14 20-21 37-12 25 14 19 54-37 92z" fill="url(#hg)"/>'
+ +'<path d="M50 54c6-6 15-6 21 1" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="6" stroke-linecap="round"/></g>'
+ +'<g class="plus"><circle cx="118" cy="42" r="22" fill="#fff"/><circle cx="118" cy="42" r="22" fill="none" stroke="url(#pg)" stroke-width="3"/>'
+ +'<path d="M118 31v22M107 42h22" stroke="url(#pg)" stroke-width="6" stroke-linecap="round"/></g></svg>';
+function visual(){
+  var v=document.createElement('div');v.className='vis';
+  if(imgUrl){
+    var im=document.createElement('img');im.className='pic';im.alt='';im.src=imgUrl;
+    im.onerror=function(){v.innerHTML=HEART;}; // файл не открылся — показываем сердечко
+    v.appendChild(im);
+  }else v.innerHTML=HEART;
+  return v;
+}
+// летящие вверх значки вокруг плашки (сердечки, ноты, ромбики или звёздочки — по дизайну)
+function hearts(box,total){
+  var n=22,i;
+  for(i=0;i<n;i++){
+    var h=document.createElement('i'),ds=designOf();h.className='hp'+(i%3===0?' v':'');
+    h.textContent=HGLYPH[ds]||'\u2665';
+    h.style.left=(8+Math.random()*84)+'%';h.style.fontSize=(14+Math.random()*20)+'px';
+    h.style.setProperty('--dx',(Math.random()*90-45)+'px');h.style.setProperty('--rot',(Math.random()*50-25)+'deg');
+    h.style.animationDelay=(.15+Math.random()*Math.max(1,total*.55))+'s';h.style.animationDuration=(2.1+Math.random()*1.4)+'s';
+    box.appendChild(h);
+  }
+}
+function eqBars(){var e=document.createElement('div');e.className='eqb';e.innerHTML='<i></i><i></i><i></i><i></i><i></i>';return e;}
+function build(d,still){
+  var ds=designOf(),c=document.createElement('div');c.className='al '+DCLS[ds]+(still?' still':'');
+  if(imgUrl)c.appendChild(visual()); // своя картинка стоит над плашкой
+  var p=document.createElement('div');
+  var nm=String(d.name||'Гость');
+  var av=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
+  p.className='plate'+(S.showAvatar?'':' noav');
+  if(S.showAvatar){
+    var a=document.createElement('div');a.className='av';
+    if(av){a.style.backgroundImage='url("'+av.replace(/"/g,'%22')+'")';}
+    else{a.style.background=colorOf(nm);a.textContent=nm.charAt(0).toUpperCase();}
+    p.appendChild(a);
+  }
+  var x=document.createElement('div');x.className='tx';
+  var n=document.createElement('div');n.className='nm';n.textContent=nm;
+  var cap=document.createElement('div');cap.className='cap';cap.textContent=d.platform==='twitch'?'\u2665 '+String(d.text||'подписался'):'\u2665 подписался';if(d.platform==='twitch')cap.style.color=d.paid===false?'#86efac':'#d8b4fe';
+  x.appendChild(n);x.appendChild(cap);p.appendChild(x);
+  if(ds==='eq')p.appendChild(eqBars());
+  c.appendChild(p);
+  c.style.zoom=zoomOf();
+  return c;
+}
+var queue=[],busy=false,demoT=null,sticky=false;
+function show(d){
+  clearTimeout(demoT);sticky=false;
+  var c=build(d,false);stage.innerHTML='';stage.appendChild(c);
+  var ms=Math.max(2,+S.duration||6)*1000;
+  hearts(c,ms/1000);
+  setTimeout(function(){c.classList.add('out');setTimeout(function(){c.remove();busy=false;next();if(!busy)idle();},520);},ms);
+}
+function next(){if(busy||!queue.length)return;busy=true;loadImage().then(function(){show(queue.shift());});}
+function add(d){queue.push(d);if(queue.length>20)queue.shift();next();}
+// предпросмотр в приложении: когда ничего не идёт, висит образец — видно, как выглядит плашка с вашей картинкой и настройками
+function idle(){
+  if(!PREVIEW||busy||queue.length)return;
+  clearTimeout(demoT);
+  demoT=setTimeout(function(){
+    if(busy||queue.length)return;
+    loadImage().then(function(){
+      if(busy||queue.length)return;
+      stage.innerHTML='';stage.appendChild(build({name:'Анна К.'},true));sticky=true;
+    });
+  },700);
+}
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var nc=document.getElementById('nc'),ncT=null;
+function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
+var told=false;
+function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'alert-ready'},'*');}catch(_){}}
+function bind(es){
+  es.addEventListener('tasettings',function(e){
+    S=Object.assign(S,JSON.parse(e.data));apply();tellReady();
+    // картинку или настройки поменяли — образец в предпросмотре рисуем заново
+    if(PREVIEW&&sticky){sticky=false;loadImage().then(function(){if(!busy&&!queue.length){stage.innerHTML='';stage.appendChild(build({name:'Анна К.'},true));sticky=true;}});}
+    else if(PREVIEW)idle();
+  });
+  es.addEventListener('talert',function(e){add(JSON.parse(e.data));});
+  es.addEventListener('clear',function(){queue=[];});
+}
+function connect(){
+  if(!REMOTE){BASE='';bind(new EventSource('/events'));return;}
+  // приложение слушает несколько соседних портов, а у браузера предел 6 потоков на порт, поэтому каждая страница начинает с случайного из первых пяти
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);BASE='http://127.0.0.1:'+port;online();}});
+    // связь оборвалась уже после подключения: браузер сам пробует тот же адрес, но если приложение перезапустилось на другом порту, он не найдёт его никогда.
+    // Поэтому через 6 секунд без связи закрываем поток и ищем приложение заново по всем портам
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+apply();connect();
+</script></body></html>
