@@ -4,7 +4,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 canvas{display:block;position:fixed;left:0;top:0}
 #msg{position:fixed;left:10px;right:10px;bottom:10px;display:none;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:1.4;text-align:center}
 #nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font-size:13px}
-#bub{--bx:0px;position:fixed;top:4%;left:50%;transform:translate(calc(-50% + var(--bx)),12px) scale(.94);box-sizing:border-box;width:max-content;max-width:min(var(--bw,320px),94%);opacity:0;transition:opacity .55s ease,transform .55s ease;padding:10px 16px 12px;border-radius:20px;background:var(--bbg,#fff);color:var(--btx,#1f1b2e);box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:center;pointer-events:none;z-index:5}
+#bub{--bx:0px;position:fixed;bottom:var(--by,70%);left:50%;transform:translate(calc(-50% + var(--bx)),12px) scale(.94);box-sizing:border-box;width:max-content;max-width:min(var(--bw,320px),94%);opacity:0;transition:opacity .55s ease,transform .55s ease;padding:10px 16px 12px;border-radius:20px;background:var(--bbg,#fff);color:var(--btx,#1f1b2e);box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:center;pointer-events:none;z-index:5}
 #bub.on{opacity:1;transform:translate(calc(-50% + var(--bx)),0) scale(1)}
 #bub:after{content:"";position:absolute;left:clamp(18px,calc(50% - var(--bx)),calc(100% - 18px));bottom:-9px;width:18px;height:18px;background:var(--bbg,#fff);transform:translateX(-50%) rotate(45deg);border-radius:3px}
 .bn{font-size:calc(var(--bfs,16px)*.75);font-weight:700;color:#8b5cf6;margin-bottom:3px}
@@ -187,7 +187,7 @@ function loadModel(){
 function bubStyle(){BUB_SHIFT=Math.max(0,Math.min(60,S.bubShift===undefined?12:+S.bubShift||0));if(S.bubOn===false){bub.className='';clearTimeout(bubT);clearTimeout(bubSw);} // переключатель выключили: убираем уже показанное облачко
   var st=document.documentElement.style,hx=/^#[0-9a-fA-F]{6}$/;
   st.setProperty('--bbg',hx.test(S.bubColor)?S.bubColor:'#ffffff');st.setProperty('--btx',hx.test(S.bubText)?S.bubText:'#1f1b2e');
-  st.setProperty('--bwt',S.bubBold?'700':'400');st.setProperty('--bw',Math.max(120,Math.min(700,+S.bubWidth||320))+'px');st.setProperty('--bl',String(Math.max(1,Math.min(12,Math.round(+S.bubLines)||5))));st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
+  st.setProperty('--by',Math.max(0,Math.min(95,S.bubY===undefined?70:+S.bubY||0))+'%');st.setProperty('--bwt',S.bubBold?'700':'400');st.setProperty('--bw',Math.max(120,Math.min(700,+S.bubWidth||320))+'px');st.setProperty('--bl',String(Math.max(1,Math.min(12,Math.round(+S.bubLines)||5))));st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
 function apply(){
   document.body.style.background=S.bg==='green'?'#00b140':'transparent';bubStyle();
   if(S.ready===false){say('Компоненты 3D ещё не установлены: вкладка «Аватар» в ЭхоЧат → 3D → «Скачать компоненты».');return;}
