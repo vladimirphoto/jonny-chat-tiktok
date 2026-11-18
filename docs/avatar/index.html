@@ -4,14 +4,27 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 canvas{display:block;position:fixed;left:0;top:0}
 #msg{position:fixed;left:10px;right:10px;bottom:10px;display:none;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:1.4;text-align:center}
 #nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font-size:13px}
+#bub{position:fixed;top:4%;left:50%;transform:translate(-50%,10px) scale(.9);max-width:70%;opacity:0;transition:opacity .25s,transform .25s,left .4s;padding:10px 16px 12px;border-radius:20px;background:var(--bbg,#fff);color:var(--btx,#1f1b2e);box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:center;pointer-events:none;z-index:5}
+#bub.on{opacity:1;transform:translate(-50%,0) scale(1)}
+#bub:after{content:"";position:absolute;left:50%;bottom:-9px;width:18px;height:18px;background:var(--bbg,#fff);transform:translateX(-50%) rotate(45deg);border-radius:3px}
+.bn{font-size:calc(var(--bfs,16px)*.75);font-weight:700;color:#8b5cf6;margin-bottom:3px}
+.bt{font-size:var(--bfs,16px);line-height:1.35;word-break:break-word}
 </style></head><body>
 <div id="nc">Нет связи с приложением ЭхоЧат LIVE</div>
 <div id="msg"></div>
+<div id="bub"></div>
 <script>
 var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
 var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
 var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
 var SHOWMSG=window.parent!==window||Q.has('debug'); // подсказки об ошибках видны в предпросмотре приложения, а в OBS страница остаётся чистой
+var bub=document.getElementById('bub'),bubT=null,bubPos=1;
+function showBub(d){if(S&&S.bubOn===false)return;var n=String(d.name||'').slice(0,40),t=String(d.text||'').slice(0,300);if(!t)return;
+  var p;do{p=Math.floor(Math.random()*3);}while(p===bubPos);bubPos=p; // каждый раз другое место: слева, по центру или справа
+  bub.className='';bub.style.left=['26%','50%','74%'][p];bub.textContent='';
+  var a=document.createElement('div');a.className='bn';a.textContent=n;var b=document.createElement('div');b.className='bt';b.textContent=t;
+  if(n)bub.appendChild(a);bub.appendChild(b);void bub.offsetWidth;bub.className='on';
+  clearTimeout(bubT);bubT=setTimeout(function(){bub.className='';},Math.max(3500,Math.min(14000,t.length*90+2000)));}
 var msg=document.getElementById('msg'),nc=document.getElementById('nc'),ncT=null;
 function say(t){if(!SHOWMSG)return;msg.textContent=t||'';msg.style.display=t?'block':'none';}
 function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
@@ -79,8 +92,12 @@ function loadModel(){
     try{console.error('avatar',e);}catch(_){}
   });
 }
+function bubStyle(){if(S.bubOn===false){bub.className='';clearTimeout(bubT);} // переключатель выключили: убираем уже показанное облачко
+  var st=document.documentElement.style,hx=/^#[0-9a-fA-F]{6}$/;
+  st.setProperty('--bbg',hx.test(S.bubColor)?S.bubColor:'#ffffff');st.setProperty('--btx',hx.test(S.bubText)?S.bubText:'#1f1b2e');
+  st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
 function apply(){
-  document.body.style.background=S.bg==='green'?'#00b140':'transparent';
+  document.body.style.background=S.bg==='green'?'#00b140':'transparent';bubStyle();
   if(S.ready===false){say('Компоненты аватара ещё не установлены: вкладка «Аватар» в ЭхоЧат → «Скачать компоненты».');return;}
   if(!S.model||!S.entry){say('Модель не выбрана: вкладка «Аватар» в ЭхоЧат.');return;}
   loadModel();
@@ -104,6 +121,7 @@ function bind(es){
     if(drag||Date.now()<hold){d.scale=S.scale;d.offsetX=S.offsetX;d.offsetY=S.offsetY;} // пока человек двигает или масштабирует, чужой «старый» ответ не перебивает
     S=d;apply();});
   es.addEventListener('aspeech',function(e){var d;try{d=JSON.parse(e.data);}catch(_){return;}SP=+d.v||0;spT=Date.now();});
+  es.addEventListener('abubble',function(e){var d;try{d=JSON.parse(e.data);}catch(_){return;}showBub(d||{});});
   es.addEventListener('aframe',function(e){
     var d;try{d=JSON.parse(e.data);}catch(_){return;}
     if(d&&d.p){V=d.p;tracking=true;lastFrame=Date.now();}
