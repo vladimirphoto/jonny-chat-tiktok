@@ -1,0 +1,134 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>2.5D аватар</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+canvas{position:fixed;left:0;top:0;width:100%;height:100%;display:none}
+#msg{position:fixed;left:10px;right:10px;bottom:10px;display:none;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:1.4;text-align:center}
+#nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font-size:13px}
+</style></head><body>
+<div id="nc">Нет связи с приложением ЭхоЧат LIVE</div>
+<div id="msg"></div>
+<script>
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var SHOWMSG=window.parent!==window||Q.has('debug'); // подсказки об ошибках видны в предпросмотре приложения, а в OBS страница остаётся чистой
+var msg=document.getElementById('msg'),nc=document.getElementById('nc'),ncT=null;
+function say(t){if(!SHOWMSG)return;msg.textContent=t||'';msg.style.display=t?'block':'none';}
+function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
+var BASE='',S={},V={},tracking=false,lastFrame=0,STALE_MS=800;
+var LIB=null,libP=null,player=null,body=null,cvL=null,cvP=null,loadedKey='',gen=0,cur=null; // cur: тот, кто сейчас на экране (player или body)
+function live(){return tracking&&Date.now()-lastFrame<STALE_MS;}
+function cl(v,a,b){return Math.max(a,Math.min(b,v));}
+function num(v,d){return isFinite(v)?+v:d;}
+function mkCanvas(){var c=document.createElement('canvas');document.body.appendChild(c);return c;}
+function libs(){
+  if(libP)return libP;
+  libP=Promise.all([import(BASE+'/avatar-lib/liv/index.js'),import(BASE+'/avatar-lib/liv/body.js'),import(BASE+'/avatar-lib/liv/png.js')]).then(function(m){LIB={Player:m[0].Player,BodyPlayer:m[1].BodyPlayer,PngBody:m[2].PngBody};});
+  libP.catch(function(){libP=null;});
+  return libP;
+}
+// Числа от трекера (имена и знаки те же, что у Live2D) → параметры LivLiv. Пока лицо видно, они перекрывают дыхание и взгляд плеера; нет лица — персонаж снова живёт сам
+function driver(){
+  return {order:0,update:function(f){
+    if(!live())return;
+    var p=f.params,mir=!!S.mirror;
+    p.angleX=cl(num(V.ParamAngleX,0)*1.3,-30,30);
+    p.angleY=cl(num(V.ParamAngleY,0)*1.3,-30,30);
+    p.angleZ=cl(num(V.ParamAngleZ,0),-30,30);
+    // в зеркальном режиме левый глаз на экране — правый глаз человека
+    p.eyeLOpen=cl(num(mir?V.ParamEyeROpen:V.ParamEyeLOpen,1),0,1);
+    p.eyeROpen=cl(num(mir?V.ParamEyeLOpen:V.ParamEyeROpen,1),0,1);
+    p.eyeBallX=cl(num(V.ParamEyeBallX,0)*2.2,-1,1);
+    p.eyeBallY=cl(num(V.ParamEyeBallY,0)*2.2,-1,1);
+    p.browLY=cl(num(V.ParamBrowLY,0),-1,1);
+    p.browRY=cl(num(V.ParamBrowRY,0),-1,1);
+    p.mouthOpen=cl(num(V.ParamMouthOpenY,0),0,1);
+    p.smile=cl(num(V.ParamMouthForm,0),0,1);
+    p.bodyX=cl(num(V.ParamBodyAngleX,0),-10,10);
+    p.bodyZ=cl(num(V.ParamBodyAngleZ,0),-10,10);
+  }};
+}
+function entryUrl(rel){return BASE+'/avatar-liv/'+encodeURIComponent(S.model)+'/'+String(rel).split('/').map(encodeURIComponent).join('/');}
+function layout(){
+  if(!cur)return;
+  var v=cur.view;
+  v.zoom=cl((+S.scale||100)/100,0.4,2.5);
+  v.x=((+S.offsetX||0)/100)*0.5;   // сдвиг в долях холста; у плеера «вверх» — плюс, у настроек приложения «вниз» — плюс
+  v.y=-((+S.offsetY||0)/100)*0.5;
+}
+function show(which){
+  cur=which==='png'?body:player;
+  if(cvL)cvL.style.display=which==='png'?'none':'block';
+  if(cvP)cvP.style.display=which==='png'?'block':'none';
+}
+function loadModel(){
+  var key=[S.model,S.kind,S.entry,JSON.stringify(S.files||{})].join('|'),my=++gen;
+  if(key===loadedKey&&cur){layout();return;}
+  say('Загрузка персонажа…');
+  libs().then(function(){
+    if(my!==gen)return null;
+    if(S.kind==='png'){
+      if(!body){cvP=cvP||mkCanvas();body=new LIB.BodyPlayer(cvP,new LIB.PngBody());body.use(driver());}
+      var f={};for(var r in S.files)f[r]=entryUrl(S.files[r]);
+      return body.load(f).then(function(){if(my===gen)show('png');});
+    }
+    if(!player){cvL=cvL||mkCanvas();player=new LIB.Player(cvL,{followPointer:false,renderWhenHidden:true});player.use(driver());}
+    return player.load(entryUrl(S.entry||'model.json')).then(function(){if(my===gen)show('liv');});
+  }).then(function(r){
+    if(my!==gen)return;
+    loadedKey=key;layout();say('');
+  }).catch(function(e){
+    if(my!==gen||(e&&e.name==='AbortError'))return;
+    loadedKey='';
+    say(e&&e.code==='no-webgl'?'В этом окне не работает WebGL2: 2.5D-аватар не может показаться.':'Не удалось загрузить персонажа. Откройте вкладку «Аватар» в ЭхоЧат, режим 2.5D, и проверьте компоненты и персонажа.');
+    try{console.error('avatar25',e);}catch(_){}
+  });
+}
+function apply(){
+  document.body.style.background=S.bg==='green'?'#00b140':'transparent';
+  if(S.ready===false){say('Компоненты 2.5D ещё не установлены: вкладка «Аватар» в ЭхоЧат → 2.5D → «Скачать компоненты».');return;}
+  if(!S.model){say('Персонаж не выбран: вкладка «Аватар» в ЭхоЧат, режим 2.5D.');return;}
+  loadModel();layout();
+}
+// Предпросмотр в приложении: колесо мыши — размер, перетаскивание левой кнопкой — сдвиг, двойной щелчок — сброс. Изменения уходят приложению и действуют и в OBS
+var PREVIEW=window.parent!==window,drag=null,sendT=0,hold=0;
+function viewSend(force){var n=Date.now();hold=n+500;if(!force&&n-sendT<60)return;sendT=n;try{window.parent.postMessage({echochat:'avatar-view',engine:'liv',scale:Math.round(+S.scale||100),offsetX:Math.round(+S.offsetX||0),offsetY:Math.round(+S.offsetY||0)},'*');}catch(_){}}
+if(PREVIEW){
+  document.body.style.cursor='grab';
+  window.addEventListener('wheel',function(e){if(!cur)return;e.preventDefault();S.scale=cl((+S.scale||100)*Math.exp(-e.deltaY*0.0015),40,250);layout();viewSend();},{passive:false});
+  window.addEventListener('pointerdown',function(e){if(!cur||e.button!==0)return;drag={x:e.clientX,y:e.clientY,ox:+S.offsetX||0,oy:+S.offsetY||0};try{document.body.setPointerCapture(e.pointerId);}catch(_){}document.body.style.cursor='grabbing';});
+  window.addEventListener('pointermove',function(e){if(!drag)return;S.offsetX=cl(drag.ox+(e.clientX-drag.x)/(window.innerWidth/2)*100,-100,100);S.offsetY=cl(drag.oy+(e.clientY-drag.y)/(window.innerHeight/2)*100,-100,100);layout();viewSend();});
+  var drop=function(){if(!drag)return;drag=null;document.body.style.cursor='grab';viewSend(true);};
+  window.addEventListener('pointerup',drop);window.addEventListener('pointercancel',drop);
+  window.addEventListener('dblclick',function(){if(!cur)return;S.scale=100;S.offsetX=0;S.offsetY=0;layout();viewSend(true);});
+}
+function bind(es){
+  es.addEventListener('avlsettings',function(e){var d;try{d=JSON.parse(e.data)||{};}catch(_){return;}
+    if(drag||Date.now()<hold){d.scale=S.scale;d.offsetX=S.offsetX;d.offsetY=S.offsetY;} // пока человек двигает или масштабирует, чужой «старый» ответ не перебивает
+    S=d;apply();});
+  es.addEventListener('aframe',function(e){
+    var d;try{d=JSON.parse(e.data);}catch(_){return;}
+    if(d&&d.p){V=d.p;tracking=true;lastFrame=Date.now();}
+    else if(d&&d.lost){tracking=false;V={};}
+  });
+}
+function connect(){
+  if(!REMOTE){BASE='';bind(new EventSource('/events'));return;}
+  // приложение слушает несколько соседних портов, а у браузера предел 6 потоков на порт, поэтому каждая страница начинает с случайного из первых пяти
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);BASE='http://127.0.0.1:'+port;online();}});
+    // связь оборвалась уже после подключения: браузер сам пробует тот же адрес, но если приложение перезапустилось на другом порту, он не найдёт его никогда.
+    // Поэтому через 6 секунд без связи закрываем поток и ищем приложение заново по всем портам
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+connect();
+</script></body></html>
