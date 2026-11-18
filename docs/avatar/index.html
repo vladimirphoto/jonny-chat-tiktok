@@ -20,6 +20,8 @@ var BASE='',S={},V={},tracking=false,lastFrame=0;
 var app=null,model=null,libsP=null,loadedKey='',gen=0;
 var STALE_MS=800; // нет кадров от трекера дольше — персонаж снова сам моргает и дышит
 function live(){return tracking&&Date.now()-lastFrame<STALE_MS;}
+var SP=0,spT=0,spCur=0;
+function mouth(dt){var t=(S.speech&&Date.now()-spT<400)?SP:0;spCur+=(t-spCur)*(1-Math.exp(-dt/(t>spCur?0.03:0.08)));return spCur<0.02?0:spCur;} // рот по озвучке чата: быстро открывается, плавно закрывается
 function loadScript(src){return new Promise(function(ok,bad){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=function(){bad(new Error(src))};document.head.appendChild(s);});}
 function libs(){
   if(libsP)return libsP;
@@ -44,10 +46,15 @@ function hook(m){
   var internal=m.internalModel,core=internal.coreModel,blink=internal.eyeBlink;
   // ставим значения от трекера после движений модели, но до дыхания, фокуса и физики: волосы и одежда следуют за головой
   internal.on('beforeMotionUpdate',function(){internal.eyeBlink=live()?undefined:blink;});
-  internal.on('afterMotionUpdate',function(){if(!live())return;for(var id in V)if(id.indexOf('Param')===0)core.setParameterValueById(id,V[id]);});
+  var lt=performance.now();
+  internal.on('afterMotionUpdate',function(){
+    var n=performance.now(),dt=Math.min((n-lt)/1000,0.1);lt=n;
+    if(live())for(var id in V)if(id.indexOf('Param')===0&&!(S.speech&&id==='ParamMouthOpenY'))core.setParameterValueById(id,V[id]); // при включённом «Рот по озвучке» рот с камеры не берём
+    if(S.speech){core.setParameterValueById('ParamMouthOpenY',mouth(dt));}
+  });
   var nat=internal.updateNaturalMovements.bind(internal);
   internal.updateNaturalMovements=function(dt,now){
-    if(!live())return nat(dt,now);
+    if(!live()){var mo=core.getParameterValueById('ParamMouthOpenY');nat(dt,now);if(S.speech)core.setParameterValueById('ParamMouthOpenY',mo);return;}
     var ids=Object.keys(V).filter(function(k){return k.indexOf('Param')===0;}),saved=ids.map(function(id){return core.getParameterValueById(id);});
     nat(dt,now); // дыхание и «взгляд» не должны сдвигать то, что задал трекер
     for(var i=0;i<ids.length;i++)core.setParameterValueById(ids[i],saved[i]);
@@ -96,6 +103,7 @@ function bind(es){
   es.addEventListener('avsettings',function(e){var d;try{d=JSON.parse(e.data)||{};}catch(_){return;}
     if(drag||Date.now()<hold){d.scale=S.scale;d.offsetX=S.offsetX;d.offsetY=S.offsetY;} // пока человек двигает или масштабирует, чужой «старый» ответ не перебивает
     S=d;apply();});
+  es.addEventListener('aspeech',function(e){var d;try{d=JSON.parse(e.data);}catch(_){return;}SP=+d.v||0;spT=Date.now();});
   es.addEventListener('aframe',function(e){
     var d;try{d=JSON.parse(e.data);}catch(_){return;}
     if(d&&d.p){V=d.p;tracking=true;lastFrame=Date.now();}

@@ -98,6 +98,8 @@ function detectAxes(){
   if(head)head.rotation.set(0,0,0);
   if(vrm&&vrm.meta&&vrm.meta.metaVersion==='0'){AX.xs=1;AX.zs=1;}
 }
+var SP=0,spT=0,spCur=0;
+function mouth(dt){var t=(S.speech&&Date.now()-spT<400)?SP:0;spCur+=(t-spCur)*(1-Math.exp(-dt/(t>spCur?0.03:0.08)));return spCur<0.02?0:spCur;} // рот по озвучке чата: быстро открывается, плавно закрывается
 function setExp(n,v){var m=vrm&&vrm.expressionManager;if(m&&m.getExpression(n))m.setValue(n,v);}
 function drive(dt,now){
   if(!vrm)return;
@@ -123,6 +125,7 @@ function drive(dt,now){
     if(now>nextBlink&&blinkT<0){blinkT=0;}
     if(blinkT>=0){blinkT+=dt;var ph=blinkT/0.18;setExp('blink',ph<1?Math.sin(ph*Math.PI):0);if(ph>=1){blinkT=-1;nextBlink=now+2500+Math.random()*3500;setExp('blink',0);}}
   }
+  if(S.speech){var m=mouth(dt);setExp('aa',m*0.9);setExp('oh',0.25*m*Math.abs(Math.sin(now*0.011)));setExp('ih',0.15*m*Math.abs(Math.sin(now*0.017+1)));} // рот по озвучке чата вместо камеры
   vrm.update(dt);
 }
 function tick(now){
@@ -184,6 +187,7 @@ function bind(es){
   es.addEventListener('av3settings',function(e){var d;try{d=JSON.parse(e.data)||{};}catch(_){return;}
     if(drag||Date.now()<hold){d.scale=S.scale;d.offsetX=S.offsetX;d.offsetY=S.offsetY;} // пока человек двигает или масштабирует, чужой «старый» ответ не перебивает
     S=d;apply();});
+  es.addEventListener('aspeech',function(e){var d;try{d=JSON.parse(e.data);}catch(_){return;}SP=+d.v||0;spT=Date.now();});
   es.addEventListener('aframe',function(e){
     var d;try{d=JSON.parse(e.data);}catch(_){return;}
     if(d&&d.p){V=d.p;tracking=true;lastFrame=Date.now();}
