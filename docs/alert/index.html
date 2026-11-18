@@ -146,7 +146,7 @@ function build(d,still){
   }
   var x=document.createElement('div');x.className='tx';
   var n=document.createElement('div');n.className='nm';n.textContent=nm;
-  var cap=document.createElement('div');cap.className='cap';cap.textContent='\u2665 подписался';
+  var cap=document.createElement('div');cap.className='cap';cap.textContent=d.platform==='twitch'?'\u2665 '+String(d.text||'подписался'):'\u2665 подписался';if(d.platform==='twitch')cap.style.color=d.paid===false?'#86efac':'#d8b4fe';
   x.appendChild(n);x.appendChild(cap);p.appendChild(x);
   if(ds==='eq')p.appendChild(eqBars());
   c.appendChild(p);
