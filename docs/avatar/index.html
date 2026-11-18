@@ -18,12 +18,12 @@ var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
 var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
 var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
 var SHOWMSG=window.parent!==window||Q.has('debug'); // подсказки об ошибках видны в предпросмотре приложения, а в OBS страница остаётся чистой
-var bub=document.getElementById('bub'),bubT=null,bubSw=null,bubX=0,BUB_SHIFT=56; // облачко стоит над головой и смещается случайно лишь на ±56 px (около 1,5 см), в пределах окна
+var bub=document.getElementById('bub'),bubT=null,bubSw=null,bubX=0,BUB_SHIFT=12; // облачко стоит над головой и смещается случайно лишь на ±BUB_SHIFT px (в приложении ползунок «Сдвиг облачка», 0 — не двигается)
 function bubFill(n,t){bub.textContent='';var a=document.createElement('div');a.className='bn';a.textContent=n;var b=document.createElement('div');b.className='bt';b.textContent=t;if(n)bub.appendChild(a);bub.appendChild(b);}
 function bubShow(n,t){
   bub.className='';bubFill(n,t);
   var lim=Math.max(0,Math.min(BUB_SHIFT,(window.innerWidth-bub.offsetWidth)/2-6)),x=0;
-  for(var i=0;i<6;i++){x=Math.round((Math.random()*2-1)*lim);if(lim<24||Math.abs(x-bubX)>=24)break;}
+  for(var i=0;i<6;i++){x=Math.round((Math.random()*2-1)*lim);if(lim<6||Math.abs(x-bubX)>=Math.min(8,lim))break;}
   bubX=x;bub.style.transition='none';bub.style.setProperty('--bx',x+'px');void bub.offsetWidth;bub.style.transition=''; // положение ставим без анимации, пока облачко невидимо
   void bub.offsetWidth;bub.className='on';
   clearTimeout(bubT);bubT=setTimeout(function(){bub.className='';},Math.max(3500,Math.min(14000,t.length*90+2000)));}
@@ -98,7 +98,7 @@ function loadModel(){
     try{console.error('avatar',e);}catch(_){}
   });
 }
-function bubStyle(){if(S.bubOn===false){bub.className='';clearTimeout(bubT);clearTimeout(bubSw);} // переключатель выключили: убираем уже показанное облачко
+function bubStyle(){BUB_SHIFT=Math.max(0,Math.min(60,S.bubShift===undefined?12:+S.bubShift||0));if(S.bubOn===false){bub.className='';clearTimeout(bubT);clearTimeout(bubSw);} // переключатель выключили: убираем уже показанное облачко
   var st=document.documentElement.style,hx=/^#[0-9a-fA-F]{6}$/;
   st.setProperty('--bbg',hx.test(S.bubColor)?S.bubColor:'#ffffff');st.setProperty('--btx',hx.test(S.bubText)?S.bubText:'#1f1b2e');
   st.setProperty('--bfs',Math.max(10,Math.min(48,+S.bubSize||16))+'px');}
