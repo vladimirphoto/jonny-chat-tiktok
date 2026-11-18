@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Открыть ЭхоЧат LIVE</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0f1419;color:#e6edf3;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+  .box{max-width:420px}
+  h1{font-size:22px;margin:0 0 8px}
+  p{margin:0 0 16px;color:#9aa7b4}
+  a.btn{display:inline-block;padding:12px 22px;border-radius:12px;background:#2f81f7;color:#fff;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Открываем ЭхоЧат LIVE…</h1>
+  <p id="msg">Подтвердите открытие приложения. Подключение Telegram завершится само.</p>
+  <a class="btn" id="open" href="echochat://open">Открыть приложение</a>
+  <p style="margin-top:16px;font-size:14px">Не открылось? Запустите ЭхоЧат LIVE на компьютере вручную: подключение уже идёт и закончится само. Приложение должно быть открыто на этом же компьютере.</p>
+</div>
+<script>setTimeout(function(){ location.href = 'echochat://open'; }, 300);</script>
+</body>
+</html>
