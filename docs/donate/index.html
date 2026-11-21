@@ -106,8 +106,15 @@ function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u
 function zoomOf(){return Math.max(40,Math.min(250,+S.scale||100))/100;}
 function apply(){
   stage.className=PREVIEW?'c m':({left:'l',center:'c',right:'r'}[S.align]||'c')+' '+({top:'t',center:'m',bottom:'b'}[S.vpos]||'b');
-  var c=stage.firstChild;if(c&&c.style)c.style.zoom=zoomOf();
+  var c=stage.firstChild;
+  if(c&&c.style){
+    var z=zoomOf();
+    // только в предпросмотре: карточка (особенно «картинка сверху») подгоняется под рамку, чтобы не выходить за поля
+    if(PREVIEW){c.style.zoom=1;var h=c.offsetHeight||1,w=c.offsetWidth||1,fit=Math.min((window.innerHeight-16)/h,(window.innerWidth-16)/w);if(fit>0&&fit<z)z=fit;}
+    c.style.zoom=z;
+  }
 }
+if(PREVIEW)window.addEventListener('resize',function(){apply();});
 var BASE='',imgUrl='',imgFor=0;
 // своя картинка: берём у приложения один раз на версию и держим в памяти
 function loadImage(){
@@ -138,7 +145,7 @@ function show(d){
   if(S.showMessage&&d.message){var m=document.createElement('div');m.className='ms';m.textContent=d.message;x.appendChild(m);}
   c.appendChild(a);c.appendChild(x);
   if(ds==='eq')c.appendChild(eqBars());
-  w.appendChild(c);w.style.zoom=zoomOf();stage.innerHTML='';stage.appendChild(w);
+  w.appendChild(c);stage.innerHTML='';stage.appendChild(w);apply();
   sparks(w);
   var ms=Math.max(2,+S.duration||8)*1000;
   setTimeout(function(){c.classList.add('out');setTimeout(function(){w.remove();busy=false;next();},500);},ms);
