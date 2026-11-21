@@ -10,7 +10,7 @@ body.al-left #board{align-self:flex-start}body.al-right #board{align-self:flex-e
 #ttl img{width:22px;height:21px;animation:bob 2.6s ease-in-out infinite}
 body.notitle #ttl{display:none}
 #rows{position:relative;display:flex;flex-direction:column;gap:9px}
-.row{position:relative;display:flex;align-items:center;height:56px;padding:0 18px 0 8px;box-sizing:border-box;animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
+.row{position:relative;display:flex;align-items:center;height:56px;padding:0 18px 0 8px;box-sizing:border-box}.row.nw{animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
 .pl{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,rgba(78,36,134,.94),rgba(34,16,64,.94));border:2px solid rgba(196,160,255,.5);box-shadow:0 5px 16px rgba(0,0,0,.4)}
 .pl::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.04) 34%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.14) 58%,rgba(255,255,255,.04) 66%,transparent 78%);background-size:320% 100%;background-position:150% 0;animation:shine 19s cubic-bezier(.4,0,.6,1) infinite;animation-delay:calc(var(--i,0)*1.4s);mix-blend-mode:screen;pointer-events:none}
 body.nobg .pl{display:none}
@@ -153,10 +153,24 @@ function fitSelf(){
 function setNm(el,nm){var t=el.firstChild;if(!t||t.className!=='nt'){el.textContent='';t=document.createElement('span');t.className='nt';el.appendChild(t);}if(t.textContent!==nm){t.textContent=nm;el.dataset.m='';}}
 function marquee(){for(var k in MAP){var el=MAP[k].querySelector('.nm'),t=el&&el.firstChild;if(!t)continue;var d=Math.ceil(t.offsetWidth-el.clientWidth),key=d+'|'+el.clientWidth;if(el.dataset.m===key)continue;el.dataset.m=key;if(d>2){el.style.setProperty('--d',d);el.style.setProperty('--t',(4+d/22).toFixed(1)+'s');el.classList.add('mq');}else{el.classList.remove('mq');}}}
 function mk(){
-  var r=document.createElement('div');r.className='row';
+  var r=document.createElement('div');r.className='row nw';
   r.innerHTML='<div class="pl"></div><img class="cw" alt=""><img class="sk a" alt=""><img class="sk b" alt=""><div class="rk"><img class="m" alt=""><b></b></div><div class="av"><i></i><img class="f" alt=""></div><div class="tx"><span class="nm"></span><span class="lk">'+COIN+'<span class="n"></span></span></div>';
   r.querySelector('.cw').src=IMG.cr;r.querySelectorAll('.sk').forEach(function(x){x.src=IMG.sp;});
   return r;
+}
+// служебные классы строки (nw — только что появилась, up — счёт вырос) переживают смену места; раньше className затирал их при каждой отрисовке
+function setCls(r,base){var c=base+(r.classList.contains('up')?' up':'')+(r.classList.contains('nw')?' nw':'');if(r.className!==c)r.className=c;}
+// пульс при росте: класс снимается, страница пересчитывается, класс ставится заново — анимация гарантированно стартует с начала при каждом росте
+function pulse(r){r.classList.remove('up');void r.offsetWidth;r.classList.add('up');clearTimeout(r._u);r._u=setTimeout(function(){r.classList.remove('up');},800);}
+// число плавно «набегает» от показанного к новому значению (так счёт заметно растёт, а не прыгает)
+function countTo(el,to){
+  to=+to||0;
+  if(el._to===to)return;
+  var from=el._v;el._to=to;
+  if(from===undefined||!window.requestAnimationFrame||document.hidden){el._v=to;el.textContent=fmt(to);return;}
+  cancelAnimationFrame(el._r);
+  var t0=performance.now(),dur=450;
+  (function step(t){var k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el._v=Math.round(from+(to-from)*e);el.textContent=fmt(el._v);if(k<1)el._r=requestAnimationFrame(step);else{el._v=to;}})(t0);
 }
 function render(){
   var n=Math.max(1,Math.min(10,Math.round(+S.count)||5)),items=LIST.slice(0,n),first={},k,i,seen={};
@@ -164,18 +178,18 @@ function render(){
   items.forEach(function(d,idx){
     var nm=d.name||'Гость',r=MAP[nm],isNew=false;seen[nm]=1;
     if(!r){r=MAP[nm]=mk();isNew=true;}
-    r.style.setProperty('--i',idx);
-    r.className='row r'+(idx+1)+(idx>2?' rx':'');
+    r.style.setProperty('--i',idx);r.style.order=idx;
+    setCls(r,'row r'+(idx+1)+(idx>2?' rx':''));
     var m=r.querySelector('.rk img.m');if(m.dataset.s!==String(idx>2?3:idx)){m.dataset.s=String(idx>2?3:idx);m.src=medalOf(idx);}
     r.querySelector('.rk b').textContent=idx+1;
     var f=r.querySelector('.av img.f');if(idx<3&&f.dataset.s!==String(idx)){f.dataset.s=String(idx);f.src=frameOf(idx);}
     var a=r.querySelector('.av i'),av=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
     if(a.dataset.av!==av||a.dataset.nm!==nm){a.dataset.av=av;a.dataset.nm=nm;a.style.backgroundImage=av?'url("'+av.replace(/"/g,'%22')+'")':'none';a.style.backgroundColor=av?'#374151':colorOf(nm);a.textContent=av?'':nm.charAt(0).toUpperCase();}
     setNm(r.querySelector('.nm'),nm);
-    r.querySelector('.lk .n').textContent=fmt(d.likes);
-    if(PREV[nm]!==undefined&&d.likes>PREV[nm]){r.classList.add('up');(function(rr){setTimeout(function(){rr.classList.remove('up');},800);})(r);}
+    countTo(r.querySelector('.lk .n'),d.likes);
+    if(PREV[nm]!==undefined&&d.likes>PREV[nm])pulse(r);
     PREV[nm]=d.likes;
-    rowsEl.appendChild(r); // порядок в DOM = порядок мест
+    if(isNew){rowsEl.appendChild(r);setTimeout(function(){r.classList.remove('nw');},700);} // порядок мест задаёт CSS order, строки в DOM не переставляются: от этого перезапускались все анимации
   });
   for(k in MAP)if(!seen[k]){MAP[k].remove();delete MAP[k];}
   if(BOX&&!render.busy){render.busy=1;fitSelf();render.busy=0;}
