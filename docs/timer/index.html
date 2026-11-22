@@ -732,9 +732,9 @@ function onSettings(s){S=C.resolveSettings(s);real.D.setSettings(S);lab.D.setSet
 // ---------- «примерка»: показать момент, не трогая настоящий таймер ----------
 var EGGPICK=['jackpot','shiny','clutch','revived','sleepy','peekaboo','frenzy','full'];
 function runLab(kind){
-  var now=Date.now(),id='lab'+now,nm='Mira',sender={uniqueId:'mira.live',nickname:'mira.live'};
+  var now=Date.now(),id='lab'+now,nm='Mira',sender={uniqueId:'yanejonny',nickname:'yanejonny'};
   lab.D=new C.TimerDirector(S,id,now);lab.pres=null;lab.localZero=null;lab.lastView=null;lab.labEnd=now+(kind==='rush'?30000:kind==='timesup'?20000:9000);
-  var base=function(ms,extra){return Object.assign({run_id:id,session_id:id,status:'running',remaining_ms:ms,snapshot_at:new Date(now).toISOString(),revision:1,last_event_ts_ms:now,top_supporter:{unique_id:'mira.live',nickname:'mira.live',avatar_url:null,contribution_ms:300000},zeroed_at:null},extra)};
+  var base=function(ms,extra){return Object.assign({run_id:id,session_id:id,status:'running',remaining_ms:ms,snapshot_at:new Date(now).toISOString(),revision:1,last_event_ts_ms:now,top_supporter:{unique_id:'yanejonny',nickname:'yanejonny',avatar_url:null,contribution_ms:300000},zeroed_at:null},extra)};
   lab.snap=base(20*60000);
   var ev=function(delta,src,boundary){var cs=C.projectRemaining(lab.snap,Date.now()),n=Date.now(),nx=Math.max(0,cs+delta);lab.snap=base(nx,{snapshot_at:new Date(n).toISOString(),revision:lab.snap.revision+1});var before=C.displayedRemaining(cs,S.maximumSeconds*1000,lab.pres,n);lab.D.change({key:'lab'+n,source:src,deltaMs:delta,boundary:boundary||null,remainingBeforeMs:cs,status:'running',sender:sender,gift:src==='gift'?{name:'Rose'}:null,count:1,nowMs:n});lab.pres=C.makePresentation({displayedBeforeMs:before,authoritativeAfterMs:nx,appliedDeltaMs:delta,boundary:boundary,nowMs:n,reducedMotion:REDUCED})};
   lastMoment=0;lastEgg=0;frame();
