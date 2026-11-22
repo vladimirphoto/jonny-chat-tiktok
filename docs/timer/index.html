@@ -5,7 +5,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 #vp{position:fixed;inset:0;overflow:hidden}
 #stage{position:absolute;left:50%;top:50%;width:920px;height:500px;margin:-250px 0 0 -460px;transform-origin:50% 50%;--tone:#ff4fa8}
 #rig{position:absolute;top:232px;left:286px;width:537px;height:150px;transform-origin:0 50%}
-#edge{position:absolute;inset:-230px -300px -120px -300px;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,transparent 64%,rgba(255,40,70,.30));}
+#edge{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,transparent 52%,rgba(255,40,70,.26) 80%,rgba(255,40,70,0) 100%);}
 #stage[data-rush=rush] #edge,#stage[data-rush=final] #edge,#stage[data-rush=panic] #edge{opacity:1;animation:edgeP 1.6s ease-in-out infinite}
 #stage[data-rush=panic] #edge{animation-duration:.5s}
 @keyframes edgeP{50%{opacity:.45}}
