@@ -61,10 +61,10 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 @keyframes da{0%{opacity:1}50%{opacity:0}}@keyframes db{0%{opacity:0}50%{opacity:1}}
 .rb.l[data-ring="1"]{animation:bellL .17s ease-in-out infinite}.rb.r[data-ring="1"]{animation:bellR .17s ease-in-out infinite}
 @keyframes bellL{50%{transform:rotate(-9deg)}0%,100%{transform:rotate(7deg)}}@keyframes bellR{50%{transform:rotate(9deg)}0%,100%{transform:rotate(-7deg)}}
-#peekw{position:absolute;left:0;top:0;width:100%;height:0;z-index:5;pointer-events:none}
-#peekw img{position:absolute;width:280px;left:calc(50% - 140px);opacity:0;display:block}
+#peekw,#peekb{position:absolute;left:0;top:0;width:100%;height:0;pointer-events:none}#peekw{z-index:5}#peekb{z-index:2}
+#peekw img,#peekb img{position:absolute;width:280px;left:calc(50% - 140px);opacity:0;display:block}
 #pk1{top:-175px}#pk2{top:-200px}
-#peekw[data-on="1"] #pk1{animation:pk1 5.4s ease-in-out forwards}#peekw[data-on="1"] #pk2{animation:pk2 5.4s ease-in-out forwards}
+#peekw[data-on="1"] #pk1{animation:pk1 5.4s ease-in-out forwards}#peekb[data-on="1"] #pk2{animation:pk2 5.4s ease-in-out forwards}
 @keyframes pk1{0%{transform:translateY(90px);opacity:1}10%{transform:translateY(0)}60%{transform:translateY(0);opacity:1}68%,100%{transform:translateY(90px);opacity:1;visibility:hidden}}
 @keyframes pk2{0%,60%{opacity:0;transform:translateY(90px)}68%{opacity:1;transform:translateY(-16px) scale(1.04)}90%{opacity:1;transform:translateY(-16px)}100%{opacity:1;transform:translateY(90px)}}
 #fxl,#layer{position:absolute;left:0;top:0;width:0;height:0;z-index:6;pointer-events:none}
@@ -110,7 +110,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 <div id="vp"><div id="stage" data-bar="default" data-rush="none">
 <div id="rig">
 <div id="edge"></div><div id="flash"></div><div id="speed"></div>
-<div id="peekw"><img id="pk1" alt=""><img id="pk2" alt=""></div>
+<div id="peekb"><img id="pk2" alt=""></div><div id="peekw"><img id="pk1" alt=""></div>
 <div id="bar"><div id="glint"><i></i></div><div id="digits"></div></div>
 <div id="buddy"><div id="bm"><div id="shot"><div id="bob"><div id="stack"></div>
 <img class="rb l" alt=""><img class="rb r" alt=""><img class="fp" id="fb" alt=""><img class="fp" id="fl" alt=""><img class="fp" id="fr" alt="">
@@ -677,7 +677,7 @@ function transitions(c,v,inp,now){
     if(n==='clutch'){var f2=at('face');spr('comic-burst',f2[0]+40,f2[1]-30,150,'pop',900)}
     if(n==='revived')sparkles(6,-150,60,-70,120);
     if(n==='frenzy'){canvasFlash('255,138,61',900)}
-    if(n==='peekaboo'){var pw=$('peekw');pw.dataset.on=0;void pw.offsetWidth;pw.style.left=Math.max(120,BW/2-110)+'px';pw.dataset.on=1}
+    if(n==='peekaboo'){['peekw','peekb'].forEach(function(i){var pw=$(i);pw.dataset.on=0;void pw.offsetWidth;pw.style.left=Math.max(120,BW/2-110)+'px';pw.dataset.on=1})}
     if(n==='full')confetti(30)}
   var st=v.startled?1:0;
   if(v.pose==='startled'&&!lastStartled){jump('startled')}lastStartled=v.pose==='startled';
