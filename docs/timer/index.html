@@ -456,6 +456,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
     resetToStart() { this._fresh(this.status === 'idle' ? 'idle' : 'running'); this.revision += 1; return { snapshot: this.snapshot(), change: { source: 'creator', action: 'reset' } }; }
     control(action, ms) {
       const now = this.now(), cur = this.remaining(), max = this.settings.maximumSeconds * 1000;
+      if (action === 'start') { if (this.status === 'paused') return this.control('resume', 0); if (this.status === 'running') return null; return this.start(); }
       if (this.status === 'ended' && action !== 'reset') return null;
       if (action === 'pause') { if (this.status !== 'running') return null; this._commit(cur); this.status = 'paused'; return { snapshot: this.snapshot(), change: { source: 'creator', action: 'pause' } }; }
       if (action === 'resume') { if (this.status !== 'paused' && this.status !== 'idle') return null; this.status = 'running'; this._commit(cur); return { snapshot: this.snapshot(), change: { source: 'creator', action: 'resume' } }; }
