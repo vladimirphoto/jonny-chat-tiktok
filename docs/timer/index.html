@@ -162,12 +162,13 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
     const seen = new Set();
     for (const r of Array.isArray(s.giftRules) ? s.giftRules : []) {
       if (rules.length >= 20 || !obj(r)) continue;
-      const id = Number(r.giftId);
-      if (!Number.isSafeInteger(id) || id <= 0 || seen.has(id)) continue;
+      const id0 = Number(r.giftId), nm = typeof r.name === 'string' ? r.name.trim().slice(0, 60) : '';
+      const hasId = Number.isSafeInteger(id0) && id0 > 0, id = hasId ? id0 : 0, key = hasId ? 'i' + id : 'n' + nm.toLowerCase();
+      if ((!hasId && !nm) || seen.has(key)) continue;
       const adj = numOr(r.adjustmentSeconds, NaN);
       if (!isNum(adj)) continue;
-      seen.add(id);
-      rules.push({ giftId: id, name: typeof r.name === 'string' ? r.name.slice(0, 60) : '', adjustmentSeconds: clamp(Math.round(adj), -86400, 86400), enabled: r.enabled !== false });
+      seen.add(key);
+      rules.push({ giftId: id, name: nm, adjustmentSeconds: clamp(Math.round(adj), -86400, 86400), enabled: r.enabled !== false });
     }
     const L = obj(s.likeRule) ? s.likeRule : {}, F = obj(s.followRule) ? s.followRule : {}, S = obj(s.shareRule) ? s.shareRule : {};
     const E = obj(s.eggs) ? s.eggs : {}, R = obj(s.rush) ? s.rush : {}, T = obj(s.timesUp) ? s.timesUp : {}, A = obj(s.sound) ? s.sound : {};
@@ -195,7 +196,8 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
   // ---------- правила ----------
   function giftDeltaMs(st, g) {
     const count = Math.max(1, Math.floor(isNum(g.count) ? g.count : 1));
-    const rule = st.giftRules.find((r) => r.enabled && r.giftId === Number(g.giftId));
+    const gid = Number(g.giftId), gnm = String(g.name || '').trim().toLowerCase();
+    const rule = st.giftRules.find((r) => r.enabled && (r.giftId > 0 ? r.giftId === gid : !!gnm && r.name.toLowerCase() === gnm)); // без номера в каталоге — по названию
     if (rule) return Math.round(rule.adjustmentSeconds * count * 1000);
     const diamonds = Math.max(0, isNum(g.diamonds) ? g.diamonds : 0);
     return Math.round(diamonds * count / st.coinUnit * st.secondsPerUnit * 1000);
@@ -478,7 +480,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
       sender = { uniqueId: ev.id || ev.name || '', nickname: ev.name || ev.id || '', avatarUrl: ev.avatar || null };
       if (kind === 'gift') {
         count = Math.max(1, Math.floor(numOr(ev.count, 1)));
-        delta = giftDeltaMs(st, { giftId: ev.giftId, count, diamonds: ev.diamonds });
+        delta = giftDeltaMs(st, { giftId: ev.giftId, name: ev.gift, count, diamonds: ev.diamonds });
         gift = { id: ev.giftId, name: ev.gift || '', iconUrl: ev.image || null };
       } else if (kind === 'like') {
         const r = likeStep(this.like, { total: ev.total, delta: ev.count, ts: ev.ts }, st.likeRule); this.like = r.state; delta = r.deltaMs;
