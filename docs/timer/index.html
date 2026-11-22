@@ -57,7 +57,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 @keyframes rattleH{25%{transform:translate(3.5px,1px) rotate(1.4deg)}75%{transform:translate(-3.5px,-1px) rotate(-1.4deg)}}
 @keyframes ringM{50%{transform:rotate(3.5deg)}0%,100%{transform:rotate(-3.5deg)}}
 @keyframes danceM{50%{transform:translateY(-14px) rotate(2.5deg)}0%,100%{transform:translateY(0) rotate(-2.5deg)}}
-#stack img.da{animation:da .5s steps(1) infinite}#stack img.db{animation:db .5s steps(1) infinite}
+#stack img.da[data-on="1"]{animation:da .5s steps(1) infinite}#stack img.db[data-on="1"]{animation:db .5s steps(1) infinite}
 @keyframes da{0%{opacity:1}50%{opacity:0}}@keyframes db{0%{opacity:0}50%{opacity:1}}
 .rb.l[data-ring="1"]{animation:bellL .17s ease-in-out infinite}.rb.r[data-ring="1"]{animation:bellR .17s ease-in-out infinite}
 @keyframes bellL{50%{transform:rotate(-9deg)}0%,100%{transform:rotate(7deg)}}@keyframes bellR{50%{transform:rotate(9deg)}0%,100%{transform:rotate(-7deg)}}
