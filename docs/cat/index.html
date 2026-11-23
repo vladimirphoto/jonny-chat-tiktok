@@ -1,0 +1,251 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Котик</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:transparent}
+svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
+#nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font:13px "Segoe UI",Arial,sans-serif}
+.tb{transform-box:fill-box}
+/* дыхание: тело плавно «вдыхает», сфера лежит на животе и едет вместе с ним */
+#breath{transform-origin:270px 345px;animation:br 4.6s ease-in-out infinite}
+#orbit{animation:bob 4.6s ease-in-out infinite}
+.awake #breath,.awake #orbit{animation-duration:1.9s}
+@keyframes br{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.03)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.4px)}}
+#tail{transform-origin:392px 318px;animation:tl 6s ease-in-out infinite}
+.awake #tail{animation-duration:1.3s}
+@keyframes tl{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(4deg)}}
+#hl{transform-origin:150px 380px;transform:translateY(6px) rotate(-3deg);transition:transform 1s ease}.awake #hl{transform:translateY(-8px) rotate(5deg)}
+#head{transform-origin:150px 380px;animation:hd 4.6s ease-in-out infinite}
+@keyframes hd{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1.2deg)}}
+.eo{opacity:0;transition:opacity .35s}.ec{opacity:1;transition:opacity .5s}
+.awake .eo{opacity:1}.awake .ec{opacity:0}
+.mouth-s{opacity:1}.mouth-a{opacity:0}.awake .mouth-s{opacity:0}.awake .mouth-a{opacity:1}
+#zz{transition:opacity .6s}.awake #zz{opacity:0}
+.z{font:700 22px "Segoe UI",Arial,sans-serif;fill:#cfd8ff;opacity:0;animation:zz 4.6s ease-in-out infinite}
+@keyframes zz{0%{opacity:0;transform:translate(0,8px) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translate(14px,-34px) scale(1.15)}}
+.pw{transform-box:fill-box;transform-origin:50% 100%}
+.awake #pawA,.awake #pawC{animation:pw 1.1s ease-in-out infinite}.awake #pawB,.awake #pawD{animation:pw 1.1s ease-in-out .4s infinite reverse}
+@keyframes pw{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
+.earL,.earR{transform-origin:50% 100%;transform-box:fill-box}
+.twitch .earL{animation:et .5s ease-in-out 2}.twitch .earR{animation:et .5s ease-in-out .15s 2 reverse}
+@keyframes et{0%,100%{transform:rotate(0)}40%{transform:rotate(-9deg)}}
+.wh{transform-origin:100% 50%;transform-box:fill-box;animation:wh 4.6s ease-in-out infinite}
+@keyframes wh{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1.4deg)}}
+#swirl{transform-origin:270px 150px;animation:sw 70s linear infinite}
+@keyframes sw{to{transform:rotate(360deg)}}
+.st{animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+#glow{opacity:.0;transition:opacity .9s}
+.flash #glow{opacity:1;transition:opacity .15s}
+.gi{opacity:0}
+.gi.in{animation:pin .9s cubic-bezier(.2,1.5,.4,1) forwards}
+.gi.out{animation:pout .9s ease-in forwards}
+@keyframes pin{0%{opacity:0;transform:scale(0) rotate(-40deg)}55%{opacity:1;transform:scale(1.5) rotate(8deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes pout{to{opacity:0;transform:scale(.2) rotate(30deg)}}
+.gb{animation:gb 3.4s ease-in-out infinite}
+@keyframes gb{0%,100%{transform:translateY(-2.5px)}50%{transform:translateY(2.5px)}}
+.burst{fill:none;stroke:#fff;stroke-width:3;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.burst.go{animation:bs .9s ease-out forwards}
+@keyframes bs{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(2.6)}}
+.spk{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.spk.go{animation:sp 1s ease-out forwards}
+@keyframes sp{0%{opacity:1;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1)}}
+</style></head><body>
+<div id="nc">Нет связи с приложением ЭхоЧат LIVE</div>
+<svg id="sc" viewBox="0 0 520 440" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+  <radialGradient id="gBody" cx="55%" cy="35%" r="75%"><stop offset="0" stop-color="#8d7a86"/><stop offset=".55" stop-color="#5d4d5c"/><stop offset="1" stop-color="#2c242f"/></radialGradient>
+  <radialGradient id="gBelly" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#f0dcc4"/><stop offset=".6" stop-color="#cdb59f"/><stop offset="1" stop-color="#cdb59f" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gOrange" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#f2a04a"/><stop offset=".7" stop-color="#d9822f" stop-opacity=".85"/><stop offset="1" stop-color="#d9822f" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gTail" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#3b3040"/><stop offset=".55" stop-color="#6f5a6f"/><stop offset="1" stop-color="#3a2d3d"/></linearGradient>
+  <linearGradient id="gRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff86d6"/><stop offset=".5" stop-color="#b79cff"/><stop offset="1" stop-color="#3fe6e0"/></linearGradient>
+  <radialGradient id="gGlass" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".55" stop-color="#9fb8ff" stop-opacity=".05"/><stop offset="1" stop-color="#ff9be0" stop-opacity=".22"/></radialGradient>
+  <radialGradient id="gSpace" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#1a1650"/><stop offset=".6" stop-color="#0a0824"/><stop offset="1" stop-color="#05040f"/></radialGradient>
+  <radialGradient id="gCore" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".25" stop-color="#bfe0ff" stop-opacity=".9"/><stop offset=".6" stop-color="#6a7cff" stop-opacity=".35"/><stop offset="1" stop-color="#6a7cff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gNebA" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#7a4dff" stop-opacity=".75"/><stop offset="1" stop-color="#7a4dff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gNebB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff4fb6" stop-opacity=".6"/><stop offset="1" stop-color="#ff4fb6" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gNebC" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#2ec8ff" stop-opacity=".6"/><stop offset="1" stop-color="#2ec8ff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gEye" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#ffd24a"/><stop offset=".6" stop-color="#f09a1c"/><stop offset="1" stop-color="#9a5410"/></radialGradient>
+  <radialGradient id="gPad" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#ffb3c4"/><stop offset="1" stop-color="#e07890"/></radialGradient>
+  <radialGradient id="gGift" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="mFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity=".18"/></linearGradient>
+  <mask id="mSpace"><circle cx="270" cy="150" r="118" fill="url(#mFade)"/></mask>
+  <clipPath id="cSphere"><circle cx="270" cy="150" r="118"/></clipPath>
+  <clipPath id="cBody"><path d="M96 340C92 276 168 242 262 244C366 246 446 282 448 344C450 388 392 398 300 398L148 398C112 398 98 376 96 340Z"/></clipPath>
+  <clipPath id="cTail"><path id="tailShape" d="M388 330C440 330 470 290 464 236C461 206 446 182 428 184C410 186 406 208 420 218C434 228 438 246 436 260C434 280 412 296 384 296Z"/></clipPath>
+  <g id="pawF"><ellipse cx="0" cy="0" rx="27" ry="18" fill="#e6cfb8"/><ellipse cx="0" cy="-5" rx="22" ry="11" fill="#f6e8d6" opacity=".8"/><g stroke="#8a6f6a" stroke-width="1.8" stroke-linecap="round"><path d="M-9 4v8"/><path d="M0 5v9"/><path d="M9 4v8"/></g><g fill="#ffb3c4"><ellipse cx="-10" cy="13" rx="3.6" ry="2.6"/><ellipse cx="0" cy="15" rx="3.6" ry="2.6"/><ellipse cx="10" cy="13" rx="3.6" ry="2.6"/></g></g>
+  <g id="pawH"><ellipse cx="0" cy="0" rx="29" ry="17" fill="#5a4a5a"/><ellipse cx="-2" cy="-5" rx="22" ry="9" fill="#9a8798" opacity=".6"/><g stroke="#2a2030" stroke-width="1.8" stroke-linecap="round"><path d="M-10 4v8"/><path d="M0 5v9"/><path d="M10 4v8"/></g><g fill="#ffb3c4"><ellipse cx="-10" cy="13" rx="3.6" ry="2.6"/><ellipse cx="0" cy="15" rx="3.6" ry="2.6"/><ellipse cx="10" cy="13" rx="3.6" ry="2.6"/></g></g>
+  <g id="paw"><path d="M-22 12C-28-12-16-28 0-28C16-28 28-12 22 12C18 26-18 26-22 12Z" fill="#5a4a5a"/><path d="M-18-2C-18-16-10-22 0-22C10-22 18-16 18-2C8-8-8-8-18-2Z" fill="#9a8798" opacity=".75"/><g stroke="#2a2030" stroke-width="2" stroke-linecap="round"><path d="M-8-20v10"/><path d="M0-22v12"/><path d="M8-20v10"/></g><ellipse cx="0" cy="11" rx="9.5" ry="7.5" fill="url(#gPad)"/><g fill="url(#gPad)"><ellipse cx="-11" cy="-1" rx="4" ry="4.6"/><ellipse cx="0" cy="-5" rx="4" ry="4.6"/><ellipse cx="11" cy="-1" rx="4" ry="4.6"/></g></g>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+  <filter id="soft3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+  <filter id="rim" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff5fc8" flood-opacity=".55"/></filter>
+  <filter id="gsh" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".5"/></filter>
+</defs>
+
+<!-- мягкая тень на «полу» -->
+<ellipse cx="260" cy="396" rx="215" ry="14" fill="#000" opacity=".5" filter="url(#soft)"/>
+
+<g id="breath">
+  <g transform="translate(40 22)"><g id="tail" filter="url(#rim)">
+    <path d="M388 330C440 330 470 290 464 236C461 206 446 182 428 184C410 186 406 208 420 218C434 228 438 246 436 260C434 280 412 296 384 296Z" fill="url(#gTail)"/>
+    <g clip-path="url(#cTail)" id="furTail"></g>
+    <path d="M428 184C446 182 461 206 464 236C465 252 463 264 459 274C454 246 448 214 428 184Z" fill="#ff7fd0" opacity=".3"/>
+    <ellipse cx="434" cy="200" rx="20" ry="17" fill="#2a2030" opacity=".5" filter="url(#soft3)"/>
+  </g></g>
+
+  <!-- тело: кот лежит «хлебушком» -->
+  <path id="bodyShape" d="M96 340C92 276 168 242 262 244C366 246 446 282 448 344C450 388 392 398 300 398L148 398C112 398 98 376 96 340Z" fill="url(#gBody)"/>
+  <g clip-path="url(#cBody)">
+    <ellipse cx="330" cy="292" rx="96" ry="38" fill="url(#gOrange)" opacity=".7"/>
+    <ellipse cx="190" cy="360" rx="110" ry="40" fill="url(#gBelly)" opacity=".9"/>
+    <ellipse cx="400" cy="352" rx="46" ry="36" fill="url(#gOrange)" opacity=".75"/>
+    <g id="furBody"></g>
+    <path d="M110 396C200 408 360 408 440 366" fill="none" stroke="#ff7fd0" stroke-width="7" opacity=".28" filter="url(#soft3)"/>
+  </g>
+
+  <!-- голова -->
+  <g id="hl"><g id="head">
+    <g transform="translate(48 -14)">
+      <g class="earL"><path d="M54 296C46 262 52 240 60 232C78 238 92 252 100 270Z" fill="#403443"/><path d="M60 270C58 256 60 246 64 242C74 246 82 254 86 264Z" fill="#ffb0c4"/></g>
+      <g class="earR"><g transform="translate(204 0) scale(-1 1)"><path d="M54 296C46 262 52 240 60 232C78 238 92 252 100 270Z" fill="#d9822f"/><path d="M60 270C58 256 60 246 64 242C74 246 82 254 86 264Z" fill="#ffb0c4"/></g></g>
+      <ellipse cx="102" cy="322" rx="62" ry="54" fill="#5d4d5c"/>
+      <path d="M40 318C38 296 56 276 78 270C70 296 66 314 70 338C52 344 42 334 40 318Z" fill="#2f2632" opacity=".65"/>
+      <path d="M104 268C132 266 160 284 164 316C150 312 132 300 118 296C108 292 102 284 104 268Z" fill="#e08a30" opacity=".9"/>
+      
+      <ellipse cx="104" cy="346" rx="30" ry="22" fill="#f0e0cb"/>
+      <path d="M96 332c4 4 12 4 16 0l-8 7z" fill="#e97a96"/>
+      <g class="mouth-s"><path d="M104 340v6" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/><path d="M92 349c6 5 12 4 12-3c0 7 6 8 12 3" fill="none" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/></g>
+      <g class="mouth-a"><path d="M104 340v5" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/><path d="M90 348c6 8 14 6 14-3c0 9 8 11 14 3" fill="none" stroke="#8a5566" stroke-width="2.2" stroke-linecap="round"/><path d="M98 352c4 8 12 8 14 0z" fill="#e0607e"/></g>
+      <!-- глаза закрыты -->
+      <g class="ec" fill="none" stroke="#1f1722" stroke-width="3.4" stroke-linecap="round">
+        <path d="M62 316c8 8 20 8 28 0"/><path d="M116 316c8 8 20 8 28 0"/>
+        <path d="M64 322l-5 4M72 325l-3 5M82 325l2 5" stroke-width="1.8"/><path d="M142 322l5 4M134 325l3 5M124 325l-2 5" stroke-width="1.8"/>
+      </g>
+      <!-- глаза открыты -->
+      <g class="eo">
+        <ellipse cx="76" cy="314" rx="15" ry="16" fill="url(#gEye)" stroke="#1f1722" stroke-width="2.4"/><ellipse cx="83" cy="310" rx="4.4" ry="12" fill="#150f18"/><circle cx="76" cy="304" r="4" fill="#fff"/><circle cx="85" cy="316" r="2" fill="#fff" opacity=".8"/>
+        <ellipse cx="130" cy="314" rx="15" ry="16" fill="url(#gEye)" stroke="#1f1722" stroke-width="2.4"/><ellipse cx="137" cy="310" rx="4.4" ry="12" fill="#150f18"/><circle cx="130" cy="304" r="4" fill="#fff"/><circle cx="139" cy="316" r="2" fill="#fff" opacity=".8"/>
+      </g>
+      <ellipse cx="64" cy="338" rx="9" ry="5" fill="#ff8fa8" opacity=".35"/><ellipse cx="144" cy="338" rx="9" ry="5" fill="#ff8fa8" opacity=".35"/>
+      <g stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".92">
+        <path class="wh" d="M80 344C56 336 34 336 14 342"/><path class="wh" d="M80 350C58 352 36 358 20 368"/><path class="wh" d="M82 340C62 328 44 322 26 322"/>
+        <path class="wh" d="M128 344C152 336 174 336 194 342"/><path class="wh" d="M128 350C150 352 172 358 188 368"/>
+      </g>
+      <g id="furHead" clip-path="url(#cHead)"></g>
+    </g>
+    
+    <clipPath id="cHead"><ellipse cx="102" cy="322" rx="62" ry="54"/></clipPath>
+  </g></g>
+</g>
+
+<!-- сфера -->
+<g transform="translate(34 0)"><g id="orbit">
+  <circle cx="270" cy="150" r="118" fill="url(#gSpace)" mask="url(#mSpace)" opacity=".9"/>
+  <g clip-path="url(#cSphere)" mask="url(#mSpace)">
+    <g id="swirl">
+      <ellipse cx="270" cy="150" rx="104" ry="34" fill="url(#gNebA)" transform="rotate(-24 270 150)" filter="url(#soft)"/>
+      <ellipse cx="270" cy="150" rx="92" ry="26" fill="url(#gNebB)" transform="rotate(38 270 150)" filter="url(#soft)"/>
+      <ellipse cx="270" cy="150" rx="84" ry="22" fill="url(#gNebC)" transform="rotate(100 270 150)" filter="url(#soft)"/>
+    </g>
+    <ellipse cx="246" cy="132" rx="60" ry="46" fill="url(#gNebA)" opacity=".5" filter="url(#soft)"/>
+    <circle cx="258" cy="138" r="46" fill="url(#gCore)"/>
+    <path d="M168 168L350 108" stroke="#fff" stroke-width="2" opacity=".5" filter="url(#soft3)"/>
+    <path d="M258 66L262 216" stroke="#cfe6ff" stroke-width="1.6" opacity=".4" filter="url(#soft3)"/>
+    <g id="stars"></g>
+  </g>
+  <circle cx="270" cy="150" r="118" fill="url(#gGlass)"/>
+  <!-- вспышка при подарке -->
+  <circle id="glow" cx="270" cy="150" r="118" fill="none" stroke="url(#gRim)" stroke-width="14" opacity="0" filter="url(#soft3)"/>
+  <circle cx="270" cy="150" r="118" fill="none" stroke="url(#gRim)" stroke-width="5"/>
+  <circle cx="270" cy="150" r="112" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/>
+  <path d="M176 92C196 58 236 40 272 40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55" filter="url(#soft3)"/>
+  <path d="M352 196C340 226 316 246 290 254" fill="none" stroke="#9ff3ff" stroke-width="5" stroke-linecap="round" opacity=".5" filter="url(#soft3)"/>
+  <ellipse cx="270" cy="270" rx="64" ry="9" fill="#ff7fd0" opacity=".16" filter="url(#soft)"/>
+  <!-- подарки -->
+  <g id="ring"></g>
+  <g id="fx"></g>
+</g></g>
+
+<!-- передние лапки -->
+<g id="pawA" class="pw"><use href="#pawF" transform="translate(118 388)"/></g>
+<g id="pawB" class="pw"><use href="#pawF" transform="translate(190 392)"/></g>
+<g id="pawC" class="pw"><use href="#pawH" transform="translate(330 392)"/></g>
+<g id="pawD" class="pw"><use href="#pawH" transform="translate(396 390) scale(1.05)"/></g>
+
+<g id="zz"><text class="z" x="40" y="236" style="animation-delay:0s">z</text><text class="z" x="58" y="218" style="animation-delay:1.5s;font-size:28px">Z</text><text class="z" x="26" y="212" style="animation-delay:3s;font-size:18px">z</text></g>
+</svg>
+<script>
+/*ASSETS*/
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var NS='http://www.w3.org/2000/svg',$=function(i){return document.getElementById(i)};
+var sc=$('sc'),ring=$('ring'),fx=$('fx');
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+// псевдослучайные числа с фиксированным зерном: шерсть выглядит одинаково при каждой загрузке
+var seed=7;function rnd(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+function fur(g,x0,y0,x1,y1,n,cols,len,ang){
+  for(var i=0;i<n;i++){var x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0),a=(ang(x,y)+(rnd()-.5)*.9),l=len*(.5+rnd()),c=cols[Math.floor(rnd()*cols.length)];
+    el('path',{d:'M'+x.toFixed(1)+' '+y.toFixed(1)+'q'+(Math.cos(a+.5)*l*.5).toFixed(1)+' '+(Math.sin(a+.5)*l*.5).toFixed(1)+' '+(Math.cos(a)*l).toFixed(1)+' '+(Math.sin(a)*l).toFixed(1),stroke:c,'stroke-width':(.6+rnd()*1.1).toFixed(2),'stroke-linecap':'round',fill:'none',opacity:(.25+rnd()*.5).toFixed(2)},g);}
+}
+fur($('furBody'),90,240,450,400,560,['#c9b3c3','#1f1822','#f2a44e','#e8d2bd','#7b6678','#3a2f3c'],11,function(x,y){return -1.2+(x-90)*.004;});
+fur($('furTail'),370,180,470,340,170,['#a58ba5','#201826','#ff8fd8','#6c566c','#3a2d3d'],9,function(x,y){return -1.2+(y-250)*.004;});
+fur($('furHead'),30,260,176,384,150,['#d3bfcd','#1f1822','#f2a44e','#efdcc6','#8a7488'],7,function(x,y){return Math.atan2(y-330,x-102)+.2;});
+// звёзды в сфере
+(function(){var g=$('stars');for(var i=0;i<70;i++){var a=rnd()*6.283,r=Math.sqrt(rnd())*112,x=270+Math.cos(a)*r,y=150+Math.sin(a)*r,s=.5+rnd()*1.5,c=el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:s.toFixed(2),fill:['#fff','#cfe6ff','#ffd6f1'][i%3],'class':'st'},g);c.style.animationDelay=(rnd()*3).toFixed(2)+'s';c.style.animationDuration=(2+rnd()*3).toFixed(1)+'s';}})();
+
+// ---- подарки по кругу ----
+var SLOTS=10,CX=270,CY=150,R=90,LIFE=150000,slots=[],next=0;
+var EMOJI=['🌹','🍩','❤️','🎁','⭐','🍭','🧸','💎','🌸','🍓','🫶','🍰'];
+function slotPos(i){var a=(-90+i*360/SLOTS)*Math.PI/180;return[CX+Math.cos(a)*R,CY+Math.sin(a)*R];}
+function burst(x,y){
+  var b=el('circle',{cx:x,cy:y,r:22,'class':'burst'},fx);b.getBoundingClientRect();b.classList.add('go');setTimeout(function(){b.remove();},950);
+  for(var i=0;i<8;i++){var a=i*.785+Math.random()*.4,d=34+Math.random()*16,s=el('path',{d:'M0-5L1.4-1.4L5 0L1.4 1.4L0 5L-1.4 1.4L-5 0L-1.4-1.4Z',fill:['#fff','#ffd6f1','#bff6ff'][i%3],transform:'translate('+x+' '+y+')','class':'spk'},fx);
+    s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d+'px');s.getBoundingClientRect();s.classList.add('go');(function(q){setTimeout(function(){q.remove();},1050);})(s);}
+}
+function hide(it){if(!it)return;clearTimeout(it.t);it.g.classList.remove('in');it.g.classList.add('out');var g=it.wrap||it.g;setTimeout(function(){g.remove();},950);}
+function addGift(d){
+  var i=next%SLOTS;next++;hide(slots[i]);
+  var p=slotPos(i),g=el('g',{'class':'gi tb',transform:'translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')'},ring);
+  var box=el('g',{'class':'gi in tb'},g);g.setAttribute('class','');box.style.transformBox='fill-box';box.style.transformOrigin='50% 50%';
+  var bob=el('g',{'class':'gb tb'},box);bob.style.animationDelay=(-Math.random()*3).toFixed(2)+'s';
+  el('circle',{r:27,fill:'url(#gGift)'},bob);
+  var inner=el('g',{filter:'url(#gsh)'},bob);
+  if(d.image&&/^(https?:|data:|\/)/.test(d.image)){var im=el('image',{x:-21,y:-21,width:42,height:42,preserveAspectRatio:'xMidYMid meet'},inner);im.setAttributeNS('http://www.w3.org/1999/xlink','href',d.image);im.setAttribute('href',d.image);
+    im.addEventListener('error',function(){inner.removeChild(im);emo(inner,d);});}
+  else emo(inner,d);
+  var it={g:box,wrap:g};slots[i]=it;it.t=setTimeout(function(){hide(it);},LIFE);burst(p[0],p[1]);wake();
+}
+function emo(p,d){var t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':36,x:0,y:2},p);t.textContent=d.emoji||EMOJI[(next-1)%EMOJI.length];}
+// ---- кот просыпается от подарка и снова засыпает ----
+var sleepT=null;
+function wake(){sc.classList.add('awake','flash','twitch');clearTimeout(sleepT);setTimeout(function(){sc.classList.remove('flash');},650);setTimeout(function(){sc.classList.remove('twitch');},1500);sleepT=setTimeout(function(){sc.classList.remove('awake');},6500);}
+function clearAll(){slots.forEach(hide);slots=[];}
+
+// ---- связь с приложением ----
+var told=false,nc=$('nc');
+var SHOWMSG=window.parent!==window||Q.has('debug');
+function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'cat-ready'},'*');}catch(_){}}
+function online(){nc.style.display='none';}function offline(){if(SHOWMSG)nc.style.display='block';}
+function bind(es){
+  es.addEventListener('catsettings',function(){tellReady();});
+  es.addEventListener('catgift',function(e){try{addGift(JSON.parse(e.data));}catch(_){}});
+  es.addEventListener('catclear',function(){clearAll();});
+  es.addEventListener('clear',function(){clearAll();});
+}
+function connect(){
+  if(!REMOTE){bind(new EventSource('/events'));return;}
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+if(Q.has('demo')){setTimeout(function(){['🌹','🍩','❤️','🎁','🌹','🍩','⭐'].forEach(function(e,k){setTimeout(function(){addGift({emoji:e});},k*500);});},400);}
+else connect();
+</script></body></html>
