@@ -3,8 +3,9 @@
 html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%}
 #box{position:fixed;top:50%;left:50%;transform-origin:center center}
 #strip{position:relative;overflow:hidden;box-sizing:border-box}
-.hz #strip{height:132px;padding:40px 0 8px}
-.vt #strip{width:148px;padding:40px 10px 0}
+/* поля вокруг карточек нужны для свечения лидера и теней: strip обрезает всё, что выходит за его края */
+.hz #strip{height:152px;padding:40px 24px 28px}
+.vt #strip{width:154px;padding:40px 28px 28px}
 #track{display:flex;will-change:transform}
 .hz #track{flex-direction:row;gap:10px;width:max-content}
 .vt #track{flex-direction:column;gap:36px;height:max-content}
@@ -37,7 +38,7 @@ var DEMO=[
  {key:'d5',label:'Корона',image:svg('<path d="M7 47l4-27 15 14 6-19 6 19 15-14 4 27z" fill="#fbbf24" stroke="#b45309" stroke-width="2.5" stroke-linejoin="round"/><rect x="7" y="47" width="50" height="9" rx="3" fill="#f59e0b" stroke="#b45309" stroke-width="2.5"/><circle cx="32" cy="51.5" r="2.5" fill="#ef4444"/><circle cx="19" cy="51.5" r="2" fill="#38bdf8"/><circle cx="45" cy="51.5" r="2" fill="#38bdf8"/>')},
  {key:'d6',label:'Алмаз',image:svg('<path d="M18 12h28l12 14-26 30L6 26z" fill="#38bdf8" stroke="#0369a1" stroke-width="2.5" stroke-linejoin="round"/><path d="M6 26h52M24 12l-6 14 14 30 14-30-6-14M18 26l14 30" fill="none" stroke="#e0f2fe" stroke-width="2" stroke-linejoin="round" opacity=".85"/>')}
 ];
-var W=98,H=84,GAP=10,GAPV=40,TOP=40;
+var W=98,H=84,GAP=10,GAPV=40,TOP=40,PX=24,PB=28;
 var root=document.getElementById('root'),box=document.getElementById('box'),strip=document.getElementById('strip'),track=document.getElementById('track');
 function fmt(n){n=+n||0;if(n>=1e6)return (n/1e6).toFixed(n>=1e7?0:1).replace('.0','')+'M';if(n>=1e4)return (n/1e3).toFixed(n>=1e5?0:1).replace('.0','')+'K';return String(n);}
 function list(){var it=Array.isArray(S.items)?S.items.slice(0,20):[];if(it.length>=2)return it;return IN_APP?DEMO:[];}
@@ -61,8 +62,8 @@ function render(){
   track.innerHTML='';track.style.animation='none';
   if(!L.length){strip.style.display='none';VIEW=0;return;}
   strip.style.display='';
-  var gap=hz?GAP:GAPV,step=(hz?W:H)+gap;VIEW=n*step-gap;TOT=hz?VIEW:VIEW+TOP;
-  if(hz){strip.style.width=VIEW+'px';strip.style.height='';}else{strip.style.height=TOT+'px';strip.style.width='';}
+  var gap=hz?GAP:GAPV,step=(hz?W:H)+gap;VIEW=n*step-gap;TOT=hz?VIEW+2*PX:VIEW+TOP+PB;
+  if(hz){strip.style.width=(VIEW+2*PX)+'px';strip.style.height='';}else{strip.style.height=TOT+'px';strip.style.width='';}
   // одна «группа» — лента, повторённая столько раз, чтобы в ней было больше n карточек; в ленте две такие группы подряд, сдвиг ровно на группу даёт бесшовный круг
   var r=Math.ceil((n+1)/L.length),g=[],i,k;
   for(k=0;k<r;k++)for(i=0;i<L.length;i++)g.push(L[i]);
