@@ -193,17 +193,21 @@ var sc=$('sc'),ring=$('ring'),fx=$('fx');
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
 // псевдослучайные числа с фиксированным зерном: шерсть выглядит одинаково при каждой загрузке
 var seed=7;function rnd(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
-function fur(g,x0,y0,x1,y1,n,cols,len,ang){
+function fur(g,x0,y0,x1,y1,n,cols,len,ang,skip){
   for(var i=0;i<n;i++){var x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0),a=(ang(x,y)+(rnd()-.5)*.9),l=len*(.5+rnd()),c=cols[Math.floor(rnd()*cols.length)];
+    if(skip&&(skip(x,y)||skip(x+Math.cos(a)*l,y+Math.sin(a)*l)))continue;
     el('path',{d:'M'+x.toFixed(1)+' '+y.toFixed(1)+'q'+(Math.cos(a+.5)*l*.5).toFixed(1)+' '+(Math.sin(a+.5)*l*.5).toFixed(1)+' '+(Math.cos(a)*l).toFixed(1)+' '+(Math.sin(a)*l).toFixed(1),stroke:c,'stroke-width':(.6+rnd()*1.1).toFixed(2),'stroke-linecap':'round',fill:'none',opacity:(.25+rnd()*.5).toFixed(2)},g);}
 }
 fur($('furBody'),90,240,450,400,560,['#c9b3c3','#1f1822','#f2a44e','#e8d2bd','#7b6678','#3a2f3c'],11,function(x,y){return -1.2+(x-90)*.004;});
 fur($('furTail'),370,180,470,340,170,['#a58ba5','#201826','#ff8fd8','#6c566c','#3a2d3d'],9,function(x,y){return -1.2+(y-250)*.004;});
-fur($('furHead'),30,260,176,384,150,['#d3bfcd','#1f1822','#f2a44e','#efdcc6','#8a7488'],7,function(x,y){return Math.atan2(y-330,x-102)+.2;});
+// на морде шерсти меньше: вокруг глаз, носа и рта волоски не рисуются, чтобы не лезли на лицо
+function faceZone(x,y){return inEll(x,y,76,316,27,24,1)||inEll(x,y,130,316,27,24,1)||inEll(x,y,103,322,16,22,1)||inEll(x,y,104,344,38,24,1);}
+fur($('furHead'),30,260,176,384,110,['#d3bfcd','#1f1822','#f2a44e','#efdcc6','#8a7488'],7,function(x,y){return Math.atan2(y-330,x-102)+.2;},faceZone);
 
 // густая шерсть по всей поверхности: короткие мягкие штрихи потолще, цвет берётся по месту (оранжевое пятно, брюшко, тёмная спинка)
-function fur2(g,x0,y0,x1,y1,n,colf,len,ang,w){
+function fur2(g,x0,y0,x1,y1,n,colf,len,ang,w,skip){
   for(var i=0;i<n;i++){var x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0),a=ang(x,y)+(rnd()-.5)*.8,l=len*(.55+rnd()*.8),c=colf(x,y);
+    if(skip&&(skip(x,y)||skip(x+Math.cos(a)*l,y+Math.sin(a)*l)))continue;
     el('path',{d:'M'+f1(x)+' '+f1(y)+'q'+f1(Math.cos(a+.45)*l*.5)+' '+f1(Math.sin(a+.45)*l*.5)+' '+f1(Math.cos(a)*l)+' '+f1(Math.sin(a)*l),stroke:c,'stroke-width':(w*(.7+rnd()*.8)).toFixed(2),'stroke-linecap':'round',fill:'none',opacity:(.3+rnd()*.35).toFixed(2)},g);}
 }
 // ---- шерсть по контуру: пучки растут из края фигуры наружу (лежат под фигурой), силуэт становится мягким и пушистым ----
@@ -282,7 +286,7 @@ try{
   var bc2=function(x,y){var r=rnd();return r<.14?pick(P.cream):bodyCol(x,y);};
   var hc2=function(x,y){var r=rnd();return r<.12?pick(P.cream):headCol(x,y);};
   fur2($('furBody'),90,240,450,400,820,bc2,15,function(x,y){return -1.2+(x-90)*.004;},2.1);
-  fur2($('furHead'),30,260,176,384,300,hc2,11,function(x,y){return Math.atan2(y-330,x-102)+.2;},1.8);
+  fur2($('furHead'),30,260,176,384,210,hc2,10,function(x,y){return Math.atan2(y-330,x-102)+.2;},1.7,faceZone);
   fur2($('furTail'),370,180,470,340,230,function(){return pick(P.tail);},12,function(x,y){return -1.2+(y-250)*.004;},1.9);
   outlineFur($('muzzle'),{n:80,len:[3,6.5],w:1.7,flow:.9,nw:.6,col:function(){return pick(P.cream);},dir:function(x){return[x<104?-1:1,.6];}});
   outlineFur($('earLp'),{n:36,len:[3.5,8],w:1.7,flow:1,nw:.6,col:function(){return pick(P.earL);},dir:function(){return[0,-1];}});
