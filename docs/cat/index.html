@@ -19,19 +19,6 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
 .eo{opacity:0;transition:opacity .35s}.ec{opacity:1;transition:opacity .5s}
 .awake .eo{opacity:1}.awake .ec{opacity:0}
 .mouth-s{opacity:1}.mouth-a{opacity:0}.awake .mouth-s{opacity:0}.awake .mouth-a{opacity:1}
-/* зевок: голова запрокидывается, рот широко открывается и закрывается */
-.mouth-y{opacity:0;transform-box:fill-box;transform-origin:50% 0%}
-.yawn .mouth-s{opacity:0}.yawn .mouth-y{animation:ym 3.2s ease-in-out both}
-.yawn #hl{transform:translateY(-6px) rotate(-9deg)}
-@keyframes ym{0%{opacity:0;transform:scaleY(.15)}20%{opacity:1;transform:scaleY(.7)}40%,72%{opacity:1;transform:scale(1.05,1.1)}100%{opacity:0;transform:scaleY(.15)}}
-/* почёсывание: лапка поднимается к щеке и быстро чешет, голова подставляется, ухо подёргивается */
-#armA{opacity:0}
-.scratch #armA{opacity:1}.scratch #hl{transform:translateY(2px) rotate(-6deg)}
-.scratch #pawA{animation:scrP 2.6s ease-in-out both}
-.scratch #armA path{animation:scrA 2.6s ease-in-out both}
-.scratch .earL{animation:et .22s ease-in-out 6 .5s}
-@keyframes scrP{0%{transform:translate(0,0) rotate(0)}18%{transform:translate(-36px,-98px) rotate(-10deg)}26%{transform:translate(-42px,-94px) rotate(-14deg)}34%{transform:translate(-30px,-102px) rotate(-6deg)}42%{transform:translate(-42px,-94px) rotate(-14deg)}50%{transform:translate(-30px,-102px) rotate(-6deg)}58%{transform:translate(-42px,-94px) rotate(-14deg)}66%{transform:translate(-30px,-102px) rotate(-6deg)}76%{transform:translate(-38px,-98px) rotate(-10deg)}100%{transform:translate(0,0) rotate(0)}}
-@keyframes scrA{0%{d:path("M118 396L118 394")}18%{d:path("M118 396L82 298")}26%{d:path("M118 396L76 302")}34%{d:path("M118 396L88 294")}42%{d:path("M118 396L76 302")}50%{d:path("M118 396L88 294")}58%{d:path("M118 396L76 302")}66%{d:path("M118 396L88 294")}76%{d:path("M118 396L80 298")}100%{d:path("M118 396L118 394")}}
 #zz{transition:opacity .6s}.awake #zz{opacity:0}
 .z{font:700 22px "Segoe UI",Arial,sans-serif;fill:#cfd8ff;opacity:0;animation:zz 4.6s ease-in-out infinite}
 @keyframes zz{0%{opacity:0;transform:translate(0,8px) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translate(var(--dx,-22px),var(--dy,-42px)) scale(1.15)}}
@@ -136,7 +123,6 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
       <ellipse id="muzzle" cx="104" cy="346" rx="30" ry="22" fill="#f0e0cb"/>
       <path d="M96 332c4 4 12 4 16 0l-8 7z" fill="#e97a96"/>
       <g class="mouth-s"><path d="M104 340v6" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/><path d="M92 349c6 5 12 4 12-3c0 7 6 8 12 3" fill="none" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/></g>
-      <g class="mouth-y"><path d="M104 340v4" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/><ellipse cx="104" cy="355" rx="13" ry="14" fill="#6b2540"/><ellipse cx="104" cy="362" rx="8.5" ry="6" fill="#e0607e"/><path d="M95 347q9 5 18 0" fill="none" stroke="#f6eadf" stroke-width="2.5" stroke-linecap="round"/></g>
       <g class="mouth-a"><path d="M104 340v5" stroke="#8a5566" stroke-width="2" stroke-linecap="round"/><path d="M90 348c6 8 14 6 14-3c0 9 8 11 14 3" fill="none" stroke="#8a5566" stroke-width="2.2" stroke-linecap="round"/><path d="M98 352c4 8 12 8 14 0z" fill="#e0607e"/></g>
       <!-- глаза закрыты -->
       <g class="ec" fill="none" stroke="#1f1722" stroke-width="3.4" stroke-linecap="round">
@@ -190,7 +176,6 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
 </g></g>
 
 <!-- передние лапки -->
-<g id="armA"><path d="M118 396L118 394" stroke="#e6cfb8" stroke-width="38" stroke-linecap="round" fill="none"/><path d="M118 396L118 394" stroke="#f6e8d6" stroke-width="16" stroke-linecap="round" fill="none" opacity=".7"/></g>
 <g id="pawA" class="pw"><use href="#pawF" transform="translate(118 388)"/></g>
 <g id="pawB" class="pw"><use href="#pawF" transform="translate(190 392)"/></g>
 <g id="pawC" class="pw"><use href="#pawH" transform="translate(330 392)"/></g>
@@ -325,19 +310,8 @@ function addGift(d){
 function emo(p,d){var t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':36,x:0,y:2},p);t.textContent=d.emoji||EMOJI[(next-1)%EMOJI.length];}
 // ---- кот просыпается от подарка и снова засыпает ----
 var sleepT=null;
-function wake(){sc.classList.remove('yawn','scratch');sc.classList.add('awake','flash','twitch');clearTimeout(sleepT);setTimeout(function(){sc.classList.remove('flash');},650);setTimeout(function(){sc.classList.remove('twitch');},1500);sleepT=setTimeout(function(){sc.classList.remove('awake');},6500);}
+function wake(){sc.classList.add('awake','flash','twitch');clearTimeout(sleepT);setTimeout(function(){sc.classList.remove('flash');},650);setTimeout(function(){sc.classList.remove('twitch');},1500);sleepT=setTimeout(function(){sc.classList.remove('awake');},6500);}
 function clearAll(){slots.forEach(hide);slots=[];}
-// ---- пока спит: иногда зевает и чешется ----
-function idleLoop(first){
-  setTimeout(function(){
-    var c=sc.classList;
-    if(!c.contains('awake')&&!c.contains('yawn')&&!c.contains('scratch')){
-      var y=Math.random()<.5,k=y?'yawn':'scratch';c.add(k);setTimeout(function(){c.remove(k);},y?3300:2700);
-    }
-    idleLoop();
-  },first?6000:9000+Math.random()*9000);
-}
-idleLoop(true);
 
 // ---- связь с приложением ----
 var told=false,nc=$('nc');
