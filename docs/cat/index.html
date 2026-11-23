@@ -286,9 +286,11 @@ try{
 (function(){var g=$('stars');for(var i=0;i<70;i++){var a=rnd()*6.283,r=Math.sqrt(rnd())*112,x=270+Math.cos(a)*r,y=150+Math.sin(a)*r,s=.5+rnd()*1.5,c=el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:s.toFixed(2),fill:['#fff','#cfe6ff','#ffd6f1'][i%3],'class':'st'},g);c.style.animationDelay=(rnd()*3).toFixed(2)+'s';c.style.animationDuration=(2+rnd()*3).toFixed(1)+'s';}})();
 
 // ---- подарки по кругу ----
-var SLOTS=10,CX=270,CY=150,R=90,LIFE=150000,slots=[],next=0;
+var MAXG=60,CX=270,CY=150,R=84,LIFE=150000,slots=[],next=0;
 var EMOJI=['🌹','🍩','❤️','🎁','⭐','🍭','🧸','💎','🌸','🍓','🫶','🍰'];
-function slotPos(i){var a=(-90+i*360/SLOTS)*Math.PI/180;return[CX+Math.cos(a)*R,CY+Math.sin(a)*R];}
+// случайное место в сфере: из нескольких кандидатов берём самое свободное, поэтому подарки сначала заполняют пустоту, а когда их много — накладываются друг на друга
+function slotPos(){var best=null,bd=-1;for(var c=0;c<8;c++){var a=rnd2()*6.283,r=Math.sqrt(rnd2())*R,x=CX+Math.cos(a)*r,y=CY+Math.sin(a)*r,m=1e9;for(var j=0;j<slots.length;j++){var dx=x-slots[j].x,dy=y-slots[j].y,dd=dx*dx+dy*dy;if(dd<m)m=dd;}if(m>bd){bd=m;best=[x,y];}}return best;}
+function rnd2(){return Math.random();}
 function burst(x,y){
   var b=el('circle',{cx:x,cy:y,r:22,'class':'burst'},fx);b.getBoundingClientRect();b.classList.add('go');setTimeout(function(){b.remove();},950);
   for(var i=0;i<8;i++){var a=i*.785+Math.random()*.4,d=34+Math.random()*16,s=el('path',{d:'M0-5L1.4-1.4L5 0L1.4 1.4L0 5L-1.4 1.4L-5 0L-1.4-1.4Z',fill:['#fff','#ffd6f1','#bff6ff'][i%3],transform:'translate('+x+' '+y+')','class':'spk'},fx);
@@ -296,8 +298,8 @@ function burst(x,y){
 }
 function hide(it){if(!it)return;clearTimeout(it.t);it.g.classList.remove('in');it.g.classList.add('out');var g=it.wrap||it.g;setTimeout(function(){g.remove();},950);}
 function addGift(d){
-  var i=next%SLOTS;next++;hide(slots[i]);
-  var p=slotPos(i),g=el('g',{'class':'gi tb',transform:'translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')'},ring);
+  next++;if(slots.length>=MAXG)hide(slots.shift());
+  var p=slotPos(),g=el('g',{'class':'gi tb',transform:'translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')'},ring);
   var box=el('g',{'class':'gi in tb'},g);g.setAttribute('class','');box.style.transformBox='fill-box';box.style.transformOrigin='50% 50%';
   var bob=el('g',{'class':'gb tb'},box);bob.style.animationDelay=(-Math.random()*3).toFixed(2)+'s';
   el('circle',{r:27,fill:'url(#gGift)'},bob);
@@ -305,7 +307,7 @@ function addGift(d){
   if(d.image&&/^(https?:|data:|\/)/.test(d.image)){var im=el('image',{x:-21,y:-21,width:42,height:42,preserveAspectRatio:'xMidYMid meet'},inner);im.setAttributeNS('http://www.w3.org/1999/xlink','href',d.image);im.setAttribute('href',d.image);
     im.addEventListener('error',function(){inner.removeChild(im);emo(inner,d);});}
   else emo(inner,d);
-  var it={g:box,wrap:g};slots[i]=it;it.t=setTimeout(function(){hide(it);},LIFE);burst(p[0],p[1]);wake();
+  var it={g:box,wrap:g,x:p[0],y:p[1]};slots.push(it);it.t=setTimeout(function(){var q=slots.indexOf(it);if(q>=0)slots.splice(q,1);hide(it);},LIFE);burst(p[0],p[1]);wake();
 }
 function emo(p,d){var t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':36,x:0,y:2},p);t.textContent=d.emoji||EMOJI[(next-1)%EMOJI.length];}
 // ---- кот просыпается от подарка и снова засыпает ----
@@ -320,7 +322,7 @@ function tellReady(){if(told)return;told=true;try{if(window.parent&&window.paren
 function online(){nc.style.display='none';}function offline(){if(SHOWMSG)nc.style.display='block';}
 function bind(es){
   es.addEventListener('catsettings',function(){tellReady();});
-  es.addEventListener('catgift',function(e){try{var d=JSON.parse(e.data),n=Math.max(1,Math.min(SLOTS,Math.floor(+d.count)||1));for(var k=0;k<n;k++)(function(k){setTimeout(function(){addGift(d);},k*260);})(k);}catch(_){}});
+  es.addEventListener('catgift',function(e){try{var d=JSON.parse(e.data),n=Math.max(1,Math.min(30,Math.floor(+d.count)||1));for(var k=0;k<n;k++)(function(k){setTimeout(function(){addGift(d);},k*160);})(k);}catch(_){}});
   es.addEventListener('catclear',function(){clearAll();});
   es.addEventListener('clear',function(){clearAll();});
 }
