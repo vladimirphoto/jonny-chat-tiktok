@@ -201,6 +201,11 @@ fur($('furBody'),90,240,450,400,560,['#c9b3c3','#1f1822','#f2a44e','#e8d2bd','#7
 fur($('furTail'),370,180,470,340,170,['#a58ba5','#201826','#ff8fd8','#6c566c','#3a2d3d'],9,function(x,y){return -1.2+(y-250)*.004;});
 fur($('furHead'),30,260,176,384,150,['#d3bfcd','#1f1822','#f2a44e','#efdcc6','#8a7488'],7,function(x,y){return Math.atan2(y-330,x-102)+.2;});
 
+// густая шерсть по всей поверхности: короткие мягкие штрихи потолще, цвет берётся по месту (оранжевое пятно, брюшко, тёмная спинка)
+function fur2(g,x0,y0,x1,y1,n,colf,len,ang,w){
+  for(var i=0;i<n;i++){var x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0),a=ang(x,y)+(rnd()-.5)*.8,l=len*(.55+rnd()*.8),c=colf(x,y);
+    el('path',{d:'M'+f1(x)+' '+f1(y)+'q'+f1(Math.cos(a+.45)*l*.5)+' '+f1(Math.sin(a+.45)*l*.5)+' '+f1(Math.cos(a)*l)+' '+f1(Math.sin(a)*l),stroke:c,'stroke-width':(w*(.7+rnd()*.8)).toFixed(2),'stroke-linecap':'round',fill:'none',opacity:(.3+rnd()*.35).toFixed(2)},g);}
+}
 // ---- шерсть по контуру: пучки растут из края фигуры наружу (лежат под фигурой), силуэт становится мягким и пушистым ----
 // Пучки не торчат иглами: каждый наклонён вдоль контура в сторону «лежания» шерсти (o.dir), изогнут и сужается к кончику.
 function f1(v){return v.toFixed(1);}
@@ -267,13 +272,18 @@ function headCol(x,y){
 try{
   var bodyP=$('bodyShape'),headP=$('headBase'),tailP=$('tailBase');
   var floorLf=function(x,y){return y>388?.28:1;};
-  outlineFur(bodyP,{n:560,len:[7,13],w:2.5,flow:1,nw:.6,col:bodyCol,lf:floorLf,dir:function(){return[1,.35];}});
-  rimHairs(bodyP,{n:340,len:[7,13],flow:1,nw:.6,col:bodyCol,lf:floorLf,sw:.9,op:.5,dir:function(){return[1,.35];}});
-  outlineFur(tailP,{n:230,len:[7,13],w:2.3,flow:1.1,nw:.55,col:function(){return pick(P.tail);},lf:function(x,y){return y<205?1.5:1;},dir:function(){return[.3,-1];}});
+  outlineFur(bodyP,{n:720,len:[8,15],w:2.8,flow:1,nw:.6,col:bodyCol,lf:floorLf,dir:function(){return[1,.35];}});
+  rimHairs(bodyP,{n:440,len:[8,15],flow:1,nw:.6,col:bodyCol,lf:floorLf,sw:.9,op:.5,dir:function(){return[1,.35];}});
+  outlineFur(tailP,{n:300,len:[8,14],w:2.6,flow:1.1,nw:.55,col:function(){return pick(P.tail);},lf:function(x,y){return y<205?1.5:1;},dir:function(){return[.3,-1];}});
   rimHairs(tailP,{n:170,len:[8,14],flow:1.1,nw:.55,col:function(){return pick(['#a58ba5','#c9b3c3','#8a738a','#ffb8e6']);},sw:.9,op:.4,dir:function(){return[.3,-1];}});
   var hl=function(x,y){return(y<292?.8:1)+Math.max(0,(y-312)/60)*.6+Math.abs(x-102)/62*.25;};
-  outlineFur(headP,{n:280,len:[6,12],w:2.3,flow:1,nw:.62,col:headCol,lf:hl,dir:function(x,y){return[x<102?-.4:.4,1];}});
+  outlineFur(headP,{n:340,len:[7,13],w:2.6,flow:1,nw:.62,col:headCol,lf:hl,dir:function(x,y){return[x<102?-.4:.4,1];}});
   rimHairs(headP,{n:200,len:[7,12],flow:1,nw:.62,col:headCol,lf:hl,sw:.9,op:.45,dir:function(x,y){return[x<102?-.4:.4,1];}});
+  var bc2=function(x,y){var r=rnd();return r<.14?pick(P.cream):bodyCol(x,y);};
+  var hc2=function(x,y){var r=rnd();return r<.12?pick(P.cream):headCol(x,y);};
+  fur2($('furBody'),90,240,450,400,820,bc2,15,function(x,y){return -1.2+(x-90)*.004;},2.1);
+  fur2($('furHead'),30,260,176,384,300,hc2,11,function(x,y){return Math.atan2(y-330,x-102)+.2;},1.8);
+  fur2($('furTail'),370,180,470,340,230,function(){return pick(P.tail);},12,function(x,y){return -1.2+(y-250)*.004;},1.9);
   outlineFur($('muzzle'),{n:80,len:[3,6.5],w:1.7,flow:.9,nw:.6,col:function(){return pick(P.cream);},dir:function(x){return[x<104?-1:1,.6];}});
   outlineFur($('earLp'),{n:36,len:[3.5,8],w:1.7,flow:1,nw:.6,col:function(){return pick(P.earL);},dir:function(){return[0,-1];}});
   outlineFur($('earRp'),{n:36,len:[3.5,8],w:1.7,flow:1,nw:.6,col:function(){return pick(P.earR);},dir:function(){return[0,-1];}});
