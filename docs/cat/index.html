@@ -320,7 +320,7 @@ function tellReady(){if(told)return;told=true;try{if(window.parent&&window.paren
 function online(){nc.style.display='none';}function offline(){if(SHOWMSG)nc.style.display='block';}
 function bind(es){
   es.addEventListener('catsettings',function(){tellReady();});
-  es.addEventListener('catgift',function(e){try{addGift(JSON.parse(e.data));}catch(_){}});
+  es.addEventListener('catgift',function(e){try{var d=JSON.parse(e.data),n=Math.max(1,Math.min(SLOTS,Math.floor(+d.count)||1));for(var k=0;k<n;k++)(function(k){setTimeout(function(){addGift(d);},k*260);})(k);}catch(_){}});
   es.addEventListener('catclear',function(){clearAll();});
   es.addEventListener('clear',function(){clearAll();});
 }
