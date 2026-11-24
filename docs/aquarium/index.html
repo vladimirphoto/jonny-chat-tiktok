@@ -140,7 +140,8 @@ setInterval(function(){if(document.hidden)return;bubble(138+R()*8,404,1.8+R()*2.
 // ---- брызги ----
 function splash(x){
   var r=el('ellipse',{cx:x,cy:SURF,rx:8,ry:2.2,fill:'none',stroke:'#e9fdff','stroke-width':2.4},fx);
-  var a=r.animate([{transform:'scale(1)',opacity:.95},{transform:'scale(5.2,3)',opacity:0}],{duration:900,easing:'ease-out',transformOrigin:x+'px '+SURF+'px'});a.onfinish=function(){r.remove();};
+  r.style.transformBox='fill-box';r.style.transformOrigin='50% 50%'; // без этого кольцо масштабировалось от угла экрана и улетало вправо
+  var a=r.animate([{transform:'scale(1)',opacity:.95},{transform:'scale(5.2,3)',opacity:0}],{duration:900,easing:'ease-out'});a.onfinish=function(){r.remove();};
   for(var i=0;i<7;i++){(function(){var d=el('circle',{cx:x,cy:SURF-2,r:1.8+R()*2,fill:'#eafcff'},fx),vx=(R()-.5)*60,vy=-(26+R()*38);
     var q=d.animate([{transform:'translate(0,0)',opacity:1},{transform:'translate('+vx*.6+'px,'+vy+'px)',opacity:1,offset:.45},{transform:'translate('+vx+'px,'+(vy*.1+8)+'px)',opacity:0}],{duration:650+R()*250,easing:'ease-out'});q.onfinish=function(){d.remove();};})();}
   for(var j=0;j<6;j++)bubble(x+(R()-.5)*30,SURF+10+R()*36,1.6+R()*2.4,SURF+2,1100+R()*900);
@@ -169,8 +170,8 @@ function place(it){it.g.setAttribute('transform','translate('+it.x.toFixed(1)+' 
 function kill(it){
   if(!it||it.dead)return;it.dead=true;clearTimeout(it.life);var q=gifts.indexOf(it);if(q>=0)gifts.splice(q,1);
   if(it.ph!=='air')for(var i=0;i<4;i++)bubble(it.x+(R()-.5)*20,it.y,1.4+R()*2,SURF+2,900+R()*700);
-  var a=it.pop.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.35)',opacity:0}],{duration:420,easing:'ease-out'});a.onfinish=function(){it.g.remove();};
   it.pop.style.transformBox='fill-box';it.pop.style.transformOrigin='50% 50%';
+  var a=it.pop.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.35)',opacity:0}],{duration:420,easing:'ease-out'});a.onfinish=function(){it.g.remove();};
 }
 function clearAll(){gifts.slice().forEach(kill);}
 function excite(x){FISH.slice().sort(function(a,b){return Math.abs(a.x-x)-Math.abs(b.x-x);}).slice(0,2).forEach(function(f){f.tx=Math.max(X0+30,Math.min(X1-30,x+(R()-.5)*60));f.boost=2.2;});}
