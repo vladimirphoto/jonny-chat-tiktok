@@ -1,0 +1,258 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Аквариум</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:transparent}
+svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
+#nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font:13px "Segoe UI",Arial,sans-serif}
+.tb{transform-box:fill-box}
+.paused *{animation-play-state:paused!important}
+.sw{transform-box:fill-box;transform-origin:50% 100%;animation:sw 5s ease-in-out infinite}
+@keyframes sw{0%,100%{transform:skewX(-7deg)}50%{transform:skewX(8deg)}}
+.ray{animation:ray 7s ease-in-out infinite}
+@keyframes ray{0%,100%{opacity:.05}50%{opacity:.17}}
+#wave{animation:wv 6s linear infinite}
+@keyframes wv{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+#wave2{animation:wv 9s linear infinite reverse}
+.jf{transform-box:fill-box;transform-origin:50% 20%;animation:jf 2.4s ease-in-out infinite}
+@keyframes jf{0%,100%{transform:scale(1,1)}50%{transform:scale(1.14,.86)}}
+.tw{animation:tw 3.2s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+.gb{animation:gb 3.4s ease-in-out infinite}
+@keyframes gb{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+.tail{transform-box:fill-box;transform-origin:100% 50%;animation:tl .5s ease-in-out infinite}
+.fast .tail{animation-duration:.22s}
+@keyframes tl{0%,100%{transform:skewY(-9deg)}50%{transform:skewY(9deg)}}
+</style></head><body>
+<div id="nc">Нет связи с приложением ЭхоЧат</div>
+<svg id="sc" viewBox="0 0 540 560" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+  <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fe6ea"/><stop offset=".45" stop-color="#2f9fd0"/><stop offset="1" stop-color="#173f78"/></linearGradient>
+  <linearGradient id="gTint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46c8e8" stop-opacity=".14"/><stop offset="1" stop-color="#0c2f6a" stop-opacity=".42"/></linearGradient>
+  <linearGradient id="gSand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e1b4"/><stop offset="1" stop-color="#d4a96f"/></linearGradient>
+  <linearGradient id="gRim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1ecff"/><stop offset=".5" stop-color="#b9acec"/><stop offset="1" stop-color="#8c7fd0"/></linearGradient>
+  <linearGradient id="gGlare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <radialGradient id="gGift" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".55" stop-color="#bfe9ff" stop-opacity=".22"/><stop offset="1" stop-color="#7fb6ff" stop-opacity=".35"/></radialGradient>
+  <radialGradient id="gCloud" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e3dcff"/><stop offset="1" stop-color="#b3a4ee"/></radialGradient>
+  <radialGradient id="gBub" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#bff" stop-opacity=".12"/></radialGradient>
+  <filter id="gsh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#04204a" flood-opacity=".5"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <clipPath id="cW"><rect x="90" y="222" width="360" height="202" rx="10"/></clipPath>
+  <g id="fish"><path class="tail" d="M-26 0 L-46 -15 Q-40 0 -46 15Z" style="fill:var(--c2)"/><path d="M-26 0 Q-6 -20 22 -4 Q30 0 22 5 Q-6 20 -26 0Z" style="fill:var(--c1)"/><path d="M-6 -12 Q2 -26 12 -11Z" style="fill:var(--c2)"/><path d="M4 -13 Q9 0 4 13" stroke="#fff" stroke-opacity=".6" stroke-width="3" fill="none"/><circle cx="16" cy="-2" r="3.4" fill="#fff"/><circle cx="17" cy="-2" r="1.7" fill="#14213d"/><path d="M-20 -4 Q-6 -12 10 -9" stroke="#fff" stroke-opacity=".35" stroke-width="2" fill="none"/></g>
+  <g id="coral"><path d="M0 0 Q-6 -22 -16 -34 M0 0 Q2 -30 0 -48 M0 0 Q8 -24 20 -38" stroke="currentColor" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="-16" cy="-36" r="6" fill="currentColor"/><circle cx="0" cy="-51" r="6.5" fill="currentColor"/><circle cx="20" cy="-40" r="6" fill="currentColor"/></g>
+  <g id="weed"><path d="M0 0 Q-9 -24 0 -46 Q9 -66 0 -88" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/></g>
+  <g id="star"><path d="M0 -12 L3.5 -3.5 L12 -3.5 L5.5 2.5 L8 11 L0 6 L-8 11 L-5.5 2.5 L-12 -3.5 L-3.5 -3.5Z" fill="#ff8fa8" stroke="#ffc2cf" stroke-width="1.5" stroke-linejoin="round"/></g>
+</defs>
+
+<!-- облако-подставка -->
+<g id="cloud">
+  <ellipse cx="270" cy="474" rx="236" ry="38" fill="#9d8ee0" opacity=".35" filter="url(#blur6)"/>
+  <g fill="url(#gCloud)"><circle cx="86" cy="456" r="40"/><circle cx="140" cy="468" r="46"/><circle cx="210" cy="474" r="42"/><circle cx="270" cy="478" r="48"/><circle cx="332" cy="474" r="42"/><circle cx="400" cy="468" r="46"/><circle cx="454" cy="456" r="40"/><circle cx="108" cy="430" r="26"/><circle cx="432" cy="430" r="26"/><rect x="86" y="440" width="368" height="40" rx="20"/></g>
+  <g fill="#fff" opacity=".7"><circle cx="70" cy="444" r="12"/><circle cx="120" cy="452" r="10"/><circle cx="420" cy="452" r="10"/><circle cx="472" cy="444" r="12"/></g>
+  <g fill="#fff"><path class="tw" d="M40 410l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path class="tw" style="animation-delay:1s" d="M500 400l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z"/><path class="tw" style="animation-delay:2s" d="M470 330l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g>
+</g>
+
+<!-- задняя стенка и задняя кромка -->
+<rect x="84" y="196" width="372" height="236" rx="16" fill="#cfeaff" opacity=".12"/>
+<rect x="76" y="184" width="388" height="9" rx="4.5" fill="#8d7fd0"/>
+
+<!-- вода и всё, что в ней живёт -->
+<g clip-path="url(#cW)">
+  <rect x="90" y="222" width="360" height="202" fill="url(#gWater)"/>
+  <g id="rays" filter="url(#blur6)"><polygon class="ray" points="130,222 170,222 230,424 150,424" fill="#fff"/><polygon class="ray" style="animation-delay:-2s" points="220,222 262,222 330,424 250,424" fill="#fff"/><polygon class="ray" style="animation-delay:-4s" points="320,222 356,222 430,424 350,424" fill="#fff"/></g>
+  <g color="#2fc08e" opacity=".75"><use class="sw tb" href="#weed" x="112" y="410"/><use class="sw tb" style="animation-delay:-1.5s" href="#weed" x="124" y="414" transform="scale(1 .8)"/><use class="sw tb" style="animation-delay:-3s" href="#weed" x="420" y="410"/><use class="sw tb" style="animation-delay:-.8s" href="#weed" x="434" y="414"/></g>
+  <g id="fishL"></g>
+  <g id="jelly" transform="translate(300 300)"><g class="jf"><path d="M-17 0 Q-17 -22 0 -22 Q17 -22 17 0Z" fill="#f6b8ff" fill-opacity=".75"/><path d="M-17 0 Q-8 4 0 0 Q8 4 17 0" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/></g><g stroke="#f6b8ff" stroke-opacity=".7" stroke-width="2.2" fill="none" stroke-linecap="round"><path class="sw" d="M-9 3 Q-14 16 -8 28"/><path class="sw" style="animation-delay:-1s" d="M0 4 Q5 18 -1 32"/><path class="sw" style="animation-delay:-2s" d="M9 3 Q14 16 8 26"/></g></g>
+  <!-- дно -->
+  <path d="M90 410 Q130 398 180 408 T270 406 T360 408 T450 402 V424 H90Z" fill="url(#gSand)"/>
+  <g color="#ff7fb0"><use href="#coral" x="150" y="410"/></g>
+  <g color="#b78cff"><use href="#coral" x="186" y="412" transform="translate(186 412) scale(.7) translate(-186 -412)"/><use href="#coral" x="388" y="410"/></g>
+  <g color="#ffb347"><use href="#coral" x="352" y="412" transform="translate(352 412) scale(.65) translate(-352 -412)"/></g>
+  <use href="#star" x="262" y="408" transform="rotate(-14 262 408)"/>
+  <g transform="translate(300 410)"><path d="M-14 0 Q-14 -18 0 -18 Q14 -18 14 0Z" fill="#ffd9e6"/><path d="M-8 0V-16M0 0V-18M8 0V-16" stroke="#f3a8c4" stroke-width="2"/><circle cx="0" cy="-4" r="3.2" fill="#fff"/></g>
+  <g fill="#fff" opacity=".6"><circle cx="226" cy="414" r="3"/><circle cx="238" cy="416" r="2"/><circle cx="330" cy="415" r="2.6"/><circle cx="104" cy="416" r="2.4"/></g>
+  <g id="bubL"></g>
+  <g id="causL" opacity=".28" style="mix-blend-mode:screen"><path id="wave2" d="M60 232 q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke="#fff" stroke-width="3"/></g>
+  <g id="surf"><path id="wave" d="M60 222 q15 -7 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V236 H60Z" fill="#bff6ff" fill-opacity=".55"/></g>
+</g>
+
+<!-- подарки, уже упавшие в воду -->
+<g id="wetL"></g>
+
+<!-- толща воды перед подарками: подарки выглядят «под водой» -->
+<g clip-path="url(#cW)"><rect x="90" y="222" width="360" height="202" fill="url(#gTint)"/><g id="fishF"></g></g>
+
+<!-- подарки в воздухе, брызги -->
+<g id="airL"></g>
+<g id="fx"></g>
+
+<!-- стекло -->
+<g id="glass" pointer-events="none">
+  <rect x="84" y="196" width="372" height="236" rx="16" fill="none" stroke="#e8f6ff" stroke-opacity=".7" stroke-width="3"/>
+  <rect x="90" y="202" width="360" height="224" rx="12" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+  <path d="M100 214 H132 L98 414 H96Z" fill="url(#gGlare)" opacity=".7"/>
+  <path d="M148 214 H160 L136 414 H126Z" fill="url(#gGlare)" opacity=".4"/>
+  <path d="M434 218 Q444 300 436 400" stroke="#fff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <rect x="70" y="186" width="400" height="13" rx="6.5" fill="url(#gRim)" opacity=".62"/>
+  <rect x="76" y="188" width="388" height="3" rx="1.5" fill="#fff" opacity=".7"/>
+  <rect x="68" y="424" width="404" height="20" rx="10" fill="url(#gRim)"/>
+  <rect x="76" y="427" width="388" height="3" rx="1.5" fill="#fff" opacity=".7"/>
+</g>
+</svg>
+<script>
+/*ASSETS*/
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var NS='http://www.w3.org/2000/svg',$=function(i){return document.getElementById(i)};
+var sc=$('sc'),wetL=$('wetL'),airL=$('airL'),fx=$('fx'),bubL=$('bubL'),fishL=$('fishL');
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+var R=Math.random,SURF=222,X0=90,X1=450,FLOOR=388,GR=27;
+var EMOJI=['🌹','🍩','❤️','🎁','⭐','🍭','🧸','💎','🌸','🍓','🫶','🍰'];
+// ---- рыбки ----
+var FISH=[
+  {c1:'#ff9f43',c2:'#ff5e62',y:290,s:1.0,v:34,z:0},
+  {c1:'#4cc9f0',c2:'#4361ee',y:340,s:1.15,v:26,z:0},
+  {c1:'#ff8fc7',c2:'#b86bff',y:262,s:.8,v:42,z:0},
+  {c1:'#ffe66d',c2:'#ff9f1c',y:370,s:.7,v:30,z:0}
+];
+FISH.forEach(function(f,i){
+  f.x=130+R()*280;f.dir=R()<.5?-1:1;f.tx=f.x;f.boost=0;f.ph=R()*6;
+  f.g=el('g',{},fishL);f.g.style.setProperty('--c1',f.c1);f.g.style.setProperty('--c2',f.c2);
+  f.fl=el('g',{},f.g);var u=el('use',{},f.fl);u.setAttributeNS('http://www.w3.org/1999/xlink','href','#fish');u.setAttribute('href','#fish');
+});
+function fishStep(f,dt,t){
+  var sp=f.v*(f.boost>0?2.6:1);f.boost=Math.max(0,f.boost-dt);
+  if(Math.abs(f.tx-f.x)<8||R()<.0015){f.tx=X0+50+R()*(X1-X0-100);}
+  var want=f.tx>f.x?1:-1;if(want!==f.dir&&Math.abs(f.tx-f.x)>10)f.dir=want;
+  f.x+=f.dir*sp*dt;f.fx=(f.fx===undefined?f.dir:f.fx);f.fx+=(f.dir-f.fx)*Math.min(1,dt*4);
+  var y=f.y+Math.sin(t*.9+f.ph)*10;
+  f.g.setAttribute('transform','translate('+f.x.toFixed(1)+' '+y.toFixed(1)+')');
+  f.fl.setAttribute('transform','scale('+(f.fx*f.s).toFixed(3)+' '+f.s+')');
+  f.g.classList.toggle('fast',f.boost>0);
+}
+// ---- пузырьки воздуха ----
+function bubble(x,y,r,top,dur){
+  var b=el('circle',{cx:x,cy:y,r:r,fill:'url(#gBub)',stroke:'#fff','stroke-opacity':.5,'stroke-width':.8},bubL);
+  var h=y-top,dx=(R()-.5)*18;
+  var a=b.animate([{transform:'translate(0,0)',opacity:.9},{transform:'translate('+dx+'px,'+(-h*.5)+'px)',opacity:.8},{transform:'translate('+(-dx)+'px,'+(-h)+'px)',opacity:0}],{duration:dur,easing:'ease-in'});
+  a.onfinish=function(){b.remove();};
+}
+setInterval(function(){if(document.hidden)return;bubble(138+R()*8,404,1.8+R()*2.6,SURF+4,3200+R()*1800);},650);
+// ---- брызги ----
+function splash(x){
+  var r=el('ellipse',{cx:x,cy:SURF,rx:8,ry:2.2,fill:'none',stroke:'#e9fdff','stroke-width':2.4},fx);
+  var a=r.animate([{transform:'scale(1)',opacity:.95},{transform:'scale(5.2,3)',opacity:0}],{duration:900,easing:'ease-out',transformOrigin:x+'px '+SURF+'px'});a.onfinish=function(){r.remove();};
+  for(var i=0;i<7;i++){(function(){var d=el('circle',{cx:x,cy:SURF-2,r:1.8+R()*2,fill:'#eafcff'},fx),vx=(R()-.5)*60,vy=-(26+R()*38);
+    var q=d.animate([{transform:'translate(0,0)',opacity:1},{transform:'translate('+vx*.6+'px,'+vy+'px)',opacity:1,offset:.45},{transform:'translate('+vx+'px,'+(vy*.1+8)+'px)',opacity:0}],{duration:650+R()*250,easing:'ease-out'});q.onfinish=function(){d.remove();};})();}
+  for(var j=0;j<6;j++)bubble(x+(R()-.5)*30,SURF+10+R()*36,1.6+R()*2.4,SURF+2,1100+R()*900);
+}
+// ---- подарки ----
+var MAXG=60,LIFE=150000,gifts=[],next=0;
+function emo(p,d){var t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':34,x:0,y:2},p);t.textContent=d.emoji||EMOJI[(next-1)%EMOJI.length];}
+function mk(d){
+  var g=el('g',{},airL),pop=el('g',{},g),bob=el('g',{'class':'gb tb'},pop);bob.style.animationDelay=(-R()*3).toFixed(2)+'s';
+  el('circle',{r:GR,fill:'url(#gGift)',stroke:'#fff','stroke-opacity':.55,'stroke-width':1.4},bob);
+  var inner=el('g',{filter:'url(#gsh)'},bob);
+  if(d.image&&/^(https?:|data:|\/)/.test(d.image)){var im=el('image',{x:-20,y:-20,width:40,height:40,preserveAspectRatio:'xMidYMid meet'},inner);im.setAttributeNS('http://www.w3.org/1999/xlink','href',d.image);im.setAttribute('href',d.image);
+    im.addEventListener('error',function(){inner.removeChild(im);emo(inner,d);});}
+  else emo(inner,d);
+  el('ellipse',{cx:-9,cy:-14,rx:9,ry:5,fill:'#fff','fill-opacity':.55,transform:'rotate(-30 -9 -14)'},bob);
+  return {g:g,pop:pop};
+}
+function addGift(d){
+  next++;if(gifts.length>=MAXG)kill(gifts[0]);
+  var m=mk(d),x=X0+GR+8+R()*(X1-X0-2*GR-16);
+  var it={g:m.g,pop:m.pop,x:x,y:-40-R()*30,vx:(R()-.5)*14,vy:60+R()*60,ph:'air',rot:(R()-.5)*30,spin:(R()-.5)*60,t0:performance.now(),ph2:R()*6.28,ty:FLOOR-R()*70,tx:x,tt:0,born:Date.now()};
+  gifts.push(it);place(it);
+  it.life=setTimeout(function(){kill(it);},LIFE);
+}
+function place(it){it.g.setAttribute('transform','translate('+it.x.toFixed(1)+' '+it.y.toFixed(1)+') rotate('+it.rot.toFixed(1)+')');}
+function kill(it){
+  if(!it||it.dead)return;it.dead=true;clearTimeout(it.life);var q=gifts.indexOf(it);if(q>=0)gifts.splice(q,1);
+  if(it.ph!=='air')for(var i=0;i<4;i++)bubble(it.x+(R()-.5)*20,it.y,1.4+R()*2,SURF+2,900+R()*700);
+  var a=it.pop.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.35)',opacity:0}],{duration:420,easing:'ease-out'});a.onfinish=function(){it.g.remove();};
+  it.pop.style.transformBox='fill-box';it.pop.style.transformOrigin='50% 50%';
+}
+function clearAll(){gifts.slice().forEach(kill);}
+function excite(x){FISH.slice().sort(function(a,b){return Math.abs(a.x-x)-Math.abs(b.x-x);}).slice(0,2).forEach(function(f){f.tx=Math.max(X0+30,Math.min(X1-30,x+(R()-.5)*60));f.boost=2.2;});}
+function step(it,dt,t){
+  if(it.ph==='air'){
+    it.vy+=520*dt;it.y+=it.vy*dt;it.x+=it.vx*dt;it.rot+=it.spin*dt;
+    if(it.x<X0+GR){it.x=X0+GR;it.vx=Math.abs(it.vx);}if(it.x>X1-GR){it.x=X1-GR;it.vx=-Math.abs(it.vx);}
+    if(it.y+GR>=SURF){it.ph='sink';wetL.appendChild(it.g);it.vy*=.42;it.vx*=.4;it.spin*=.2;splash(it.x);excite(it.x);}
+  }else if(it.ph==='sink'){
+    it.vy+=(38-it.vy)*Math.min(1,dt*2.4);it.vx+=(0-it.vx)*Math.min(1,dt*1.8);
+    it.x+=(it.vx+Math.sin(t*1.7+it.ph2)*16)*dt;it.y+=it.vy*dt;it.rot+=(Math.sin(t*1.3+it.ph2)*8-it.rot)*Math.min(1,dt*1.5);
+    if(it.y>=it.ty){it.ph='swim';it.tt=0;}
+  }else{
+    it.tt-=dt;if(it.tt<=0){it.tt=4+R()*5;it.tx=X0+GR+10+R()*(X1-X0-2*GR-20);it.ty=SURF+GR+24+R()*(FLOOR-SURF-GR-24);}
+    it.vx+=((it.tx-it.x)*.22-it.vx)*Math.min(1,dt*1.1);it.vy+=((it.ty-it.y)*.22-it.vy)*Math.min(1,dt*1.1);
+    it.x+=it.vx*dt+Math.sin(t*1.2+it.ph2)*8*dt;it.y+=it.vy*dt+Math.cos(t*.9+it.ph2)*7*dt;it.rot+=(Math.sin(t*.8+it.ph2)*7-it.rot)*Math.min(1,dt*1.5);
+  }
+  if(it.ph!=='air'){if(it.x<X0+GR)it.x=X0+GR;if(it.x>X1-GR)it.x=X1-GR;if(it.y>FLOOR+10)it.y=FLOOR+10;if(it.y<SURF+GR-8)it.y=SURF+GR-8;}
+  place(it);
+}
+function apart(){ // мягко раздвигаем подарки, чтобы не слипались в кучу
+  for(var i=0;i<gifts.length;i++){var a=gifts[i];if(a.ph==='air')continue;
+    for(var j=i+1;j<gifts.length;j++){var b=gifts[j];if(b.ph==='air')continue;
+      var dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy,m=GR*1.7;
+      if(d2<m*m&&d2>.01){var d=Math.sqrt(d2),k=(m-d)*.035,ux=dx/d,uy=dy/d;a.x-=ux*k;a.y-=uy*k;b.x+=ux*k;b.y+=uy*k;}}}
+}
+var last=0;
+function loop(now){
+  requestAnimationFrame(loop);if(document.hidden){last=now;return;}
+  var dt=Math.min(.05,(now-last)/1000||.016);last=now;var t=now/1000;
+  for(var i=0;i<FISH.length;i++)fishStep(FISH[i],dt,t);
+  for(var k=gifts.length-1;k>=0;k--)step(gifts[k],dt,t);
+  apart();
+  var jl=$('jelly');jl.setAttribute('transform','translate('+(300+Math.sin(t*.25)*70).toFixed(1)+' '+(300+Math.sin(t*.45)*34).toFixed(1)+')');
+}
+requestAnimationFrame(loop);
+// ---- топ дарителей на облаке: 1-е место по центру с короной, 2-е слева, 3-е справа ----
+var topL=el('g',{},sc),SLOTS=[{x:270,y:474,r:25,ring:'#ffd34d',crown:1},{x:202,y:480,r:20,ring:'#d9e2ff'},{x:338,y:480,r:20,ring:'#ffb48a'}];
+function drawTop(list){
+  while(topL.firstChild)topL.removeChild(topL.firstChild);
+  (list||[]).slice(0,3).forEach(function(u,i){
+    var S=SLOTS[i],g=el('g',{transform:'translate('+S.x+' '+S.y+')'},topL),id='av'+i,nm=String(u.name||'').replace(/^@/,'');
+    var cp=el('clipPath',{id:id},g);el('circle',{r:S.r-3},cp);
+    el('circle',{r:S.r+2,fill:'#8d7fd0','fill-opacity':.35,cy:3},g);
+    el('circle',{r:S.r,fill:S.ring},g);
+    el('circle',{r:S.r-3,fill:'#ff9ccf'},g);
+    var fb=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':S.r,'font-weight':700,fill:'#fff','font-family':'Segoe UI,Arial,sans-serif'},g);fb.textContent=(nm[0]||'?').toUpperCase();
+    if(/^https?:\/\//.test(u.avatar||'')){var im=el('image',{x:-S.r,y:-S.r,width:S.r*2,height:S.r*2,'clip-path':'url(#'+id+')',preserveAspectRatio:'xMidYMid slice'},g);im.setAttributeNS('http://www.w3.org/1999/xlink','href',u.avatar);im.setAttribute('href',u.avatar);im.addEventListener('error',function(){im.remove();});im.addEventListener('load',function(){fb.remove();});}
+    el('ellipse',{cx:-S.r*.35,cy:-S.r*.55,rx:S.r*.4,ry:S.r*.18,fill:'#fff','fill-opacity':.45,transform:'rotate(-30 '+(-S.r*.35)+' '+(-S.r*.55)+')'},g);
+    if(S.crown){var c=el('g',{transform:'translate(0 '+(-S.r-4)+')'},g);el('path',{d:'M-14 0 L-16 -16 L-7 -8 L0 -20 L7 -8 L16 -16 L14 0Z',fill:'#ffc933',stroke:'#fff3b0','stroke-width':1.6,'stroke-linejoin':'round'},c);el('circle',{cx:0,cy:-21,r:2.6,fill:'#ff7aa8'},c);el('circle',{cx:-16,cy:-17,r:2.2,fill:'#7ee0ff'},c);el('circle',{cx:16,cy:-17,r:2.2,fill:'#7ee0ff'},c);}
+    var lab=nm.length>10?nm.slice(0,9)+'…':nm,w=Math.max(46,lab.length*6.6+16);
+    el('rect',{x:-w/2,y:S.r-1,width:w,height:15,rx:7.5,fill:'#fff','fill-opacity':.92,stroke:S.ring,'stroke-width':1.2},g);
+    var t=el('text',{'text-anchor':'middle',x:0,y:S.r+10.4,'font-size':10,'font-weight':600,fill:'#5b4a9e','font-family':'Segoe UI,Arial,sans-serif'},g);t.textContent=lab;
+  });
+}
+// ---- связь с приложением ----
+var told=false,nc=$('nc');
+var SHOWMSG=window.parent!==window||Q.has('debug');
+function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'aq-ready'},'*');}catch(_){}}
+function online(){nc.style.display='none';}function offline(){if(SHOWMSG)nc.style.display='block';}
+function bind(es){
+  es.addEventListener('catsettings',function(){tellReady();});
+  es.addEventListener('aqgift',function(e){try{var d=JSON.parse(e.data),n=Math.max(1,Math.min(30,Math.floor(+d.count)||1));for(var k=0;k<n;k++)(function(k){setTimeout(function(){addGift(d);},k*160);})(k);}catch(_){}});
+  es.addEventListener('gifts',function(e){try{drawTop(JSON.parse(e.data));}catch(_){}});
+  es.addEventListener('aqclear',function(){clearAll();});
+  es.addEventListener('clear',function(){clearAll();});
+}
+function connect(){
+  if(!REMOTE){bind(new EventSource('/events'));return;}
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+document.addEventListener('visibilitychange',function(){sc.classList.toggle('paused',document.hidden);});
+if(Q.has('demo')){drawTop([{name:'mika.live'},{name:'nini_streamer'},{name:'kiki.bloom'}]);setTimeout(function(){['🌹','🍩','❤️','🎁','🌹','🍩','⭐','🍭','🧸','💎'].forEach(function(e,k){setTimeout(function(){addGift({emoji:e});},k*600);});},400);}
+else connect();
+</script></body></html>
