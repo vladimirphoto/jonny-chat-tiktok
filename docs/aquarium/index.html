@@ -7,6 +7,8 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
 .paused *{animation-play-state:paused!important}
 .sw{transform-box:fill-box;transform-origin:50% 100%;animation:sw 5s ease-in-out infinite}
 @keyframes sw{0%,100%{transform:skewX(-7deg)}50%{transform:skewX(8deg)}}
+.sw2{transform-box:fill-box;transform-origin:50% 100%;animation:sw2 11s ease-in-out infinite}
+@keyframes sw2{0%,100%{transform:skewX(-2deg)}50%{transform:skewX(2.5deg)}}
 .ray{animation:ray 7s ease-in-out infinite}
 @keyframes ray{0%,100%{opacity:.05}50%{opacity:.17}}
 #wave{animation:wv 6s linear infinite}
@@ -14,6 +16,11 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
 #wave2{animation:wv 9s linear infinite reverse}
 .jf{transform-box:fill-box;transform-origin:50% 20%;animation:jf 2.4s ease-in-out infinite}
 @keyframes jf{0%,100%{transform:scale(1,1)}50%{transform:scale(1.14,.86)}}
+.legs{transform-box:fill-box;transform-origin:50% 0}
+.mv .legs{animation:lg .7s ease-in-out infinite}
+@keyframes lg{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.88)}}
+.mv .claw{animation:cl 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes cl{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
 .tw{animation:tw 3.2s ease-in-out infinite}
 @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
 .gb{animation:gb 3.4s ease-in-out infinite}
@@ -37,6 +44,8 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
   <clipPath id="cW"><rect x="90" y="222" width="360" height="202" rx="10"/></clipPath>
   <g id="fish"><path class="tail" d="M-26 0 L-46 -15 Q-40 0 -46 15Z" style="fill:var(--c2)"/><path d="M-26 0 Q-6 -20 22 -4 Q30 0 22 5 Q-6 20 -26 0Z" style="fill:var(--c1)"/><path d="M-6 -12 Q2 -26 12 -11Z" style="fill:var(--c2)"/><path d="M4 -13 Q9 0 4 13" stroke="#fff" stroke-opacity=".6" stroke-width="3" fill="none"/><circle cx="16" cy="-2" r="3.4" fill="#fff"/><circle cx="17" cy="-2" r="1.7" fill="#14213d"/><path d="M-20 -4 Q-6 -12 10 -9" stroke="#fff" stroke-opacity=".35" stroke-width="2" fill="none"/></g>
+  <g id="crab"><g class="legs" stroke="#e0483f" stroke-width="2.2" stroke-linecap="round" fill="none"><path d="M-9 -2 L-17 4 L-20 9M-6 0 L-13 7 L-15 12M6 0 L13 7 L15 12M9 -2 L17 4 L20 9"/></g><ellipse cx="0" cy="-5" rx="14" ry="8.5" fill="#ff6b5e"/><ellipse cx="-3" cy="-8" rx="7" ry="3" fill="#fff" fill-opacity=".35"/><g class="claw" stroke="#ff6b5e" stroke-width="3" fill="#ff6b5e" stroke-linecap="round"><path d="M-13 -7 L-19 -15" fill="none"/><path d="M-24 -23 Q-31 -17 -22 -12 L-19 -16Z"/><path d="M13 -7 L19 -15" fill="none"/><path d="M24 -23 Q31 -17 22 -12 L19 -16Z"/></g><path d="M-5 -12 V-17M5 -12 V-17" stroke="#e0483f" stroke-width="1.6"/><circle cx="-5" cy="-18" r="2.6" fill="#fff"/><circle cx="5" cy="-18" r="2.6" fill="#fff"/><circle cx="-5" cy="-18" r="1.2" fill="#14213d"/><circle cx="5" cy="-18" r="1.2" fill="#14213d"/></g>
+  <g id="snail"><path d="M-14 0 Q-14 -5 -8 -5 H10 Q16 -5 17 -9 Q18 -13 15 -13" fill="none" stroke="#e8c8a8" stroke-width="6" stroke-linecap="round"/><path d="M15 -13 L17 -19M12 -12 L12 -18" stroke="#e8c8a8" stroke-width="1.6" stroke-linecap="round"/><circle cx="17" cy="-19.5" r="1.4" fill="#14213d"/><circle cx="12" cy="-18.5" r="1.4" fill="#14213d"/><circle cx="-3" cy="-11" r="9" fill="#f3a8c4"/><path d="M-3 -11 m0 0 a2 2 0 1 1 3 2 a5 5 0 1 1 -7 -5 a8 8 0 0 1 9 -3" fill="none" stroke="#c9729a" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="-6" cy="-15" rx="3" ry="1.8" fill="#fff" fill-opacity=".5"/></g>
   <g id="coral"><path d="M0 0 Q-6 -22 -16 -34 M0 0 Q2 -30 0 -48 M0 0 Q8 -24 20 -38" stroke="currentColor" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="-16" cy="-36" r="6" fill="currentColor"/><circle cx="0" cy="-51" r="6.5" fill="currentColor"/><circle cx="20" cy="-40" r="6" fill="currentColor"/></g>
   <g id="weed"><path d="M0 0 Q-9 -24 0 -46 Q9 -66 0 -88" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/></g>
   <g id="star"><path d="M0 -12 L3.5 -3.5 L12 -3.5 L5.5 2.5 L8 11 L0 6 L-8 11 L-5.5 2.5 L-12 -3.5 L-3.5 -3.5Z" fill="#ff8fa8" stroke="#ffc2cf" stroke-width="1.5" stroke-linejoin="round"/></g>
@@ -58,7 +67,7 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
 <g clip-path="url(#cW)">
   <rect x="90" y="222" width="360" height="202" fill="url(#gWater)"/>
   <g id="rays" filter="url(#blur6)"><polygon class="ray" points="130,222 170,222 230,424 150,424" fill="#fff"/><polygon class="ray" style="animation-delay:-2s" points="220,222 262,222 330,424 250,424" fill="#fff"/><polygon class="ray" style="animation-delay:-4s" points="320,222 356,222 430,424 350,424" fill="#fff"/></g>
-  <g color="#2fc08e" opacity=".75"><use class="sw tb" href="#weed" x="112" y="410"/><use class="sw tb" style="animation-delay:-1.5s" href="#weed" x="124" y="414" transform="scale(1 .8)"/><use class="sw tb" style="animation-delay:-3s" href="#weed" x="420" y="410"/><use class="sw tb" style="animation-delay:-.8s" href="#weed" x="434" y="414"/></g>
+  <g color="#4aa98a" opacity=".5"><use class="sw2 tb" href="#weed" x="112" y="410"/><use class="sw2 tb" style="animation-delay:-4s" href="#weed" x="428" y="410"/></g>
   <g id="fishL"></g>
   <g id="jelly" transform="translate(300 300)"><g class="jf"><path d="M-17 0 Q-17 -22 0 -22 Q17 -22 17 0Z" fill="#f6b8ff" fill-opacity=".75"/><path d="M-17 0 Q-8 4 0 0 Q8 4 17 0" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/></g><g stroke="#f6b8ff" stroke-opacity=".7" stroke-width="2.2" fill="none" stroke-linecap="round"><path class="sw" d="M-9 3 Q-14 16 -8 28"/><path class="sw" style="animation-delay:-1s" d="M0 4 Q5 18 -1 32"/><path class="sw" style="animation-delay:-2s" d="M9 3 Q14 16 8 26"/></g></g>
   <!-- дно -->
@@ -69,6 +78,7 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <use href="#star" x="262" y="408" transform="rotate(-14 262 408)"/>
   <g transform="translate(300 410)"><path d="M-14 0 Q-14 -18 0 -18 Q14 -18 14 0Z" fill="#ffd9e6"/><path d="M-8 0V-16M0 0V-18M8 0V-16" stroke="#f3a8c4" stroke-width="2"/><circle cx="0" cy="-4" r="3.2" fill="#fff"/></g>
   <g fill="#fff" opacity=".6"><circle cx="226" cy="414" r="3"/><circle cx="238" cy="416" r="2"/><circle cx="330" cy="415" r="2.6"/><circle cx="104" cy="416" r="2.4"/></g>
+  <g id="critL"></g>
   <g id="bubL"></g>
   <g id="causL" opacity=".28" style="mix-blend-mode:screen"><path id="wave2" d="M60 232 q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke="#fff" stroke-width="3"/></g>
   <g id="surf"><path id="wave" d="M60 222 q15 -7 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V236 H60Z" fill="#bff6ff" fill-opacity=".55"/></g>
@@ -128,6 +138,20 @@ function fishStep(f,dt,t){
   f.g.setAttribute('transform','translate('+f.x.toFixed(1)+' '+y.toFixed(1)+')');
   f.fl.setAttribute('transform','scale('+(f.fx*f.s).toFixed(3)+' '+f.s+')');
   f.g.classList.toggle('fast',f.boost>0);
+}
+// ---- крабики и улитки ползают по дну очень медленно ----
+var CRIT=[{t:'crab',x:210,y:409,s:.85,v:9,d:1},{t:'crab',x:360,y:410,s:.62,v:6,d:-1},{t:'snail',x:150,y:411,s:.8,v:2.6,d:1},{t:'snail',x:300,y:411,s:.6,v:2,d:-1}];
+CRIT.forEach(function(c){
+  c.g=el('g',{},$('critL'));c.fl=el('g',{},c.g);var u=el('use',{},c.fl);u.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+c.t);u.setAttribute('href','#'+c.t);
+  c.mv=R()<.5;c.tm=1+R()*5;c.fx=c.d;
+});
+function critStep(c,dt){
+  c.tm-=dt;if(c.tm<=0){c.mv=!c.mv;c.tm=c.mv?4+R()*6:2+R()*5;if(c.mv&&R()<.35)c.d=-c.d;}
+  if(c.mv){c.x+=c.d*c.v*dt;if(c.x<X0+34){c.x=X0+34;c.d=1;}if(c.x>X1-34){c.x=X1-34;c.d=-1;}}
+  var sx=c.t==='snail'?c.d:1;c.fx+=(sx-c.fx)*Math.min(1,dt*3);
+  c.g.setAttribute('transform','translate('+c.x.toFixed(1)+' '+c.y+')');
+  c.fl.setAttribute('transform','scale('+(c.fx*c.s).toFixed(3)+' '+c.s+')');
+  c.g.classList.toggle('mv',c.mv&&c.t==='crab');
 }
 // ---- пузырьки воздуха ----
 function bubble(x,y,r,top,dur){
@@ -203,6 +227,7 @@ function loop(now){
   requestAnimationFrame(loop);if(document.hidden){last=now;return;}
   var dt=Math.min(.05,(now-last)/1000||.016);last=now;var t=now/1000;
   for(var i=0;i<FISH.length;i++)fishStep(FISH[i],dt,t);
+  for(var q=0;q<CRIT.length;q++)critStep(CRIT[q],dt);
   for(var k=gifts.length-1;k>=0;k--)step(gifts[k],dt,t);
   apart();
   var jl=$('jelly');jl.setAttribute('transform','translate('+(300+Math.sin(t*.25)*70).toFixed(1)+' '+(300+Math.sin(t*.45)*34).toFixed(1)+')');
