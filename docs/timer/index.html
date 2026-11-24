@@ -1,6 +1,8 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Таймер</title>
+<!doctype html><html lang="ru" class="tm-off"><head><meta charset="utf-8"><title>Таймер</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+html.tm-off body>*{display:none!important}
+
 html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-family:"Segoe UI","Arial Rounded MT Bold",Arial,sans-serif;color:#fff}
 #vp{position:fixed;inset:0;overflow:hidden}
 #stage{position:absolute;left:50%;top:50%;width:920px;height:500px;margin:-250px 0 0 -460px;transform-origin:50% 50%;--tone:#ff4fa8}
@@ -639,7 +641,7 @@ function sndInit(){
 function tone(f,t0,d,type,g,f2){var c=SND.ctx,o=c.createOscillator(),a=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);a.gain.setValueAtTime(.0001,t0);a.gain.exponentialRampToValueAtTime(g,t0+.01);a.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(a);a.connect(SND.master);o.start(t0);o.stop(t0+d+.02)}
 function noise(t0,d,g){var c=SND.ctx,n=c.sampleRate*d,b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);for(var i=0;i<n;i++)x[i]=Math.random()*2-1;var s=c.createBufferSource(),a=c.createGain();s.buffer=b;a.gain.setValueAtTime(g,t0);a.gain.exponentialRampToValueAtTime(.0001,t0+d);s.connect(a);a.connect(SND.master);s.start(t0)}
 var SFX={tick:function(t){tone(1200,t,.05,'square',.12)},tickFinal:function(t){tone(1760,t,.08,'square',.18)},plus:function(t){tone(1318,t,.14,'triangle',.3);tone(1975,t+.09,.2,'triangle',.3)},minus:function(t){tone(260,t,.3,'sawtooth',.25,70);noise(t,.18,.15)},egg:function(t){[1046,1318,1568,2093].forEach(function(f,i){tone(f,t+i*.08,.18,'triangle',.25)})},alarm:function(t){for(var i=0;i<40;i++)tone(i%2?1760:1568,t+i*.055,.05,'square',.2*(1-i/48))}};
-function play(n){if(!(S.sound.enabled||PREVIEW)||!SFX[n])return;var c=sndInit();if(!c)return;if(c.state==='suspended')c.resume();SND.master.gain.value=S.sound.volume/100;SFX[n](c.currentTime+.01)}
+function play(n,force){if(!(S.sound.enabled||(PREVIEW&&force))||!SFX[n])return;var c=sndInit();if(!c)return;if(c.state==='suspended')c.resume();SND.master.gain.value=S.sound.volume/100;SFX[n](c.currentTime+.01)}
 document.addEventListener('pointerdown',function(){if(PREVIEW)sndInit()},{once:true});
 // ---------- основной цикл ----------
 var sweeping=false,timer=0,raf=0,lastTickSec=-1,alarmFor='';
@@ -657,13 +659,13 @@ function update(now){
   c.D.clock(inp);var v=c.D.view(inp);
   setDigits(C.formatClock(disp).text);
   var sec=Math.ceil(disp/1000);
-  if(sec!==lastTickSec){var was=lastTickSec;lastTickSec=sec;if(was>=0&&!sweeping&&inp.status==='running'&&sec>0){if(v.rushStage==='final')play('tick');else if(v.rushStage==='panic'){play('tickFinal');anim(digits,[{transform:'scale(1)'},{transform:'scale(1.07)',offset:.3},{transform:'scale(1)'}],{duration:260})}}}
+  if(sec!==lastTickSec){var was=lastTickSec;lastTickSec=sec;if(was>=0&&!sweeping&&inp.status==='running'&&sec>0){if(v.rushStage==='final')play('tick',c===lab);else if(v.rushStage==='panic'){play('tickFinal',c===lab);anim(digits,[{transform:'scale(1)'},{transform:'scale(1.07)',offset:.3},{transform:'scale(1)'}],{duration:260})}}}
   stage.dataset.rush=v.rushStage;stage.dataset.bar=v.bar;stage.dataset.shake=v.rushStage==='panic'?'panic':'';stage.dataset.finale=v.finale?v.finale.phase:'';
   setPose(v.pose);transitions(c,v,inp,now);
   renderPill(v.timeMoment);renderLabels(c,v);
   setOn('badge',!!v.finale);setOn('hurry',v.rushStage==='rush'||v.rushStage==='final');thanksCard(c,!!v.finale&&v.finale.phase==='thanks');
   c.D.drainCues().forEach(play);
-  if(v.finale&&v.finale.phase==='ringing'&&alarmFor!==c.snap.run_id+':'+inp.zeroedAtMs){alarmFor=c.snap.run_id+':'+inp.zeroedAtMs;play('alarm')}
+  if(v.finale&&v.finale.phase==='ringing'&&alarmFor!==c.snap.run_id+':'+inp.zeroedAtMs){alarmFor=c.snap.run_id+':'+inp.zeroedAtMs;play('alarm',c===lab)}
   c.lastView=v;
 }
 function curPoseReset(){lastMoment=0;lastEgg=0}
@@ -728,7 +730,7 @@ function onTimer(d){
   }
   frame();
 }
-function onSettings(s){S=C.resolveSettings(s);real.D.setSettings(S);lab.D.setSettings(S);fit();frame();try{if(PREVIEW)parent.postMessage({echochat:'timer-ready'},'*')}catch(_){}}
+function onSettings(s){S=C.resolveSettings(s);document.documentElement.classList.toggle('tm-off',!S.enabled);real.D.setSettings(S);lab.D.setSettings(S);fit();frame();try{if(PREVIEW)parent.postMessage({echochat:'timer-ready'},'*')}catch(_){}}
 // ---------- «примерка»: показать момент, не трогая настоящий таймер ----------
 var EGGPICK=['jackpot','shiny','clutch','revived','sleepy','peekaboo','frenzy','full'];
 function runLab(kind){
