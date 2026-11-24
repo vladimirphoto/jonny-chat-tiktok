@@ -1,0 +1,169 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Топ донаты</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%;color:#fff}
+/* цвета площадки: Каспи — красный, DonationAlerts — оранжевый */
+body{--rgb:241,70,53;--a1:#ff5a47;--a2:#c4210f}
+body.k-da{--rgb:245,125,7;--a1:#ffa13a;--a2:#e8650a}
+#root{position:fixed;inset:0;display:flex;flex-direction:column;padding:14px 18px;box-sizing:border-box}
+#board{width:344px;display:flex;flex-direction:column;gap:12px;align-self:center;zoom:1}
+body.pv #root{justify-content:center;padding:10px}
+#ttl{align-self:flex-start;max-width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:5px 16px 5px 6px;border-radius:999px;font-weight:800;font-size:13px;letter-spacing:.14em;white-space:nowrap;background:linear-gradient(90deg,var(--a1),var(--a2));border:1.5px solid rgba(255,255,255,.55);box-shadow:0 4px 14px rgba(var(--rgb),.45);text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#ttl .ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.95);color:var(--a2);font-size:15px;font-weight:900;letter-spacing:0;text-shadow:none;animation:tbob 2.6s ease-in-out infinite}
+#ttl .tt{overflow:hidden;text-overflow:ellipsis}
+#ttl .pr{flex:none;font-size:10px;letter-spacing:.1em;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.28)}
+body.notitle #ttl{display:none}
+#rows{position:relative;display:flex;flex-direction:column;gap:9px}
+#empty{display:none;padding:18px 12px;text-align:center;font-size:13px;line-height:1.4;color:rgba(255,255,255,.7);border:1.5px dashed rgba(255,255,255,.25);border-radius:16px}
+body.pv.empty #empty{display:block}
+.row{position:relative;display:flex;align-items:center;height:56px;padding:0 16px 0 8px;box-sizing:border-box}
+.row.nw{animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
+.pl{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,rgba(40,28,36,.95),rgba(18,13,22,.95));border:2px solid rgba(var(--rgb),.55);box-shadow:0 5px 16px rgba(0,0,0,.4)}
+.pl::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.16) 46%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 54%,transparent 70%);background-size:250% 100%;background-position:150% 0;animation:shine 5.5s ease-in-out infinite;opacity:0}
+.r1 .pl::after{opacity:1}
+body.nobg .pl{display:none}
+.r1 .pl{background:linear-gradient(90deg,#7a5210,#c8901f 45%,rgba(30,20,34,.95));border-color:#ffd25a;box-shadow:0 0 18px rgba(255,200,70,.5),0 5px 16px rgba(0,0,0,.4)}
+.r2 .pl{background:linear-gradient(90deg,#5d6178,#9aa0bb 40%,rgba(30,20,34,.95));border-color:#dfe3f5}
+.r3 .pl{background:linear-gradient(90deg,#6a3a20,#b26b3c 40%,rgba(30,20,34,.95));border-color:#e3a070}
+.rk{position:relative;z-index:1;flex:none;width:38px;height:38px;margin-right:9px;border-radius:50%;display:grid;place-items:center;font-size:17px;font-weight:900;color:#fff;background:linear-gradient(145deg,rgba(var(--rgb),.9),rgba(var(--rgb),.45));border:2px solid rgba(255,255,255,.35);text-shadow:0 1px 2px rgba(0,0,0,.5);box-sizing:border-box}
+.r1 .rk{background:linear-gradient(145deg,#ffe58a,#d9962a);border-color:#fff3c4;color:#5a3600;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.r2 .rk{background:linear-gradient(145deg,#f4f6ff,#a3a9c4);border-color:#fff;color:#2c3050;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.r3 .rk{background:linear-gradient(145deg,#f3c096,#b0683a);border-color:#ffe2c8;color:#4a2410;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.cw{position:absolute;left:-7px;top:-15px;width:30px;height:auto;z-index:3;transform:rotate(-16deg);transform-origin:50% 90%;animation:bob 2.8s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none}
+.r1 .cw{display:block}
+.av{position:relative;z-index:1;flex:none;width:40px;height:40px;margin:0 12px 0 0}
+.av i{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:18px;color:#fff;border:2px solid rgba(255,255,255,.28);box-sizing:border-box;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.r1 .av::before{content:"";position:absolute;inset:-5px;border-radius:50%;box-shadow:0 0 14px 3px rgba(255,205,80,.75);animation:glow 2.4s ease-in-out infinite}
+.tx{position:relative;z-index:1;min-width:0;flex:1;display:flex;flex-direction:column;justify-content:center;line-height:1.15;text-shadow:0 2px 5px rgba(0,0,0,.65)}
+.nm{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb{font-size:11px;font-weight:600;opacity:.65;margin-top:2px}
+.am{position:relative;z-index:1;flex:none;margin-left:10px;font-size:18px;font-weight:900;color:#ffe08a;white-space:nowrap;text-shadow:0 2px 5px rgba(0,0,0,.65);transform-origin:100% 50%;font-variant-numeric:tabular-nums}
+.row.up .am{animation:bump .8s ease-out}
+.row.up .pl{animation:flash .8s ease-out}
+/* Яркий: плашки залиты цветом площадки */
+.d-gradient .pl{background:linear-gradient(90deg,var(--a1),var(--a2));border:2px solid rgba(255,255,255,.7);box-shadow:0 5px 16px rgba(var(--rgb),.45)}
+.d-gradient .r1 .pl{background:linear-gradient(90deg,#ffb020,#ff6a3d);border-color:#fff3c4;box-shadow:0 0 20px rgba(255,190,60,.6),0 5px 16px rgba(0,0,0,.35)}
+.d-gradient .rk{background:rgba(255,255,255,.95);color:var(--a2);border-color:rgba(255,255,255,.5);text-shadow:none}
+.d-gradient .r1 .rk{background:linear-gradient(145deg,#fff6c9,#ffd45a);color:#7a4a00}
+.d-gradient .r2 .rk{background:linear-gradient(145deg,#fff,#d5d9ea);color:#2c3050}
+.d-gradient .r3 .rk{background:linear-gradient(145deg,#ffe2c8,#f0a878);color:#5a2c10}
+.d-gradient .am{color:#fff}
+/* Минимализм: без плашек, тонкая линия под строкой */
+.d-minimal #rows{gap:2px}
+.d-minimal .row{height:48px;padding:0 4px}
+.d-minimal .pl{display:none}
+.d-minimal .row::after{content:"";position:absolute;left:4px;right:4px;bottom:0;height:1px;background:linear-gradient(90deg,rgba(var(--rgb),.9),rgba(255,255,255,.08))}
+.d-minimal .rk{width:30px;height:30px;font-size:14px;margin-right:8px}
+.d-minimal .av{width:34px;height:34px;margin-right:10px}.d-minimal .av i{font-size:15px}
+.d-minimal .nm{font-size:16px}.d-minimal .sb{display:none}
+.d-minimal .am{font-size:17px;color:var(--a1);filter:brightness(1.25)}
+.d-minimal .r1 .am{color:#ffd978}
+.d-minimal .cw{left:-6px;top:-12px;width:24px}
+@keyframes rin{from{opacity:0;transform:translateX(-26px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes shine{0%{background-position:150% 0}55%,100%{background-position:-50% 0}}
+@keyframes bob{0%,100%{transform:rotate(-16deg) translateY(0)}50%{transform:rotate(-12deg) translateY(-3px)}}
+@keyframes tbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes flash{0%{filter:brightness(1.7)}100%{filter:none}}
+@media (prefers-reduced-motion:reduce){.pl::after,.cw,.r1 .av::before,#ttl .ic{animation:none!important}}
+</style></head><body class="k-kaspi">
+<div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
+<div id="root"><div id="board" class="d-classic"><div id="ttl"><span class="ic" id="ttic">₸</span><span class="tt" id="ttt">ТОП ДОНАТЫ КАСПИ</span><span class="pr" id="ttp" hidden></span></div><div id="rows"></div><div id="empty">Пока нет донатов. Здесь появятся самые щедрые зрители</div></div></div>
+<script>
+var Q=new URLSearchParams(location.search),KIND=Q.get('kind')==='da'?'da':'kaspi';
+var DESIGNS=['classic','gradient','minimal'],PERIODS={all:'',day:'24 ЧАСА',week:'7 ДНЕЙ',month:'30 ДНЕЙ'};
+var S={design:'classic',count:5,title:true,bg:true,period:'all'},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
+try{EMBED=window.parent&&window.parent!==window;}catch(_){}
+var board=document.getElementById('board'),rowsEl=document.getElementById('rows'),MAP={};
+var CROWN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><path d="M3 9l8 7 9-12 9 12 8-7-3 19H6z" fill="#ffcf40" stroke="#b9770e" stroke-width="2" stroke-linejoin="round"/><circle cx="3" cy="9" r="2.6" fill="#fff3c4"/><circle cx="20" cy="4" r="2.6" fill="#fff3c4"/><circle cx="37" cy="9" r="2.6" fill="#fff3c4"/></svg>');
+document.getElementById('ttt').textContent=KIND==='da'?'ТОП DONATIONALERTS':'ТОП ДОНАТЫ КАСПИ';
+document.getElementById('ttic').textContent=KIND==='da'?'♥':'₸';
+document.title=KIND==='da'?'Топ DonationAlerts':'Топ донаты Каспи';
+var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
+function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
+function keyOf(n){return String(n||'').trim().toLowerCase().replace(/\s+/g,' ');}
+// «1 донат», «2 доната», «5 донатов»
+function plural(n){var m=n%100,d=n%10,w=(m>10&&m<15)?'донатов':d===1?'донат':(d>1&&d<5)?'доната':'донатов';return n+' '+w;}
+function apply(){
+  var d=DESIGNS.indexOf(S.design)>=0?S.design:'classic';
+  board.className='d-'+d;
+  var pr=PERIODS[S.period]||'',pe=document.getElementById('ttp');
+  pe.hidden=!pr;pe.textContent=pr;
+  var bgOff=S.bg===false&&d==='classic'||S.bg===false&&d==='gradient';
+  document.body.className='k-'+KIND+(bgOff?' nobg':'')+(S.title===false?' notitle':'')+(BOX?' pv':'')+(EMBED&&!LIST.length?' empty':'');
+  board.style.zoom=PK;
+  render();
+  fitSelf();
+}
+// предпросмотр в приложении: по центру окошка, масштаб по реальному размеру
+function fitSelf(){
+  if(!BOX)return;
+  document.body.classList.add('pv');
+  board.style.zoom=1;
+  var bw=board.offsetWidth+36,bh=board.offsetHeight+44,k=Math.min(1.5,.96*BOX.w/bw,.96*BOX.h/bh);
+  PK=Math.max(.15,k);board.style.zoom=PK;
+}
+function mk(){
+  var r=document.createElement('div');r.className='row nw';
+  r.innerHTML='<div class="pl"></div><img class="cw" alt=""><div class="rk"></div><div class="av"><i></i></div><div class="tx"><span class="nm"></span><span class="sb"></span></div><span class="am"></span>';
+  r.querySelector('.cw').src=CROWN;
+  return r;
+}
+function setCls(r,base){var c=base+(r.classList.contains('up')?' up':'')+(r.classList.contains('nw')?' nw':'');if(r.className!==c)r.className=c;}
+function pulse(r){r.classList.remove('up');void r.offsetWidth;r.classList.add('up');clearTimeout(r._u);r._u=setTimeout(function(){r.classList.remove('up');},850);}
+function render(){
+  var n=Math.max(1,Math.min(10,Math.round(+S.count)||5)),items=LIST.slice(0,n),first={},k,i,seen={};
+  for(k in MAP)first[k]=MAP[k].getBoundingClientRect().top;
+  items.forEach(function(d,idx){
+    var nm=d.name||'Гость',key=keyOf(nm),r=MAP[key],isNew=false;seen[key]=1;
+    if(!r){r=MAP[key]=mk();isNew=true;}
+    r.style.order=idx;
+    setCls(r,'row r'+(idx+1));
+    r.querySelector('.rk').textContent=idx+1;
+    var a=r.querySelector('.av i');
+    if(a.dataset.nm!==nm){a.dataset.nm=nm;a.style.backgroundColor=colorOf(key);a.textContent=nm.charAt(0).toUpperCase();}
+    var ne=r.querySelector('.nm');if(ne.textContent!==nm)ne.textContent=nm;
+    var sb=plural(+d.count||1),se=r.querySelector('.sb');if(se.textContent!==sb)se.textContent=sb;
+    var am=String(d.money||''),ae=r.querySelector('.am');
+    if(ae.textContent!==am){ae.textContent=am;if(PREV[key]!==undefined&&PREV[key]!==am)pulse(r);}
+    PREV[key]=am;
+    if(isNew){rowsEl.appendChild(r);setTimeout(function(){r.classList.remove('nw');},700);} // порядок задаёт CSS order: строки в DOM не переставляются, иначе анимации перезапускаются
+  });
+  for(k in MAP)if(!seen[k]){MAP[k].remove();delete MAP[k];delete PREV[k];}
+  document.body.classList.toggle('empty',EMBED&&!items.length);
+  if(BOX&&!render.busy){render.busy=1;fitSelf();render.busy=0;}
+  // строки, сменившие место, «ездят» на новое
+  for(i=0;i<items.length;i++){var kk=keyOf(items[i].name||'Гость'),el=MAP[kk];if(!el||first[kk]===undefined||!el.animate)continue;var dy=(first[kk]-el.getBoundingClientRect().top)/(PK||1);if(Math.abs(dy)>2)el.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:450,easing:'cubic-bezier(.2,.9,.3,1)'});}
+}
+var FIXED=+Q.get('port')||0;
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var nc=document.getElementById('nc'),ncT=null;
+function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
+var told=false;
+function tellReady(){if(told)return;told=true;try{if(EMBED)window.parent.postMessage({echochat:'topdon-ready',kind:KIND},'*');}catch(_){}}
+window.addEventListener('message',function(e){var d=e.data;if(EMBED&&e.source===window.parent&&d&&d.echochat==='fit'){if(d.w>0&&d.h>0){BOX={w:+d.w,h:+d.h};apply();}else{var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}}});
+function bind(es){
+  es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
+  es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=Array.isArray(d[KIND])?d[KIND]:[];apply();});
+  // пробный список приходит всем страницам, но показывает его только предпросмотр внутри приложения: на стрим тест не попадает
+  es.addEventListener('tdtest',function(e){if(!EMBED)return;var d=JSON.parse(e.data)||{};LIST=Array.isArray(d[KIND])?d[KIND]:[];apply();});
+}
+function connect(){
+  if(!REMOTE){bind(new EventSource('/events'));return;}
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+apply();connect();
+</script></body></html>
