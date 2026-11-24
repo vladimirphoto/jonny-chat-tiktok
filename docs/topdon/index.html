@@ -72,8 +72,10 @@ body.nobg .pl{display:none}
 <div id="root"><div id="board" class="d-classic"><div id="ttl"><span class="ic" id="ttic">₸</span><span class="tt" id="ttt">ТОП ДОНАТЫ КАСПИ</span><span class="pr" id="ttp" hidden></span></div><div id="rows"></div><div id="empty">Пока нет донатов. Здесь появятся самые щедрые зрители</div></div></div>
 <script>
 var Q=new URLSearchParams(location.search),KIND=Q.get('kind')==='da'?'da':'kaspi';
-var DESIGNS=['classic','gradient','minimal'],PERIODS={all:'',day:'24 ЧАСА',week:'7 ДНЕЙ',month:'30 ДНЕЙ'};
-var S={design:'classic',count:5,title:true,bg:true,period:'all'},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
+var DESIGNS=['classic','gradient','minimal'],PERIODS={all:'ВСЁ ВРЕМЯ',day:'СЕГОДНЯ',month:'МЕСЯЦ'};
+// какой топ показывать, задаёт ссылка: ?period=day (с полуночи), month (с 1-го числа), all (за всё время, по умолчанию)
+var PERIOD=PERIODS[Q.get('period')]?Q.get('period'):'all';
+var S={design:'classic',count:5,title:true,bg:true},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
 try{EMBED=window.parent&&window.parent!==window;}catch(_){}
 var board=document.getElementById('board'),rowsEl=document.getElementById('rows'),MAP={};
 var CROWN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><path d="M3 9l8 7 9-12 9 12 8-7-3 19H6z" fill="#ffcf40" stroke="#b9770e" stroke-width="2" stroke-linejoin="round"/><circle cx="3" cy="9" r="2.6" fill="#fff3c4"/><circle cx="20" cy="4" r="2.6" fill="#fff3c4"/><circle cx="37" cy="9" r="2.6" fill="#fff3c4"/></svg>');
@@ -88,7 +90,7 @@ function plural(n){var m=n%100,d=n%10,w=(m>10&&m<15)?'донатов':d===1?'д�
 function apply(){
   var d=DESIGNS.indexOf(S.design)>=0?S.design:'classic';
   board.className='d-'+d;
-  var pr=PERIODS[S.period]||'',pe=document.getElementById('ttp');
+  var pr=PERIODS[PERIOD]||'',pe=document.getElementById('ttp');
   pe.hidden=!pr;pe.textContent=pr;
   var bgOff=S.bg===false&&d==='classic'||S.bg===false&&d==='gradient';
   document.body.className='k-'+KIND+(bgOff?' nobg':'')+(S.title===false?' notitle':'')+(BOX?' pv':'')+(EMBED&&!LIST.length?' empty':'');
@@ -145,11 +147,13 @@ function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 var told=false;
 function tellReady(){if(told)return;told=true;try{if(EMBED)window.parent.postMessage({echochat:'topdon-ready',kind:KIND},'*');}catch(_){}}
 window.addEventListener('message',function(e){var d=e.data;if(EMBED&&e.source===window.parent&&d&&d.echochat==='fit'){if(d.w>0&&d.h>0){BOX={w:+d.w,h:+d.h};apply();}else{var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}}});
+// из {kaspi:{all,day,month},da:{...}} берём список своей площадки и своего периода
+function pick(d){var x=d&&d[KIND]&&d[KIND][PERIOD];return Array.isArray(x)?x:[];}
 function bind(es){
   es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
-  es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=Array.isArray(d[KIND])?d[KIND]:[];apply();});
+  es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=pick(d);apply();});
   // пробный список приходит всем страницам, но показывает его только предпросмотр внутри приложения: на стрим тест не попадает
-  es.addEventListener('tdtest',function(e){if(!EMBED)return;var d=JSON.parse(e.data)||{};LIST=Array.isArray(d[KIND])?d[KIND]:[];apply();});
+  es.addEventListener('tdtest',function(e){if(!EMBED)return;var d=JSON.parse(e.data)||{};LIST=pick(d);apply();});
 }
 function connect(){
   if(!REMOTE){bind(new EventSource('/events'));return;}
