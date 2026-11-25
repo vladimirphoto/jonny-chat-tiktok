@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ЭхоЧат LIVE — чат вашего стрима читают живые голоса</title>
 <meta name="description" content="Озвучка чата TikTok LIVE, Twitch и YouTube, виджеты для OBS, оверлей, аватар по камере и донаты на экране. Lite бесплатно, Pro от 5 000 ₸ в месяц.">
-<meta name="theme-color" content="#06050a">
+<meta name="theme-color" content="#0a0a11">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ЭхоЧат LIVE — чат вашего стрима читают живые голоса">
 <meta property="og:description" content="Озвучка чата, оверлей, виджеты для OBS, аватар по камере и донаты на экране. Lite бесплатно, 3 дня полный доступ.">
@@ -15,26 +15,26 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ЭхоЧат LIVE","operatingSystem":"Windows, macOS","applicationCategory":"MultimediaApplication","description":"Озвучка чата TikTok LIVE, Twitch и YouTube, оверлей, виджеты для OBS, аватар по камере, донаты Каспи и DonationAlerts.","offers":[{"@type":"Offer","name":"Lite","price":"0","priceCurrency":"KZT"},{"@type":"Offer","name":"Pro, подписка на 30 дней","price":"5000","priceCurrency":"KZT"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <style>
-:root{color-scheme:dark;--bg:#06050a;--bg2:#0d0b14;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--tx:#f6f4fc;--mut:#a29eb5;--dim:#6c687e;--a:#a78bfa;--b:#f472b6;--c:#38bdf8;--ok:#5eead4;--grad:linear-gradient(110deg,#a78bfa,#f472b6 60%,#fb923c);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{color-scheme:dark;--bg:#0a0a11;--bg2:#101019;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--tx:#ecebf5;--mut:#8c8aa3;--dim:#5f5d78;--a:#8b5cf6;--b:#ec4899;--c:#22d3ee;--ok:#34d399;--grad:linear-gradient(135deg,#8b5cf6,#ec4899);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-behavior:smooth;scroll-padding-top:calc(84px + env(safe-area-inset-top,0px))}
 *,*::before,*::after{box-sizing:border-box;margin:0}
 body{background:var(--bg);color:var(--tx);font:400 16px/1.6 "Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:rgba(6,5,10,.85);z-index:90}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:rgba(10,10,17,.85);z-index:90}
 a{color:inherit;text-decoration:none}.w{max-width:1160px;margin:0 auto;padding:0 24px}
 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sh 6s linear infinite}@keyframes sh{to{background-position:-200% 0}}
 /* mesh bg */
 .mesh{position:absolute;inset:-100px 0 auto;height:900px;z-index:-1;overflow:hidden;pointer-events:none;mask-image:linear-gradient(#000 55%,transparent)}
 .mesh i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:fl 14s ease-in-out infinite alternate}
-.mesh i:nth-child(1){width:520px;height:520px;background:#7c3aed;left:8%;top:60px}.mesh i:nth-child(2){width:460px;height:460px;background:#db2777;right:6%;top:120px;animation-delay:-5s}.mesh i:nth-child(3){width:380px;height:380px;background:#0ea5e9;left:42%;top:260px;opacity:.3;animation-delay:-9s}
+.mesh i:nth-child(1){width:520px;height:520px;background:#8b5cf6;left:8%;top:60px}.mesh i:nth-child(2){width:460px;height:460px;background:#ec4899;right:6%;top:120px;animation-delay:-5s}.mesh i:nth-child(3){width:380px;height:380px;background:#22d3ee;left:42%;top:260px;opacity:.3;animation-delay:-9s}
 @keyframes fl{to{transform:translate(60px,40px) scale(1.15)}}
 .mesh::after{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(closest-side at 50% 30%,#000,transparent);opacity:.7}
 /* nav */
-.nav{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:30px;padding:8px 8px 8px 22px;border:1px solid var(--line2);border-radius:999px;background:rgba(14,12,22,.6);backdrop-filter:blur(18px);width:min(920px,calc(100% - 24px));justify-content:space-between}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em}.logo i{width:26px;height:26px;border-radius:8px;background:var(--grad);display:grid;place-items:center}.logo i::after{content:"";width:10px;height:10px;border-radius:50%;background:#06050a}
+.nav{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:30px;padding:8px 8px 8px 22px;border:1px solid var(--line2);border-radius:999px;background:rgba(16,16,25,.6);backdrop-filter:blur(18px);width:min(920px,calc(100% - 24px));justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em}.logo i{width:26px;height:26px;border-radius:8px;background:var(--grad);display:grid;place-items:center}.logo i::after{content:"";width:10px;height:10px;border-radius:50%;background:#0a0a11}
 .links{display:flex;gap:26px;font-size:14px;color:var(--mut)}.links a:hover{color:var(--tx)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 26px;border-radius:999px;font:700 14.5px "Manrope",sans-serif;border:1px solid var(--line2);color:var(--tx);background:rgba(255,255,255,.02);cursor:pointer;transition:.25s}
 .btn:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.07)}
-.btn.p{background:var(--tx);color:#0a0910;border-color:transparent}.btn.p:hover{background:#fff;box-shadow:0 10px 50px rgba(167,139,250,.6);transform:translateY(-2px)}.nav .btn{height:40px;padding:0 20px}
+.btn.p{background:var(--tx);color:#0a0910;border-color:transparent}.btn.p:hover{background:#fff;box-shadow:0 10px 50px rgba(139,92,246,.6);transform:translateY(-2px)}.nav .btn{height:40px;padding:0 20px}
 /* hero */
 .hero{position:relative;text-align:center;padding:150px 0 40px}
 .tag{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:7px 16px;background:rgba(255,255,255,.03);backdrop-filter:blur(8px)}.tag b{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 12px var(--ok);animation:pu 1.6s infinite}@keyframes pu{50%{opacity:.3}}
@@ -42,7 +42,7 @@ h1{font-size:clamp(42px,8vw,92px);line-height:1;letter-spacing:-.045em;font-weig
 .lead{font-size:clamp(17px,2vw,21px);color:var(--mut);max-width:640px;margin:0 auto 36px}
 .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.note{margin-top:20px;font-size:13px;color:var(--dim)}
 .stage{position:relative;max-width:980px;margin:80px auto 0;perspective:1400px}
-.app{position:relative;border:1px solid var(--line2);border-radius:22px;background:linear-gradient(180deg,#171320,#0b0911);box-shadow:0 80px 140px -40px rgba(124,58,237,.5),0 0 0 1px rgba(255,255,255,.03) inset;text-align:left;overflow:hidden;transform:rotateX(6deg);transition:transform .4s ease;transform-origin:50% 100%}
+.app{position:relative;border:1px solid var(--line2);border-radius:22px;background:linear-gradient(180deg,#171320,#0b0911);box-shadow:0 80px 140px -40px rgba(139,92,246,.5),0 0 0 1px rgba(255,255,255,.03) inset;text-align:left;overflow:hidden;transform:rotateX(6deg);transition:transform .4s ease;transform-origin:50% 100%}
 .bar{display:flex;align-items:center;gap:7px;padding:14px 18px;border-bottom:1px solid var(--line)}.bar i{width:10px;height:10px;border-radius:50%;background:#2c2839}.bar span{margin-left:auto;font-size:12px;color:var(--ok);display:inline-flex;align-items:center;gap:6px}.bar span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pu 1.6s infinite}
 .sbar{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}.sbar div{padding:14px 20px;border-right:1px solid var(--line)}.sbar div:last-child{border:0}.sbar small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}.sbar b{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .body{display:grid;grid-template-columns:1.5fr 1fr}.feed{padding:20px;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;border-right:1px solid var(--line);overflow:hidden;height:320px}
@@ -57,35 +57,35 @@ h1{font-size:clamp(42px,8vw,92px);line-height:1;letter-spacing:-.045em;font-weig
 section{padding:120px 0;position:relative}.eyebrow{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--a);font-weight:700;margin-bottom:16px}
 h2{font-size:clamp(32px,5vw,58px);line-height:1.05;letter-spacing:-.04em;font-weight:800;max-width:800px}.sub{color:var(--mut);margin-top:18px;max-width:580px;font-size:18px}
 /* demo */
-.demo{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line2);border-radius:28px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));box-shadow:0 60px 120px -50px rgba(167,139,250,.4)}
+.demo{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line2);border-radius:28px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));box-shadow:0 60px 120px -50px rgba(139,92,246,.4)}
 .dl{padding:36px;border-right:1px solid var(--line)}.dr{padding:36px;background:#09070f;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:380px}
 .lab{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700;margin:0 0 10px}
-.inp{display:flex;gap:10px}.inp input{flex:1;min-width:0;height:50px;border-radius:14px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--tx);padding:0 16px;font:500 15px "Manrope",sans-serif;outline:0}.inp input:focus{border-color:var(--a);box-shadow:0 0 0 4px rgba(167,139,250,.2)}.inp .btn{height:50px;border-radius:14px;padding:0 22px}
+.inp{display:flex;gap:10px}.inp input{flex:1;min-width:0;height:50px;border-radius:14px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--tx);padding:0 16px;font:500 15px "Manrope",sans-serif;outline:0}.inp input:focus{border-color:var(--a);box-shadow:0 0 0 4px rgba(139,92,246,.2)}.inp .btn{height:50px;border-radius:14px;padding:0 22px}
 .ex{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 26px}.ex button,.sw label{font:500 13px "Manrope",sans-serif;color:#d9d6e6;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;transition:.2s}.ex button:hover{border-color:var(--line2);background:rgba(255,255,255,.08)}
-.sw{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}.sw input{display:none}.sw input:checked+label{background:rgba(167,139,250,.2);border-color:var(--a);color:#fff}
+.sw{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}.sw input{display:none}.sw input:checked+label{background:rgba(139,92,246,.2);border-color:var(--a);color:#fff}
 select{width:100%;height:46px;border-radius:12px;border:1px solid var(--line2);background:#14111d;color:var(--tx);padding:0 12px;font:500 14px "Manrope",sans-serif}
 .out{display:flex;flex-direction:column;gap:10px}.res{font-size:14px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);animation:in .4s both}.res.ok{border-color:rgba(94,234,212,.45)}.res.no{border-color:rgba(248,113,113,.45);color:#fca5a5}.res small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;color:var(--ok);font-weight:700}.res.no small{color:#f87171}
 .dwave{display:flex;align-items:center;gap:3px;height:56px}.dwave i{flex:1;border-radius:3px;background:var(--grad);height:8%;transition:height .15s}.dwave.on i{animation:wv .9s ease-in-out infinite}
 /* bento */
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:60px}
 .card{position:relative;grid-column:span 2;border:1px solid var(--line);border-radius:26px;padding:30px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));overflow:hidden;transition:border-color .3s,transform .3s}
-.card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(167,139,250,.16),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}.card:hover::before{opacity:1}.card:hover{border-color:var(--line2)}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(139,92,246,.16),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}.card:hover::before{opacity:1}.card:hover{border-color:var(--line2)}
 .card.w3{grid-column:span 3}.card.w4{grid-column:span 4}.card h3{font-size:22px;letter-spacing:-.025em;margin:14px 0 8px}.card p{color:var(--mut);font-size:15px;max-width:460px}
 .pill{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--mut)}.pill.pro{color:#0a0910;background:var(--grad);border-color:transparent}
 .viz{margin-top:24px;min-height:150px;position:relative}
 .chips{display:flex;flex-wrap:wrap;gap:8px}.chip{font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:#d9d6e6}.chip.h{background:var(--grad);color:#0a0910;border-color:transparent;font-weight:700}
-.lb{position:relative;height:168px}.lb div{position:absolute;left:0;right:0;height:48px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);transition:top .8s cubic-bezier(.7,0,.2,1)}.lb div:first-child{border-color:rgba(251,146,60,.6);box-shadow:0 0 30px rgba(251,146,60,.2)}
+.lb{position:relative;height:168px}.lb div{position:absolute;left:0;right:0;height:48px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);transition:top .8s cubic-bezier(.7,0,.2,1)}.lb div:first-child{border-color:rgba(236,72,153,.6);box-shadow:0 0 30px rgba(236,72,153,.2)}
 .lb i{width:30px;height:30px;border-radius:50%;flex:none}.lb b{flex:1;font-size:14px}.lb span{color:var(--mut);font-size:13px}
-.face{width:104px;height:104px;border-radius:50%;margin:6px auto 0;background:var(--grad);position:relative;box-shadow:0 0 70px rgba(244,114,182,.45);animation:hd 5s ease-in-out infinite}@keyframes hd{25%{transform:rotate(-6deg) translateX(-6px)}75%{transform:rotate(6deg) translateX(6px)}}
+.face{width:104px;height:104px;border-radius:50%;margin:6px auto 0;background:var(--grad);position:relative;box-shadow:0 0 70px rgba(236,72,153,.45);animation:hd 5s ease-in-out infinite}@keyframes hd{25%{transform:rotate(-6deg) translateX(-6px)}75%{transform:rotate(6deg) translateX(6px)}}
 .face::before,.face::after{content:"";position:absolute;top:38px;width:12px;height:18px;border-radius:50%;background:#0a0910;animation:bl 4s infinite}.face::before{left:30px}.face::after{right:30px}@keyframes bl{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
 .mouth{position:absolute;left:50%;bottom:24px;width:26px;height:10px;margin-left:-13px;border-radius:0 0 20px 20px;background:#0a0910;animation:mo 1.2s infinite}@keyframes mo{50%{height:3px}}
 .bub{display:block;width:max-content;max-width:100%;margin:14px auto 0;font-size:13px;background:rgba(255,255,255,.07);border:1px solid var(--line2);border-radius:14px;padding:8px 14px}
-.pin{font-size:13px;padding:10px 14px;border-radius:12px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.45);margin-bottom:10px}.pin small{display:block;color:var(--a);font-weight:800;font-size:11px;letter-spacing:.06em}
+.pin{font-size:13px;padding:10px 14px;border-radius:12px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.45);margin-bottom:10px}.pin small{display:block;color:var(--a);font-weight:800;font-size:11px;letter-spacing:.06em}
 .don{position:relative;display:grid;place-items:center;height:150px}.dt{padding:16px 26px;border-radius:18px;text-align:center;min-width:220px;transition:all .4s;animation:bob 3s ease-in-out infinite alternate}.dt b{display:block;font-size:30px;letter-spacing:-.03em}.dt small{font-size:13px;opacity:.8}
 .dt.std{background:#17131f;border:1px solid var(--line2)}.dt.std b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .dt.neon{background:#05030a;border:2px solid #22d3ee;box-shadow:0 0 30px #22d3ee88,inset 0 0 20px #22d3ee33;color:#a5f3fc}.dt.neon b{text-shadow:0 0 14px #22d3ee}
 .dt.min{background:#fff;color:#111;border-radius:6px}.dt.min b{font-weight:600}
-.dt.party{background:linear-gradient(135deg,#f472b6,#fb923c,#facc15);color:#2a0a1a;box-shadow:0 20px 60px rgba(251,146,60,.5)}.dt.party::after{content:"🎉";position:absolute;right:calc(50% - 130px);top:6px;font-size:24px}
+.dt.party{background:linear-gradient(135deg,#f472b6,#fb923c,#facc15);color:#2a0a1a;box-shadow:0 20px 60px rgba(236,72,153,.5)}.dt.party::after{content:"🎉";position:absolute;right:calc(50% - 130px);top:6px;font-size:24px}
 .dsw{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.dsw button{font:600 12px "Manrope",sans-serif;color:var(--mut);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}.dsw button.on{background:var(--tx);color:#0a0910;border-color:transparent}
 .snd{display:grid;gap:8px}.snd div{display:flex;justify-content:space-between;font-size:13px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.03)}.snd b{color:var(--ok);font-weight:600}
 /* stats */
@@ -93,14 +93,14 @@ select{width:100%;height:46px;border-radius:12px;border:1px solid var(--line2);b
 /* steps */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}.step{padding:34px;border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.02)}.step span{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.step h3{font-size:22px;letter-spacing:-.02em;margin:18px 0 8px}.step p{color:var(--mut);font-size:15px}
 /* pricing */
-.promo{margin-top:44px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border:1px solid rgba(244,114,182,.45);background:linear-gradient(90deg,rgba(244,114,182,.12),rgba(251,146,60,.06));border-radius:20px;padding:18px 26px}.promo p{font-size:15px}.promo p b{color:var(--b)}
+.promo{margin-top:44px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border:1px solid rgba(236,72,153,.45);background:linear-gradient(90deg,rgba(236,72,153,.12),rgba(236,72,153,.06));border-radius:20px;padding:18px 26px}.promo p{font-size:15px}.promo p b{color:var(--b)}
 .cd{display:flex;gap:10px}.cd div{min-width:62px;text-align:center;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--line)}.cd b{display:block;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.cd small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px;align-items:stretch}
 .plan{border:1px solid var(--line);border-radius:28px;padding:38px;background:rgba(255,255,255,.02);display:flex;flex-direction:column}
-.plan.pro{border:1px solid transparent;background:linear-gradient(#0f0c18,#0f0c18) padding-box,linear-gradient(140deg,#a78bfa,#f472b6,#fb923c) border-box;box-shadow:0 50px 120px -40px rgba(167,139,250,.6);transform:translateY(-12px)}
+.plan.pro{border:1px solid transparent;background:linear-gradient(#11111a,#11111a) padding-box,linear-gradient(140deg,#8b5cf6,#f472b6,#fb923c) border-box;box-shadow:0 50px 120px -40px rgba(139,92,246,.6);transform:translateY(-12px)}
 .plan h3{font-size:13px;color:var(--mut);font-weight:800;letter-spacing:.1em}.price{font-size:54px;font-weight:800;letter-spacing:-.045em;margin:12px 0 2px;line-height:1}.price small{font-size:17px;color:var(--mut);font-weight:600;margin-left:6px;letter-spacing:0}.price s{font-size:24px;color:var(--dim);font-weight:600;margin-right:10px}
 .pd{color:var(--dim);font-size:14px;margin-bottom:26px;min-height:44px}.plan ul{list-style:none;padding:0;display:grid;gap:12px;margin-bottom:32px;font-size:14.5px;flex:1}.plan li{display:flex;gap:11px;color:#dcd9e8}
-.plan li::before,.mx td.y::before{content:"";flex:none;width:16px;height:16px;margin-top:4px;border-radius:50%;background:rgba(255,255,255,.14) center/9px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.2l2 2L8 3' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.plan.pro li::before,.mx td.y::before{background-color:#a78bfa}.plan .btn{width:100%}
+.plan li::before,.mx td.y::before{content:"";flex:none;width:16px;height:16px;margin-top:4px;border-radius:50%;background:rgba(255,255,255,.14) center/9px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.2l2 2L8 3' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.plan.pro li::before,.mx td.y::before{background-color:#8b5cf6}.plan .btn{width:100%}
 .mxw{margin-top:48px;border:1px solid var(--line);border-radius:24px;overflow-x:auto}.mx{width:100%;border-collapse:collapse;font-size:14.5px;min-width:560px}.mx th,.mx td{padding:15px 22px;text-align:center;border-bottom:1px solid var(--line)}.mx th:first-child,.mx td:first-child{text-align:left;color:#dcd9e8}.mx th{font-size:12px;letter-spacing:.1em;color:var(--mut);background:rgba(255,255,255,.03)}.mx tr:last-child td{border:0}.mx td.y::before{display:inline-block;vertical-align:middle;margin:0}.mx td.n{color:var(--dim)}
 .faq{margin-top:48px;max-width:800px;border-top:1px solid var(--line)}details{border-bottom:1px solid var(--line);padding:24px 0}summary{cursor:pointer;list-style:none;font-size:18px;font-weight:700;display:flex;justify-content:space-between;gap:20px}summary::-webkit-details-marker{display:none}summary::after{content:"+";color:var(--a);font-size:26px;line-height:1;transition:.3s}details[open] summary::after{transform:rotate(45deg)}details p{color:var(--mut);margin-top:12px;font-size:15px}
 .final{text-align:center;overflow:hidden}.final .mesh{inset:auto 0 -200px;top:auto;height:700px;mask-image:linear-gradient(transparent,#000 50%)}.final h2{margin:0 auto;font-size:clamp(38px,7vw,80px)}.final .cta{margin-top:40px}.author{color:var(--mut);max-width:560px;margin:28px auto 0;font-size:15px}
@@ -108,11 +108,19 @@ footer{border-top:1px solid var(--line);padding:30px 0;font-size:13px;color:var(
 .fade{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}.fade.v{opacity:1;transform:none}
 @media(max-width:940px){.links{display:none}section{padding:84px 0}.hero{padding-top:120px}.demo,.steps,.plans{grid-template-columns:1fr}.dl{border-right:0;border-bottom:1px solid var(--line)}.bento{grid-template-columns:1fr}.card,.card.w3,.card.w4{grid-column:auto}.body{grid-template-columns:1fr}.feed{border-right:0;border-bottom:1px solid var(--line);height:280px}.sbar{grid-template-columns:repeat(2,1fr)}.sbar div:nth-child(2){border-right:0}.sbar div:nth-child(-n+2){border-bottom:1px solid var(--line)}.fc{display:none}.app{transform:none}.band{grid-template-columns:repeat(2,1fr)}.band div:nth-child(2){border-right:0}.band div:nth-child(-n+2){border-bottom:1px solid var(--line)}.plan.pro{transform:none}.nav{gap:10px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.fade{opacity:1;transform:none}}
+.gt{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}.gt button{font:600 14px "Manrope",sans-serif;color:var(--mut);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:10px 20px;cursor:pointer;transition:.2s}.gt button:hover{color:var(--tx);border-color:var(--line2)}.gt button.on{background:var(--grad);color:#fff;border-color:transparent}
+.gcap{color:var(--mut);margin:18px 0 22px;font-size:16px;min-height:26px}.gframe{border:1px solid var(--line2);border-radius:22px;overflow:hidden;box-shadow:0 60px 120px -40px rgba(139,92,246,.5);background:#0a0a11}.gframe img{display:block;width:100%;height:auto;transition:opacity .25s}
+.logo{font-size:17px}
+.dt.aurora{background:linear-gradient(135deg,#0f766e,#6d28d9,#be185d);background-size:200% 200%;animation:bob 3s ease-in-out infinite alternate,au 6s linear infinite;border:1px solid rgba(255,255,255,.25);color:#fff;box-shadow:0 20px 60px rgba(109,40,217,.5)}@keyframes au{50%{background-position:100% 100%}}
+.dt.eq{background:#0b0b12;border:1px solid var(--line2);color:#fff;position:relative;overflow:hidden;padding-bottom:30px}.dt.eq::after{content:"";position:absolute;left:14px;right:14px;bottom:8px;height:14px;background:repeating-linear-gradient(90deg,#22d3ee 0 4px,transparent 4px 9px);animation:eqa .8s ease-in-out infinite alternate;transform-origin:bottom;mask-image:linear-gradient(90deg,#000,#000)}@keyframes eqa{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+.dt.crystal{background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(10px);color:#fff;box-shadow:0 0 40px rgba(34,211,238,.35),inset 0 0 24px rgba(255,255,255,.12)}
+.dt.orbit{background:#0b0b12;border:1px solid var(--line2);color:#fff;position:relative}.dt.orbit::before{content:"";position:absolute;inset:-9px;border-radius:26px;border:2px solid transparent;border-top-color:#8b5cf6;border-right-color:#ec4899;animation:ro 2.4s linear infinite}@keyframes ro{to{transform:rotate(360deg)}}
+.dt.aurora b,.dt.eq b,.dt.crystal b,.dt.orbit b{background:none;-webkit-text-fill-color:#fff}
 </style></head><body>
-<nav class="nav"><a class="logo" href="#top"><i></i>ЭхоЧат LIVE</a><div class="links"><a href="#demo">Демо</a><a href="#features">Возможности</a><a href="#plans">Тарифы</a><a href="#faq">Вопросы</a></div><a class="btn p" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></nav>
+<nav class="nav"><a class="logo" href="#top"><img src="img/icon.png" alt="" width="30" height="30" style="border-radius:9px;display:block">ЭхоЧат LIVE</a><div class="links"><a href="#demo">Демо</a><a href="#features">Возможности</a><a href="#plans">Тарифы</a><a href="#faq">Вопросы</a></div><a class="btn p" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать</a></nav>
 
 <header class="hero" id="top"><div class="mesh"><i></i><i></i><i></i></div><div class="w">
-<span class="tag"><b></b>Версия 6.6.8 · Windows и Mac</span>
+<span class="tag"><b></b>Версия 6.6.9 · Windows и Mac</span>
 <h1>Чат вашего стрима читают <em>живые голоса</em></h1>
 <p class="lead">Озвучка, оверлей, виджеты, аватар по камере и донаты на экране эфира. Одна программа вместо пяти.</p>
 <div class="cta"><a class="btn p" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest/download/EchoChat-LIVE-Setup.exe">Скачать для Windows</a><a class="btn" href="https://github.com/vladimirphoto/jonny-chat-tiktok/releases/latest">Для Mac (M1 и новее)</a></div>
@@ -121,9 +129,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;font-size:13px;color:var(
 <div class="fc a"><small>Подарок</small><b>Роза ×5</b>Marina_KZ</div>
 <div class="fc b"><small>Донат на экране</small><b>12 500 ₸</b>Айдос А.</div>
 <div class="fc c"><small>Закреплено</small><b>Розыгрыш в конце</b>до конца эфира</div>
-<div class="app" id="app"><div class="bar"><i></i><i></i><i></i><span>В эфире</span></div>
-<div class="sbar"><div><small>Зрители</small><b id="s1">1 284</b></div><div><small>Лайки</small><b id="s2">18 940</b></div><div><small>Подарки</small><b>236</b></div><div><small>Подписки</small><b>41</b></div></div>
-<div class="body"><div class="feed" id="feed"></div><div class="voice"><div class="vh"><div class="av">С</div><div><b>Светлана</b><small>родной русский, тёплый</small></div></div><div><div class="wave" id="wave"></div><p class="say" id="say">Жду сообщений…</p></div></div></div></div></div>
+<div class="app" id="app"><img src="img/app-live.webp" alt="Окно программы ЭхоЧат LIVE: вкладка «Эфир»" width="1600" height="1081" style="display:block;width:100%;height:auto"></div></div>
 <div class="mq"><div><span>TikTok LIVE</span><span>Twitch</span><span>YouTube</span><span>OBS Studio</span><span>TikTok LIVE Studio</span><span>Каспи</span><span>DonationAlerts</span><span>Telegram</span><span>Live2D</span><span>VRM</span><span>Fish Audio</span><span>TikTok LIVE</span><span>Twitch</span><span>YouTube</span><span>OBS Studio</span><span>TikTok LIVE Studio</span><span>Каспи</span><span>DonationAlerts</span><span>Telegram</span><span>Live2D</span><span>VRM</span><span>Fish Audio</span></div></div>
 </div></header>
 
@@ -137,16 +143,19 @@ footer{border-top:1px solid var(--line);padding:30px 0;font-size:13px;color:var(
 
 <section style="padding-top:20px"><div class="w"><div class="band fade"><div><b data-n="10">0</b><span>нейро-голосов бесплатно</span></div><div><b data-n="3">0</b><span>платформы: TikTok, Twitch, YouTube</span></div><div><b data-n="8">0</b><span>дизайнов оповещений</span></div><div><b data-n="3">0</b><span>дня полного доступа</span></div></div></div></section>
 
-<section style="padding:20px 0 60px"><div class="w"><div class="fade" style="border:1px solid var(--line2);border-radius:22px;overflow:hidden;box-shadow:0 60px 120px -40px rgba(124,58,237,.45);background:#0b0911"><img src="img/live.webp" alt="Окно программы ЭхоЧат LIVE: счётчики эфира и лента чата" loading="lazy" style="display:block;width:100%;height:auto"></div></div></section>
+<section id="app-tour" style="padding:20px 0 70px"><div class="w"><div class="eyebrow fade">Программа изнутри</div><h2 class="fade">Так выглядит <em>ЭхоЧат LIVE</em> 6.6.9</h2>
+<div class="gt fade" id="gt"><button class="on" data-i="live">Эфир</button><button data-i="voice">Озвучка</button><button data-i="widgets">Виджеты</button><button data-i="overlay">Оверлей чата</button><button data-i="kaspi">Донаты Каспи</button></div>
+<p class="gcap fade" id="gcap">Подключись к TikTok LIVE и слушай чат вслух</p>
+<div class="gframe fade"><img id="gimg" src="img/app-live.webp" alt="Окно программы ЭхоЧат LIVE" loading="lazy" width="1600" height="1081"></div></div></section>
 <section id="features" style="padding-top:60px"><div class="w"><div class="eyebrow fade">Возможности</div><h2 class="fade">Всё, что нужно стримеру, <em>в одном окне</em></h2>
 <div class="bento">
 <div class="card w4 fade"><span class="pill">FREE</span><h3>Озвучка живыми голосами</h3><p>Сообщения, подарки, подписки и донаты читаются отдельно. Свой голос для TikTok и Twitch, личные голоса для зрителей, голос по уровню фан-клуба, фильтры мата, ссылок, команд и повторов.</p><div class="viz"><div class="chips"><span class="chip h">Светлана</span><span class="chip">Дмитрий</span><span class="chip">Ава</span><span class="chip">Эмма</span><span class="chip">Вивьен</span><span class="chip">Серафина</span><span class="chip">Эндрю</span><span class="chip">Брайан</span><span class="chip">Реми</span><span class="chip">Флориан</span></div><div class="wave" style="margin-top:22px;height:50px" id="wave2"></div></div></div>
 <div class="card fade"><span class="pill pro">PRO</span><h3>Аватар по камере</h3><p>2D Live2D и 3D VRM. Видео остаётся на вашем компьютере.</p><div class="viz"><div class="face"><div class="mouth"></div></div><span class="bub">Здравствуйте из Алматы!</span></div></div>
 <div class="card w3 fade"><span class="pill pro">PRO</span><h3>Топ лайков и подарков</h3><p>Кто обгоняет лидера, тот выходит на первое место с анимацией. Ссылка для OBS и TikTok LIVE Studio.</p><div class="viz"><div class="lb" id="lb"></div></div></div>
-<div class="card w3 fade"><span class="pill pro">PRO</span><h3>Донаты Каспи и DonationAlerts</h3><p>Выберите дизайн плашки: нажмите на кнопку.</p><div class="viz"><div class="don"><div class="dt std" id="dt"><small>Донат на экране</small><b>12 500 ₸</b><small>Айдос А.</small></div></div><div class="dsw" id="dsw"><button class="on" data-d="std">Стандарт</button><button data-d="neon">Неон</button><button data-d="min">Минимал</button><button data-d="party">Праздник</button></div></div></div>
+<div class="card w3 fade"><span class="pill pro">PRO</span><h3>Донаты Каспи и DonationAlerts</h3><p>Выберите дизайн плашки: нажмите на кнопку.</p><div class="viz"><div class="don"><div class="dt aurora" id="dt"><small>Донат на экране</small><b>12 500 ₸</b><small>Айдос А.</small></div></div><div class="dsw" id="dsw"><button class="on" data-d="aurora">Аврора</button><button data-d="eq">Эквалайзер</button><button data-d="crystal">Кристалл</button><button data-d="orbit">Орбита</button></div></div></div>
 <div class="card w3 fade"><span class="pill pro">PRO</span><h3>Оверлей чата поверх всех окон</h3><p>Как чат в TikTok LIVE Studio: LIVE-таймер, счётчики, общая лента TikTok и Twitch. Закреп сообщений на время или до конца эфира.</p><div class="viz"><div class="pin"><small>ЗАКРЕПЛЕНО · 14:58</small>Розыгрыш в конце эфира, не уходите!</div><div class="m g" style="animation:none"><u>Aidos</u>Привет, Светлана!</div></div></div>
 <div class="card w3 fade"><span class="pill pro">PRO</span><h3>Звуки стрима</h3><p>Каждый подарок и каждая сумма доната получают свой звук. Своя библиотека, до 5 МБ на файл.</p><div class="viz"><div class="snd"><div>Подарок «Роза»<b>→ звук</b></div><div>Донат от 5 000 ₸<b>→ фанфары</b></div><div>Новая подписка<b>→ «спасибо» голосом</b></div></div></div></div>
-<div class="card fade"><span class="pill pro">PRO</span><h3>Виджеты для OBS</h3><p>Чат, оповещения, топы, котик, аквариум, таймер. Одна ссылка.</p></div>
+<div class="card fade"><span class="pill pro">PRO</span><h3>Виджеты для OBS</h3><p>Чат, топ лайков, топ подарков, топ донатов, лента подарков, оповещения, таймер, котик. Одна ссылка.</p></div>
 <div class="card fade"><span class="pill pro">PRO</span><h3>Fish Audio</h3><p>Каталог живых голосов по вашему API-ключу. Ключ хранится зашифрованным.</p></div>
 <div class="card fade"><span class="pill pro">PRO</span><h3>Анонс в Telegram</h3><p>Один клик, и подписчики канала знают, что вы в эфире.</p></div>
 </div></div></section>
@@ -182,11 +191,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;font-size:13px;color:var(
 (function(){
 var $=function(s){return document.querySelector(s)};
 function bars(el,n){for(var i=0;i<n;i++){var s=document.createElement('i');s.style.animationDelay=(i*.07)+'s';s.style.animationDuration=(.8+Math.random()*.7)+'s';el.appendChild(s)}}
-bars($('#wave'),26);bars($('#wave2'),48);bars($('#dw'),40);
-/* hero feed */
-var f=$('#feed'),say=$('#say'),ms=[['Marina_KZ','Здравствуйте из Алматы!'],['aidos_92','Привет, Светлана!'],['bot_user','!команда http://spam.link',1],['Dana','Роза ×5 🎁'],['Nurlan','Классный эфир, продолжай'],['Kamila','Как зовут вашего кота?']],n=0;
-function add(){var m=ms[n%ms.length];n++;var d=document.createElement('div');d.className='m'+(n%2?'':' g')+(m[2]?' x':'');d.innerHTML='<u></u><span></span>';d.firstChild.textContent=m[0];d.lastChild.textContent=m[1];f.appendChild(d);while(f.children.length>6)f.removeChild(f.firstChild);say.textContent=m[2]?'Пропускаю…':'Светлана читает: «'+m[1].replace(' 🎁','')+'»';$('#s1').textContent=(1284+n*3).toLocaleString('ru-RU');$('#s2').textContent=(18940+n*17).toLocaleString('ru-RU')}
-add();setInterval(add,2600);
+bars($('#wave2'),48);bars($('#dw'),40);
 /* hero tilt */
 var st=$('#stage'),ap=$('#app');st.addEventListener('mousemove',function(e){var r=st.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;ap.style.transform='rotateX('+(6-y*8)+'deg) rotateY('+(x*10)+'deg)'});st.addEventListener('mouseleave',function(){ap.style.transform=''});
 /* spotlight cards */
@@ -207,12 +212,15 @@ if(!syn)return;syn.cancel();var u=new SpeechSynthesisUtterance(s);u.lang='ru-RU'
 u.onstart=function(){$('#dw').classList.add('on')};u.onend=u.onerror=function(){$('#dw').classList.remove('on')};syn.speak(u)}
 $('#dgo').onclick=go;$('#dm').addEventListener('keydown',function(e){if(e.key==='Enter')go()});
 /* leaderboard */
-var lb=$('#lb'),pl=[['Aidos','2 840','#a78bfa'],['Marina_KZ','2 610','#f472b6'],['Dana','2 305','#38bdf8']],rows=[];
+var lb=$('#lb'),pl=[['Aidos','2 840','#8b5cf6'],['Marina_KZ','2 610','#f472b6'],['Dana','2 305','#38bdf8']],rows=[];
 pl.forEach(function(p){var d=document.createElement('div');d.innerHTML='<i style="background:'+p[2]+'"></i><b>'+p[0]+'</b><span>'+p[1]+' ♥</span>';lb.appendChild(d);rows.push(d)});
-var ord=[0,1,2];function lay(){ord.forEach(function(ix,pos){rows[ix].style.top=(pos*60)+'px'});rows.forEach(function(r,ix){r.style.borderColor=ord[0]===ix?'rgba(251,146,60,.6)':'';r.style.boxShadow=ord[0]===ix?'0 0 30px rgba(251,146,60,.2)':''})}
+var ord=[0,1,2];function lay(){ord.forEach(function(ix,pos){rows[ix].style.top=(pos*60)+'px'});rows.forEach(function(r,ix){r.style.borderColor=ord[0]===ix?'rgba(236,72,153,.6)':'';r.style.boxShadow=ord[0]===ix?'0 0 30px rgba(236,72,153,.2)':''})}
 lay();setInterval(function(){ord=[ord[2],ord[0],ord[1]];lay()},2800);
 /* donation designs */
 document.querySelectorAll('#dsw button').forEach(function(b){b.onclick=function(){document.querySelectorAll('#dsw button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');$('#dt').className='dt '+b.dataset.d}});
+
+var GT={live:['img/app-live.webp','Подключись к TikTok LIVE и слушай чат вслух'],voice:['img/app-voice.webp','Живые голоса, свои пресеты и события для озвучки'],widgets:['img/app-widgets.webp','Чат, топ лайков и оповещения для OBS и TikTok LIVE Studio'],overlay:['img/app-overlay.webp','Окно чата TikTok и Twitch поверх всех окон на время стрима'],kaspi:['img/app-kaspi.webp','Донаты на экран стрима: имя, сумма и картинка']};
+document.querySelectorAll('#gt button').forEach(function(b){b.onclick=function(){document.querySelectorAll('#gt button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');var g=GT[b.dataset.i],im=$('#gimg');im.style.opacity=0;setTimeout(function(){im.src=g[0];im.onload=function(){im.style.opacity=1};$('#gcap').textContent=g[1]},180)}});
 /* countdown */
 var end=new Date('2026-12-31T23:59:59+05:00').getTime();function cd(){var d=Math.max(0,end-Date.now()),v=[Math.floor(d/864e5),Math.floor(d%864e5/36e5),Math.floor(d%36e5/6e4),Math.floor(d%6e4/1e3)],bs=document.querySelectorAll('#cd b');v.forEach(function(x,i){bs[i].textContent=String(x).padStart(2,'0')})}cd();setInterval(cd,1000);
 /* counters + reveal */
