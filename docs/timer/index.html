@@ -144,7 +144,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 
   // ---------- настройки ----------
   const DEFAULTS = {
-    startingSeconds: 3600, maximumSeconds: 86400, coinUnit: 1, secondsPerUnit: 1, giftRules: [], customText: '',
+    enabled: false, startingSeconds: 3600, maximumSeconds: 86400, coinUnit: 1, secondsPerUnit: 1, giftRules: [], customText: '',
     likeRule: { enabled: false, likesPerStep: 100, secondsPerStep: 10 },
     followRule: { enabled: false, seconds: 30 },
     shareRule: { enabled: false, seconds: 10, maxPerViewer: 3 },
@@ -176,6 +176,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
     const E = obj(s.eggs) ? s.eggs : {}, R = obj(s.rush) ? s.rush : {}, T = obj(s.timesUp) ? s.timesUp : {}, A = obj(s.sound) ? s.sound : {};
     const maximumSeconds = clamp(Math.round(numOr(s.maximumSeconds, D.maximumSeconds)), 1, 3599999);
     return {
+      enabled: bool(s.enabled, false),
       startingSeconds: Math.min(maximumSeconds, clamp(Math.round(numOr(s.startingSeconds, D.startingSeconds)), 0, 3599999)),
       maximumSeconds,
       coinUnit: Math.max(1, Math.round(numOr(s.coinUnit, D.coinUnit))),
@@ -427,8 +428,9 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
       this.status = status; this.remainingMs = this.settings.startingSeconds * 1000; this.snapshotAt = this.now(); this.lastEventTs = 0;
     }
     setSettings(s) {
-      const prevMax = this.settings.maximumSeconds * 1000;
+      const prevMax = this.settings.maximumSeconds * 1000, wasOn = this.settings.enabled;
       this.settings = resolveSettings(s);
+      if (wasOn && !this.settings.enabled && this.status === 'running') { const cur = this.remaining(); this.status = 'paused'; this._commit(cur); } // выключили таймер — часы встают на паузу
       const max = this.settings.maximumSeconds * 1000;
       if (max !== prevMax) { const cur = this.remaining(); this._commit(Math.min(cur, max)); }
       if (this.status === 'idle') this.remainingMs = this.settings.startingSeconds * 1000;
@@ -455,10 +457,11 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
       return false;
     }
     // новый эфир: таймер стартует с «Старт», останавливается на паузе до LIVE; вызывает main.js при подключении к эфиру
-    start() { this._fresh('running'); this.revision += 1; return { snapshot: this.snapshot(), change: { source: 'creator', action: 'reset' } }; }
+    start() { if (!this.settings.enabled) return null; this._fresh('running'); this.revision += 1; return { snapshot: this.snapshot(), change: { source: 'creator', action: 'reset' } }; }
     end() { if (this.status === 'idle') return null; const r = this.remaining(); this.status = 'ended'; this._commit(r); return { snapshot: this.snapshot(), change: { source: 'creator', action: 'ended' } }; }
     resetToStart() { this._fresh(this.status === 'idle' ? 'idle' : 'running'); this.revision += 1; return { snapshot: this.snapshot(), change: { source: 'creator', action: 'reset' } }; }
     control(action, ms) {
+      if (!this.settings.enabled && action !== 'applyStart') return null; // выключенный таймер не работает
       const now = this.now(), cur = this.remaining(), max = this.settings.maximumSeconds * 1000;
       if (action === 'start') { if (this.status === 'paused') return this.control('resume', 0); if (this.status === 'running') return null; return this.start(); }
       if (this.status === 'ended' && action !== 'reset') return null;
@@ -478,7 +481,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
     }
     // событие зрителя → {snapshot, change} или null (дубль, не по правилам, таймер не идёт)
     onEvent(kind, ev) {
-      if (this.status !== 'running') return null;
+      if (!this.settings.enabled || this.status !== 'running') return null;
       const now = this.now(), st = this.settings; let delta = 0, count = 1, gift = null, sender = null;
       const user = { id: ev.id, name: ev.name };
       sender = { uniqueId: ev.id || ev.name || '', nickname: ev.name || ev.id || '', avatarUrl: ev.avatar || null };
@@ -508,7 +511,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
     }
     // часы дошли до нуля сами (без события): фиксируем момент, чтобы финал и «возрождение» работали и после перезапуска страницы
     tick() {
-      if (this.status !== 'running') return null;
+      if (!this.settings.enabled || this.status !== 'running') return null;
       if (this.remaining() <= 0 && this.zeroedAt === null) { this.reachedZero = true; this.zeroedAt = this.now(); this._commit(0); return { snapshot: this.snapshot(), change: { source: 'creator', action: 'zero' } }; }
       return null;
     }
@@ -641,7 +644,7 @@ function sndInit(){
 function tone(f,t0,d,type,g,f2){var c=SND.ctx,o=c.createOscillator(),a=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);a.gain.setValueAtTime(.0001,t0);a.gain.exponentialRampToValueAtTime(g,t0+.01);a.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(a);a.connect(SND.master);o.start(t0);o.stop(t0+d+.02)}
 function noise(t0,d,g){var c=SND.ctx,n=c.sampleRate*d,b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);for(var i=0;i<n;i++)x[i]=Math.random()*2-1;var s=c.createBufferSource(),a=c.createGain();s.buffer=b;a.gain.setValueAtTime(g,t0);a.gain.exponentialRampToValueAtTime(.0001,t0+d);s.connect(a);a.connect(SND.master);s.start(t0)}
 var SFX={tick:function(t){tone(1200,t,.05,'square',.12)},tickFinal:function(t){tone(1760,t,.08,'square',.18)},plus:function(t){tone(1318,t,.14,'triangle',.3);tone(1975,t+.09,.2,'triangle',.3)},minus:function(t){tone(260,t,.3,'sawtooth',.25,70);noise(t,.18,.15)},egg:function(t){[1046,1318,1568,2093].forEach(function(f,i){tone(f,t+i*.08,.18,'triangle',.25)})},alarm:function(t){for(var i=0;i<40;i++)tone(i%2?1760:1568,t+i*.055,.05,'square',.2*(1-i/48))}};
-function play(n,force){if(!(S.sound.enabled||(PREVIEW&&force))||!SFX[n])return;var c=sndInit();if(!c)return;if(c.state==='suspended')c.resume();SND.master.gain.value=S.sound.volume/100;SFX[n](c.currentTime+.01)}
+function play(n,force){if(!PREVIEW&&!S.enabled)return;if(!(S.sound.enabled||(PREVIEW&&force))||!SFX[n])return;var c=sndInit();if(!c)return;if(c.state==='suspended')c.resume();SND.master.gain.value=S.sound.volume/100;SFX[n](c.currentTime+.01)}
 document.addEventListener('pointerdown',function(){if(PREVIEW)sndInit()},{once:true});
 // ---------- основной цикл ----------
 var sweeping=false,timer=0,raf=0,lastTickSec=-1,alarmFor='';
@@ -730,7 +733,7 @@ function onTimer(d){
   }
   frame();
 }
-function onSettings(s){S=C.resolveSettings(s);document.documentElement.classList.toggle('tm-off',!S.enabled);real.D.setSettings(S);lab.D.setSettings(S);fit();frame();try{if(PREVIEW)parent.postMessage({echochat:'timer-ready'},'*')}catch(_){}}
+function onSettings(s){S=C.resolveSettings(s);document.documentElement.classList.remove('tm-off');real.D.setSettings(S);lab.D.setSettings(S);fit();frame();try{if(PREVIEW)parent.postMessage({echochat:'timer-ready'},'*')}catch(_){}}
 // ---------- «примерка»: показать момент, не трогая настоящий таймер ----------
 var EGGPICK=['jackpot','shiny','clutch','revived','sleepy','peekaboo','frenzy','full'];
 function runLab(kind){
