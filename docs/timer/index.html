@@ -19,8 +19,8 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 #bar::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:4.5px;background:var(--edge);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask-composite:exclude}
 #bar::after{content:"";position:absolute;left:112px;right:26px;top:8px;height:34px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));pointer-events:none}
 #glint{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
-#glint i{position:absolute;top:-20%;left:-30%;width:18%;height:140%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:glint 6s ease-in-out infinite}
-@keyframes glint{0%,70%{left:-30%}100%{left:130%}}
+#glint i{position:absolute;top:-20%;left:0;width:18%;height:140%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:translateX(-167%) skewX(-20deg);will-change:transform;animation:glint 6s ease-in-out infinite}
+@keyframes glint{0%,70%{transform:translateX(-167%) skewX(-20deg)}100%{transform:translateX(722%) skewX(-20deg)}}
 #stage[data-bar=plus]{--tone:#3ef2b5}#stage[data-bar=plus] #bar{--edge:linear-gradient(100deg,#3ef2b5,#f6c34a)}
 #stage[data-bar=minus]{--tone:#ff3b4e}#stage[data-bar=minus] #bar{--edge:linear-gradient(100deg,#ff3b4e,#0af6f5)}
 #stage[data-bar=rush]{--tone:#ff3158}#stage[data-bar=rush] #bar{--edge:linear-gradient(100deg,#ff3158,#ff8fb1)}
@@ -71,7 +71,7 @@ html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-famil
 @keyframes pk2{0%,58%{opacity:0;transform:translateY(240px)}59%{opacity:1;transform:translateY(240px)}70%{opacity:1;transform:translateY(-14px) scale(1.04)}77%,90%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:1;transform:translateY(240px)}}
 #fxl,#layer{position:absolute;left:0;top:0;width:0;height:0;z-index:6;pointer-events:none}
 .fx{position:absolute;pointer-events:none;will-change:transform,opacity}
-.fx.scr{mix-blend-mode:screen}
+.fx.scr{}
 @keyframes rise{from{transform:translate(var(--x0,0),0) scale(.5);opacity:0}20%{opacity:1}to{transform:translate(var(--x1,0),var(--dy,-90px)) scale(1);opacity:0}}
 @keyframes pop{0%{transform:scale(.2) rotate(var(--r,0deg));opacity:0}25%{transform:scale(1.15) rotate(var(--r,0deg));opacity:1}100%{transform:scale(1) rotate(var(--r,0deg));opacity:0}}
 @keyframes sweat{0%{transform:translateY(-6px) scale(.6);opacity:0}25%{opacity:1}100%{transform:translateY(34px) scale(1);opacity:0}}

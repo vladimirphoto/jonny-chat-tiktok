@@ -42,15 +42,15 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .a-eq .hp{color:#f472b6}
 /* Кристалл: срезанные углы и голографическая фольга со скользящим бликом */
 .a-crystal{animation:cut .6s cubic-bezier(.2,.9,.3,1) both;filter:drop-shadow(0 0 16px rgba(139,92,246,.5)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
-.a-crystal .plate{--cut:22px;padding:16px 40px 16px 22px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);background-size:300% 100%;animation:holo 7s linear infinite;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.a-crystal .plate{--cut:22px;padding:16px 40px 16px 22px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
 .a-crystal .plate:before{content:"";position:absolute;z-index:-1;inset:2px;clip-path:polygon(calc(var(--cut) - 1px) 0,100% 0,100% calc(100% - var(--cut) + 1px),calc(100% - var(--cut) + 1px) 100%,0 100%,0 calc(var(--cut) - 1px));background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 2px,transparent 2px 12px),linear-gradient(160deg,#18142f,#0a0a15)}
-.a-crystal .plate:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:30%;transform:skewX(-22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
+.a-crystal .plate:after{content:"";position:absolute;top:0;bottom:0;left:0;width:30%;transform:translateX(-200%) skewX(-22deg);will-change:transform;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
 .a-crystal .av{width:76px;height:76px;border-radius:0;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%)}
 .a-crystal .nm{font-size:32px;font-style:italic;font-weight:800;letter-spacing:.6px}
 .a-crystal .cap{color:#67e8f9}
 .a-crystal .hp{color:#67e8f9;text-shadow:0 0 12px rgba(34,211,238,.9)}.a-crystal .hp.v{color:#e9d5ff}
 /* Орбита: матовая капсула, вокруг аватарки крутится светящееся кольцо */
-.a-orbit .plate{padding:10px 40px 10px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
+.a-orbit .plate{padding:10px 40px 10px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.92);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
 .a-orbit .plate.noav{padding-left:36px}
 .a-orbit .av{margin:7px}
 .a-orbit .av:before{content:"";position:absolute;inset:-7px;border-radius:50%;border:2.5px solid transparent;border-top-color:#ec4899;border-right-color:#a78bfa;filter:drop-shadow(0 0 6px rgba(236,72,153,.8));animation:spin 2.2s linear infinite}
@@ -70,7 +70,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 @keyframes glow{0%,100%{opacity:.55;transform:scale(.92)}14%{opacity:1;transform:scale(1.12)}}
 @keyframes plus{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}
 @keyframes bob{50%{transform:translateY(-7px) rotate(-1.5deg)}}
-@keyframes shine{0%{left:-60%}55%,100%{left:130%}}
+@keyframes shine{0%{transform:translateX(-200%) skewX(-22deg)}55%,100%{transform:translateX(433%) skewX(-22deg)}}
 @keyframes rise{0%{opacity:0;transform:translate(0,0) scale(.5)}12%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-230px) scale(1.15) rotate(var(--rot))}}
 </style></head><body>
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>

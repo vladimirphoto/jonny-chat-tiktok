@@ -34,17 +34,17 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .eqb i:nth-child(2){animation-duration:.78s;animation-delay:-.25s}.eqb i:nth-child(3){animation-duration:1.15s;animation-delay:-.6s}.eqb i:nth-child(4){animation-duration:.9s;animation-delay:-.4s}.eqb i:nth-child(5){animation-duration:1.05s;animation-delay:-.1s}
 /* Кристалл: срезанные углы и голографическая фольга со скользящим бликом */
 .cw-crystal{filter:drop-shadow(0 0 16px rgba(139,92,246,.5)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
-.d-crystal{--cut:26px;padding:18px 42px 18px 24px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);background-size:300% 100%;
- clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut));animation:cut .6s cubic-bezier(.2,.9,.3,1) both,holo 7s linear infinite}
+.d-crystal{--cut:26px;padding:18px 42px 18px 24px;background:linear-gradient(115deg,#22d3ee,#8b5cf6 38%,#ec4899 68%,#22d3ee);
+ clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut));animation:cut .6s cubic-bezier(.2,.9,.3,1) both}
 .d-crystal::before{content:"";position:absolute;z-index:-1;inset:2px;clip-path:polygon(calc(var(--cut) - 1px) 0,100% 0,100% calc(100% - var(--cut) + 1px),calc(100% - var(--cut) + 1px) 100%,0 100%,0 calc(var(--cut) - 1px));
  background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 2px,transparent 2px 12px),linear-gradient(160deg,#18142f,#0a0a15)}
-.d-crystal::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:30%;transform:skewX(-22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
+.d-crystal::after{content:"";position:absolute;top:0;bottom:0;left:0;width:30%;transform:translateX(-200%) skewX(-22deg);will-change:transform;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out .6s infinite}
 .d-crystal .art{border-radius:0;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);box-shadow:none;background:color-mix(in srgb,var(--ac,#8b5cf6) 22%,#12102a)}
 .d-crystal .nm{font-style:italic;letter-spacing:.6px}
 .d-crystal .am{font-style:italic;background:linear-gradient(90deg,#67e8f9,#e9d5ff 55%,#f9a8d4);-webkit-background-clip:text;background-clip:text;color:transparent}
 .d-crystal .sp{width:11px;height:11px;border-radius:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:#67e8f9}
 /* Орбита: матовая капсула, вокруг значка крутится светящееся кольцо */
-.d-orbit{padding:12px 40px 12px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
+.d-orbit{padding:12px 40px 12px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.03)),rgba(14,12,26,.92);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
 .d-orbit .art{margin:8px;background:rgba(255,255,255,.08);box-shadow:none}
 .d-orbit .art::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:2.5px solid transparent;border-top-color:#ec4899;border-right-color:#a78bfa;filter:drop-shadow(0 0 6px rgba(236,72,153,.8));animation:spin 2.2s linear infinite}
 .d-orbit .art::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.13)}
@@ -80,7 +80,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes eq{0%,100%{transform:scaleY(.22)}50%{transform:scaleY(1)}}
 @keyframes holo{to{background-position:-300% 0}}
-@keyframes shine{0%{left:-60%}55%,100%{left:130%}}
+@keyframes shine{0%{transform:translateX(-200%) skewX(-22deg)}55%,100%{transform:translateX(433%) skewX(-22deg)}}
 @keyframes slide{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
 @keyframes cut{from{opacity:0;transform:translateX(34px) skewX(-10deg)}to{opacity:1;transform:none}}
 </style></head><body>

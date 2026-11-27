@@ -15,7 +15,7 @@ body.pv #root{justify-content:center;padding:10px}
 :where(.d-default) .r2{--g1:#9094ad;--g2:#5c5f7a;--g3:#2f2a4a;--bd:#eceffb;--gl:rgba(220,226,255,.28);--r1:#ffffff;--r2:#a7adc9;--rt:#3d4160;--vc2:#ffffff;--ring:#e6e9f7}
 :where(.d-default) .r3{--g1:#b4733c;--g2:#7c4627;--g3:#35264a;--bd:#eba873;--gl:rgba(235,150,90,.3);--r1:#ffd2ab;--r2:#c0733a;--rt:#5a2c10;--vc2:#ffd2a8;--ring:#eba873}
 :where(.d-default) .pl{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,var(--g1),var(--g2) 52%,var(--g3));border:2.5px solid var(--bd);box-shadow:0 0 0 0 transparent,0 5px 16px rgba(0,0,0,.45),0 0 16px var(--gl),inset 0 2px 5px rgba(255,255,255,.22)}
-:where(.d-default) .pl::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.04) 34%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.14) 58%,rgba(255,255,255,.04) 66%,transparent 78%);background-size:320% 100%;background-position:150% 0;animation:shine 19s cubic-bezier(.4,0,.6,1) infinite;animation-delay:calc(var(--i,0)*1.4s);mix-blend-mode:screen;pointer-events:none}
+:where(.d-default) .pl::after{content:"";position:absolute;top:0;bottom:0;left:0;width:320%;will-change:transform;background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.04) 34%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.14) 58%,rgba(255,255,255,.04) 66%,transparent 78%);animation:shine 19s cubic-bezier(.4,0,.6,1) infinite;animation-delay:calc(var(--i,0)*1.4s);pointer-events:none}
 :where(.d-default) .rk{position:relative;z-index:1;flex:none;width:36px;height:36px;border-radius:50%;margin-right:9px;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,var(--r1),var(--r2));border:2px solid rgba(255,255,255,.75);box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 -3px 5px rgba(0,0,0,.15)}
 :where(.d-default) .rk b{font-size:18px;font-weight:900;color:var(--rt);line-height:1;font-variant-numeric:tabular-nums}
 :where(.d-default) .rx .rk b{text-shadow:0 1px 2px rgba(60,10,80,.6)}
@@ -49,7 +49,7 @@ body.notitle #rows{padding-top:22px}
 :where(.d-old) .row{position:relative;display:flex;align-items:center;height:56px;padding:0 18px 0 8px;box-sizing:border-box}
 :where(.d-old) .row.nw{animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
 :where(.d-old) .pl{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,rgba(78,36,134,.94),rgba(34,16,64,.94));border:2px solid rgba(196,160,255,.5);box-shadow:0 5px 16px rgba(0,0,0,.4)}
-:where(.d-old) .pl::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.04) 34%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.14) 58%,rgba(255,255,255,.04) 66%,transparent 78%);background-size:320% 100%;background-position:150% 0;animation:shine 19s cubic-bezier(.4,0,.6,1) infinite;animation-delay:calc(var(--i,0)*1.4s);mix-blend-mode:screen;pointer-events:none}
+:where(.d-old) .pl::after{content:"";position:absolute;top:0;bottom:0;left:0;width:320%;will-change:transform;background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.04) 34%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.14) 58%,rgba(255,255,255,.04) 66%,transparent 78%);animation:shine 19s cubic-bezier(.4,0,.6,1) infinite;animation-delay:calc(var(--i,0)*1.4s);pointer-events:none}
 body.nobg .pl{display:none}
 :where(.d-old) .r1 .pl{background:linear-gradient(90deg,#8a5a10,#c8901f 40%,#4a2a82);border-color:#ffd25a;box-shadow:0 0 18px rgba(255,200,70,.55),0 5px 16px rgba(0,0,0,.4)}
 :where(.d-old) .r2 .pl{background:linear-gradient(90deg,#6c7088,#9aa0bb 40%,#3a2a66);border-color:#dfe3f5}
@@ -168,9 +168,7 @@ to{opacity:1;transform:none}
 @keyframes pop{from{opacity:0;transform:scale(.8)}
 to{opacity:1;transform:none}
 }
-@keyframes shine{0%{background-position:150% 0}
-55%,100%{background-position:-50% 0}
-}
+@keyframes shine{0%{transform:translateX(-103.125%)}55%,100%{transform:translateX(34.375%)}}
 @keyframes sun{to{transform:rotate(360deg)}
 }
 @keyframes sunp{0%,100%{opacity:.75}

@@ -20,7 +20,7 @@ body.pv.empty #empty{display:block}
 .row{position:relative;display:flex;align-items:center;height:56px;padding:0 16px 0 8px;box-sizing:border-box}
 .row.nw{animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
 .pl{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,rgba(40,28,36,.95),rgba(18,13,22,.95));border:2px solid rgba(var(--rgb),.55);box-shadow:0 5px 16px rgba(0,0,0,.4)}
-.pl::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.16) 46%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 54%,transparent 70%);background-size:250% 100%;background-position:150% 0;animation:shine 5.5s ease-in-out infinite;opacity:0}
+.pl::after{content:"";position:absolute;top:0;bottom:0;left:0;width:250%;will-change:transform;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.16) 46%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.16) 54%,transparent 70%);animation:shine 5.5s ease-in-out infinite;opacity:0}
 .r1 .pl::after{opacity:1}
 body.nobg .pl{display:none}
 .r1 .pl{background:linear-gradient(90deg,#7a5210,#c8901f 45%,rgba(30,20,34,.95));border-color:#ffd25a;box-shadow:0 0 18px rgba(255,200,70,.5),0 5px 16px rgba(0,0,0,.4)}
@@ -96,7 +96,7 @@ body.notitle #tkw{-webkit-mask-image:none;mask-image:none}
 .tsp{flex:none;padding:0 1.1em 0 .2em;font-size:.5em;color:var(--ta);opacity:.8}
 .tke{padding:0 1.2em;font-size:.5em;font-weight:700;opacity:.75;white-space:normal}
 @keyframes rin{from{opacity:0;transform:translateX(-26px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes shine{0%{background-position:150% 0}55%,100%{background-position:-50% 0}}
+@keyframes shine{0%{transform:translateX(-90%)}55%,100%{transform:translateX(30%)}}
 @keyframes bob{0%,100%{transform:rotate(-16deg) translateY(0)}50%{transform:rotate(-12deg) translateY(-3px)}}
 @keyframes tbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}

@@ -56,7 +56,8 @@ function libs(){
   libsP=loadScript(BASE+'/avatar-lib/pixi.min.js').then(function(){return loadScript(BASE+'/avatar-lib/live2dcubismcore.min.js');}).then(function(){return loadScript(BASE+'/avatar-lib/cubism4.min.js');}).then(function(){
     try{PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);}catch(_){}
     try{PIXI.extensions.remove(PIXI.InteractionManager,PIXI.AccessibilityManager);}catch(_){} // по странице никто не кликает: лишние проверки указателя не нужны
-    app=new PIXI.Application({backgroundAlpha:0,antialias:true,resizeTo:window,autoDensity:true,resolution:window.devicePixelRatio||1});
+    app=new PIXI.Application({backgroundAlpha:0,antialias:true,resizeTo:window,autoDensity:true,resolution:Math.min(window.devicePixelRatio||1,1.5)});
+    try{app.ticker.maxFPS=30;}catch(_){} // ~30 кадров/с вместо 60: нагрузка вдвое меньше
     document.body.appendChild(app.view);
   });
   libsP.catch(function(){libsP=null;});

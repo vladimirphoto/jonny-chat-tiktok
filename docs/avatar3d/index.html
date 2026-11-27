@@ -49,7 +49,7 @@ function libs(){
   libsP=Promise.all([import(BASE+'/avatar-lib/three/three.module.js'),import(BASE+'/avatar-lib/three/addons/loaders/GLTFLoader.js'),import(BASE+'/avatar-lib/vrm/three-vrm.module.js')]).then(function(m){
     T=m[0];GLTFLoader=m[1].GLTFLoader;VRMLIB=m[2];
     renderer=new T.WebGLRenderer({alpha:true,antialias:true,premultipliedAlpha:true});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5)); // 2x даёт вчетверо больше пикселей, на стриме не видно
     renderer.setSize(window.innerWidth,window.innerHeight);
     renderer.setClearColor(0x000000,0);
     document.body.appendChild(renderer.domElement);
@@ -153,6 +153,8 @@ function drive(dt,now){
 }
 function tick(now){
   requestAnimationFrame(tick);
+  if(document.hidden)return; // окно скрыто или свёрнуто: ничего не считаем и не рисуем
+  if(clockT&&now-clockT<30)return; // не чаще ~30 кадров/с: для стрима этого хватает, нагрузка вдвое меньше
   var dt=clockT?Math.min((now-clockT)/1000,0.1):0.016;clockT=now;
   if(vrm)drive(dt,now);
   if(renderer&&scene&&camera)renderer.render(scene,camera);
