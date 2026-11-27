@@ -112,7 +112,7 @@ body.notitle #tkw{-webkit-mask-image:none;mask-image:none}
 var Q=new URLSearchParams(location.search),PIN=Q.get('design')==='ticker'?'ticker':Q.get('design')==='minimal'?'minimal':'',KIND=PIN||Q.get('kind')==='all'?'all':Q.get('kind')==='da'?'da':'kaspi';
 // design=ticker или design=minimal в ссылке закрепляет вид за этой страницей: что бы ни было выбрано в приложении, она показывает именно его. Так «Бегущая строка» и «Минимализм» можно добавить в OBS одновременно двумя источниками
 var DESIGNS=['classic','gradient','minimal','ticker'],PERIODS={all:'',day:'24 ЧАСА',week:'7 ДНЕЙ',month:'30 ДНЕЙ'};
-var S={design:'classic',count:5,title:true,bg:true,period:'all',tFont:'segoe',tSize:32,tSpeed:4,tName:'#ffffff',tAmount:'#ffd978',tBar:'#171220'},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
+var S={design:'classic',cardDesign:'classic',count:5,title:true,bg:true,period:'all',tFont:'segoe',tSize:32,tSpeed:4,tName:'#ffffff',tAmount:'#ffd978',tBar:'#171220'},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
 try{EMBED=window.parent&&window.parent!==window;}catch(_){}
 var board=document.getElementById('board'),rowsEl=document.getElementById('rows'),MAP={};
 var CROWN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><path d="M3 9l8 7 9-12 9 12 8-7-3 19H6z" fill="#ffcf40" stroke="#b9770e" stroke-width="2" stroke-linejoin="round"/><circle cx="3" cy="9" r="2.6" fill="#fff3c4"/><circle cx="20" cy="4" r="2.6" fill="#fff3c4"/><circle cx="37" cy="9" r="2.6" fill="#fff3c4"/></svg>');
@@ -285,10 +285,13 @@ function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 var told=false;
 function tellReady(){if(told)return;told=true;try{if(EMBED)window.parent.postMessage({echochat:'topdon-ready',kind:KIND},'*');}catch(_){}}
 window.addEventListener('message',function(e){var d=e.data;if(EMBED&&e.source===window.parent&&d&&d.echochat==='fit'){if(d.w>0&&d.h>0){BOX={w:+d.w,h:+d.h};apply();}else{var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}}});
+// Вид этой страницы. Бегущая строка и «Минимализм» закреплены своими ссылками (design=…). Ссылки Каспи и DonationAlerts (kind=kaspi / kind=da) всегда остаются в Классике или Ярком,
+// даже если в приложении выбрана строка или минимализм, — иначе они превращались бы в них и заменяли друг друга в OBS. Предпросмотр в приложении и старая ссылка kind=all показывают выбранный дизайн.
+function pageDesign(){if(PIN)return PIN;if(KIND!=='all'&&!EMBED)return S.cardDesign==='gradient'?'gradient':'classic';return S.design;}
 // бегущая строка и минимализм показывают общий топ (all) на любой ссылке, обычные дизайны — список своей площадки
 function listOf(d){var k=(S.design==='ticker'||S.design==='minimal')?'all':KIND;return Array.isArray(d[k])?d[k]:[];}
 function bind(es){
-  es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));if(PIN)S.design=PIN;apply();tellReady();});
+  es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));S.design=pageDesign();apply();tellReady();});
   es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=listOf(d);apply();});
   // пробный список приходит всем страницам, но показывает его только предпросмотр внутри приложения: на стрим тест не попадает
   es.addEventListener('tdtest',function(e){if(!EMBED)return;var d=JSON.parse(e.data)||{};LIST=listOf(d);apply();});
