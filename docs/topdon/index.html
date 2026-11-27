@@ -109,7 +109,8 @@ body.notitle #tkw{-webkit-mask-image:none;mask-image:none}
 <div id="mini"><div id="mnl"><span class="tt">ТОП ДОНАТЫ</span><span class="pr" id="mnp" hidden></span></div><div id="mns"></div></div>
 <div id="tick"><div id="tkl"><span id="tkt">ТОП ДОНАТЫ</span><span class="pr" id="tkp" hidden></span></div><div id="tkw"><div id="tkr"></div></div></div></div>
 <script>
-var Q=new URLSearchParams(location.search),KIND=Q.get('kind')==='da'?'da':Q.get('kind')==='all'?'all':'kaspi';
+var Q=new URLSearchParams(location.search),PIN=Q.get('design')==='ticker'?'ticker':Q.get('design')==='minimal'?'minimal':'',KIND=PIN||Q.get('kind')==='all'?'all':Q.get('kind')==='da'?'da':'kaspi';
+// design=ticker или design=minimal в ссылке закрепляет вид за этой страницей: что бы ни было выбрано в приложении, она показывает именно его. Так «Бегущая строка» и «Минимализм» можно добавить в OBS одновременно двумя источниками
 var DESIGNS=['classic','gradient','minimal','ticker'],PERIODS={all:'',day:'24 ЧАСА',week:'7 ДНЕЙ',month:'30 ДНЕЙ'};
 var S={design:'classic',count:5,title:true,bg:true,period:'all',tFont:'segoe',tSize:32,tSpeed:4,tName:'#ffffff',tAmount:'#ffd978',tBar:'#171220'},PK=1,LIST=[],PREV={},BOX=null,EMBED=false;
 try{EMBED=window.parent&&window.parent!==window;}catch(_){}
@@ -117,7 +118,7 @@ var board=document.getElementById('board'),rowsEl=document.getElementById('rows'
 var CROWN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><path d="M3 9l8 7 9-12 9 12 8-7-3 19H6z" fill="#ffcf40" stroke="#b9770e" stroke-width="2" stroke-linejoin="round"/><circle cx="3" cy="9" r="2.6" fill="#fff3c4"/><circle cx="20" cy="4" r="2.6" fill="#fff3c4"/><circle cx="37" cy="9" r="2.6" fill="#fff3c4"/></svg>');
 document.getElementById('ttt').textContent=KIND==='da'?'ТОП DONATIONALERTS':KIND==='all'?'ТОП ДОНАТЫ':'ТОП ДОНАТЫ КАСПИ';
 document.getElementById('ttic').textContent=KIND==='da'?'♥':KIND==='all'?'★':'₸';
-document.title=KIND==='da'?'Топ DonationAlerts':KIND==='all'?'Бегущая строка донатов':'Топ донаты Каспи';
+document.title=KIND==='da'?'Топ DonationAlerts':PIN==='minimal'?'Минимализм донатов':KIND==='all'?'Бегущая строка донатов':'Топ донаты Каспи';
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
 function keyOf(n){return String(n||'').trim().toLowerCase().replace(/\s+/g,' ');}
@@ -287,7 +288,7 @@ window.addEventListener('message',function(e){var d=e.data;if(EMBED&&e.source===
 // бегущая строка и минимализм показывают общий топ (all) на любой ссылке, обычные дизайны — список своей площадки
 function listOf(d){var k=(S.design==='ticker'||S.design==='minimal')?'all':KIND;return Array.isArray(d[k])?d[k]:[];}
 function bind(es){
-  es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
+  es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));if(PIN)S.design=PIN;apply();tellReady();});
   es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=listOf(d);apply();});
   // пробный список приходит всем страницам, но показывает его только предпросмотр внутри приложения: на стрим тест не попадает
   es.addEventListener('tdtest',function(e){if(!EMBED)return;var d=JSON.parse(e.data)||{};LIST=listOf(d);apply();});
