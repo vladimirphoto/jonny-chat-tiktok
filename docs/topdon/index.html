@@ -49,17 +49,25 @@ body.nobg .pl{display:none}
 .d-gradient .r2 .rk{background:linear-gradient(145deg,#fff,#d5d9ea);color:#2c3050}
 .d-gradient .r3 .rk{background:linear-gradient(145deg,#ffe2c8,#f0a878);color:#5a2c10}
 .d-gradient .am{color:#fff}
-/* Минимализм: без плашек, тонкая линия под строкой */
-.d-minimal #rows{gap:2px}
-.d-minimal .row{height:48px;padding:0 4px}
-.d-minimal .pl{display:none}
-.d-minimal .row::after{content:"";position:absolute;left:4px;right:4px;bottom:0;height:1px;background:linear-gradient(90deg,rgba(var(--rgb),.9),rgba(255,255,255,.08))}
-.d-minimal .rk{width:30px;height:30px;font-size:14px;margin-right:8px}
-.d-minimal .av{width:34px;height:34px;margin-right:10px}.d-minimal .av i{font-size:15px}
-.d-minimal .nm{font-size:16px}.d-minimal .sb{display:none}
-.d-minimal .am{font-size:17px;color:var(--a1);filter:brightness(1.25)}
-.d-minimal .r1 .am{color:#ffd978}
-.d-minimal .cw{left:-6px;top:-12px;width:24px}
+/* Минимализм: одна строка «ник – сумма» без рамок и обводок. Каспи и DonationAlerts вместе, записи по очереди сменяют друг друга на одном месте. Шрифт, размер и цвета — те же настройки, что у бегущей строки */
+#mini{display:none;width:100%;box-sizing:border-box;height:calc(var(--ts) * 1.9);align-items:center;overflow:hidden;font-family:var(--tf);font-size:var(--ts);line-height:1;color:var(--tn);background:var(--tbar)}
+body.mn #board{display:none}
+body.mn #mini{display:flex}
+body.mn #root{padding:0;justify-content:center}
+body.mn.nobg #mini{background:transparent;text-shadow:0 2px 6px rgba(0,0,0,.85),0 0 3px rgba(0,0,0,.9)}
+body.mn.ne:not(.pv) #mini{visibility:hidden}
+#mnl{flex:none;display:flex;align-items:center;gap:.9em;padding:0 0 0 1.4em;font-size:.38em;font-weight:800;letter-spacing:.2em;white-space:nowrap}
+#mnl .tt{background:linear-gradient(90deg,#8b5cf6,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+#mnl .pr{font-size:.9em;font-weight:700;letter-spacing:.1em;opacity:.55}
+body.notitle #mnl{display:none}
+#mns{position:relative;flex:1;min-width:0;display:grid;place-items:center;padding:0 1em}
+.mi{grid-area:1/1;max-width:100%;display:flex;align-items:center;justify-content:center;gap:.5em;white-space:nowrap;font-weight:800;opacity:0;transform:translateY(.4em);filter:blur(.14em);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1),filter .7s ease}
+.mi.on{opacity:1;transform:none;filter:none}
+.mi.out{opacity:0;transform:translateY(-.4em);filter:blur(.14em)}
+.mi .nm{min-width:0;font-size:1em;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.mi .sp{flex:none;color:var(--ta);opacity:.5;font-weight:700}
+.mi .am{flex:none;font-size:1em;font-weight:900;color:var(--ta);font-variant-numeric:tabular-nums}
+.mhint{font-size:.42em;font-weight:700;opacity:.7;white-space:normal;text-align:center}
 /* Бегущая строка: одна общая лента Каспи + DonationAlerts, бежит справа налево. Шрифт, размер и цвета приходят из настроек (--tf, --ts, --tn, --ta, --tbar) */
 #tick{display:none;width:100%;box-sizing:border-box;height:calc(var(--ts) * 1.9);align-items:stretch;overflow:hidden;font-family:var(--tf);font-size:var(--ts);line-height:1;color:var(--tn);background:var(--tbar);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14);box-shadow:0 6px 22px rgba(0,0,0,.45)}
 body.tk #board{display:none}
@@ -94,10 +102,11 @@ body.notitle #tkw{-webkit-mask-image:none;mask-image:none}
 @keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.22)}100%{transform:scale(1)}}
 @keyframes flash{0%{filter:brightness(1.7)}100%{filter:none}}
-@media (prefers-reduced-motion:reduce){.pl::after,.cw,.r1 .av::before,#ttl .ic{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.pl::after,.cw,.r1 .av::before,#ttl .ic{animation:none!important}.mi{transition:opacity .3s ease!important;transform:none!important;filter:none!important}}
 </style></head><body class="k-kaspi">
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
 <div id="root"><div id="board" class="d-classic"><div id="ttl"><span class="ic" id="ttic">₸</span><span class="tt" id="ttt">ТОП ДОНАТЫ КАСПИ</span><span class="pr" id="ttp" hidden></span></div><div id="rows"></div><div id="empty">Пока нет донатов. Здесь появятся самые щедрые зрители</div></div>
+<div id="mini"><div id="mnl"><span class="tt">ТОП ДОНАТЫ</span><span class="pr" id="mnp" hidden></span></div><div id="mns"></div></div>
 <div id="tick"><div id="tkl"><span id="tkt">ТОП ДОНАТЫ</span><span class="pr" id="tkp" hidden></span></div><div id="tkw"><div id="tkr"></div></div></div></div>
 <script>
 var Q=new URLSearchParams(location.search),KIND=Q.get('kind')==='da'?'da':Q.get('kind')==='all'?'all':'kaspi';
@@ -115,13 +124,16 @@ function keyOf(n){return String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
 // «1 донат», «2 доната», «5 донатов»
 function plural(n){var m=n%100,d=n%10,w=(m>10&&m<15)?'донатов':d===1?'донат':(d>1&&d<5)?'доната':'донатов';return n+' '+w;}
 function apply(){
-  var d=DESIGNS.indexOf(S.design)>=0?S.design:'classic',tk=d==='ticker';
+  var d=DESIGNS.indexOf(S.design)>=0?S.design:'classic',tk=d==='ticker',mn=d==='minimal',ln=tk||mn;
   board.className='d-'+d;
   var pr=PERIODS[S.period]||'',pe=document.getElementById('ttp'),tp=document.getElementById('tkp');
   pe.hidden=!pr;pe.textContent=pr;tp.hidden=!pr;tp.textContent=pr;
-  var bgOff=S.bg===false&&(d==='classic'||d==='gradient'||tk);
-  document.body.className='k-'+KIND+(bgOff?' nobg':'')+(S.title===false?' notitle':'')+(BOX?' pv':'')+(tk?' tk':'')+(tk&&!LIST.length?' ne':'')+(!tk&&EMBED&&!LIST.length?' empty':'');
+  var mp=document.getElementById('mnp');mp.hidden=!pr;mp.textContent=pr;
+  var bgOff=S.bg===false&&(d==='classic'||d==='gradient'||ln);
+  document.body.className='k-'+KIND+(bgOff?' nobg':'')+(S.title===false?' notitle':'')+(BOX?' pv':'')+(tk?' tk':'')+(mn?' mn':'')+(ln&&!LIST.length?' ne':'')+(!ln&&EMBED&&!LIST.length?' empty':'');
   board.style.zoom=PK;
+  if(mn){tickStop();miniApply();return;}
+  miniStop();
   if(tk){tickApply();return;}
   tickStop();
   render();
@@ -134,15 +146,18 @@ function hexOk(v,d){return /^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):d;}
 function lum(h){var n=parseInt(h.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;return(.299*r+.587*g+.114*b)/255;}
 function shade(h,f){var n=parseInt(h.slice(1),16),c=function(v){return Math.max(0,Math.min(255,Math.round(v*f)));};return'#'+[n>>16&255,n>>8&255,n&255].map(function(v){return('0'+c(v).toString(16)).slice(-2);}).join('');}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-function tickApply(){
-  // в предпросмотре лента уменьшена, как будто стрим шириной 900 px; в OBS размер берётся из настроек
+function lineVars(el){
+  // в предпросмотре строка уменьшена, как будто стрим шириной 900 px; в OBS размер берётся из настроек
   TK.k=BOX?Math.max(.3,Math.min(1.2,BOX.w/900)):1;
-  var a=hexOk(S.tAmount,'#ffd978'),st=tick.style;
+  var a=hexOk(S.tAmount,'#ffd978'),st=el.style;
   st.setProperty('--tf',FONTS[S.tFont]||FONTS.segoe);
   st.setProperty('--ts',(Math.max(20,Math.min(72,+S.tSize||32))*TK.k)+'px');
   st.setProperty('--tn',hexOk(S.tName,'#ffffff'));
   st.setProperty('--ta',a);st.setProperty('--ta2',shade(a,.78));st.setProperty('--tat',lum(a)>.6?'#241a0a':'#ffffff');
   st.setProperty('--tbar',hexOk(S.tBar,'#171220'));
+}
+function tickApply(){
+  lineVars(tick);
   TK.sig='';tickBuild();
   if(!TK.raf){TK.last=0;TK.raf=requestAnimationFrame(tickLoop);}
 }
@@ -176,6 +191,48 @@ function tickLoop(t){
   if(TK.x<=-TK.w)TK.x+=TK.w;
   tkr.style.transform='translate3d('+TK.x+'px,0,0)';
 }
+/* ---- Минимализм: «ник – сумма», следующая запись плавно заменяет предыдущую на том же месте ---- */
+var mini=document.getElementById('mini'),mns=document.getElementById('mns'),MN={i:-1,t:0,sig:''};
+function miniItems(){var n=Math.max(1,Math.min(10,Math.round(+S.count)||5));return LIST.slice(0,n);}
+function miniSig(d){return keyOf(d.name||'Гость')+'|'+(d.money||'');}
+// скорость 1–10 — как долго запись стоит на месте: от ~6,4 до ~1,7 секунды
+function miniHold(){return Math.round(6400-(Math.max(1,Math.min(10,+S.tSpeed||4))-1)*520);}
+function miniShow(d){
+  var old=mns.querySelector('.mi.on'),e=document.createElement('div');
+  e.className='mi';
+  e.dataset.k=keyOf(d.name||'Гость');
+  e.innerHTML='<span class="nm">'+esc(d.name||'Гость')+'</span><span class="sp">–</span><span class="am">'+esc(d.money||'')+'</span>';
+  mns.querySelectorAll('.mhint').forEach(function(h){h.remove();});
+  mns.appendChild(e);void e.offsetWidth;e.classList.add('on');
+  MN.sig=miniSig(d);
+  if(old){old.classList.remove('on');old.classList.add('out');setTimeout(function(){old.remove();},900);}
+}
+function miniNext(){
+  clearTimeout(MN.t);
+  var items=miniItems();
+  if(items.length){
+    if(items.length>1)MN.i=(MN.i+1)%items.length;else MN.i=0;
+    if(MN.i>=items.length)MN.i=0;
+    if(miniSig(items[MN.i])!==MN.sig)miniShow(items[MN.i]);
+  }
+  MN.t=setTimeout(miniNext,miniHold());
+}
+function miniApply(){
+  lineVars(mini);
+  var items=miniItems();
+  if(!items.length){
+    clearTimeout(MN.t);MN.t=0;MN.i=-1;MN.sig='';
+    mns.innerHTML=EMBED?'<span class="mhint">Пока нет донатов. Здесь появятся самые щедрые зрители</span>':'';
+    return;
+  }
+  // список обновился: если показанный ник остался в списке — стоим на нём, а новая сумма заменит старую плавно
+  var cur=mns.querySelector('.mi.on'),i,pos=-1;
+  if(cur){for(i=0;i<items.length;i++)if(keyOf(items[i].name||'Гость')===cur.dataset.k){pos=i;break;}}
+  if(!MN.t){MN.i=-1;miniNext();return;} // первый показ сразу, дальше по таймеру
+  if(pos>=0){MN.i=pos;if(miniSig(items[pos])!==MN.sig)miniShow(items[pos]);}
+  else if(MN.i>=items.length)MN.i=0;
+}
+function miniStop(){clearTimeout(MN.t);MN.t=0;MN.i=-1;MN.sig='';mns.innerHTML='';}
 window.addEventListener('resize',function(){if(S.design==='ticker'){TK.sig='';tickBuild();}});
 // предпросмотр в приложении: по центру окошка, масштаб по реальному размеру
 function fitSelf(){
@@ -227,8 +284,8 @@ function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 var told=false;
 function tellReady(){if(told)return;told=true;try{if(EMBED)window.parent.postMessage({echochat:'topdon-ready',kind:KIND},'*');}catch(_){}}
 window.addEventListener('message',function(e){var d=e.data;if(EMBED&&e.source===window.parent&&d&&d.echochat==='fit'){if(d.w>0&&d.h>0){BOX={w:+d.w,h:+d.h};apply();}else{var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}}});
-// лента показывает общий топ (all) на любой ссылке, обычные дизайны — список своей площадки
-function listOf(d){var k=S.design==='ticker'?'all':KIND;return Array.isArray(d[k])?d[k]:[];}
+// бегущая строка и минимализм показывают общий топ (all) на любой ссылке, обычные дизайны — список своей площадки
+function listOf(d){var k=(S.design==='ticker'||S.design==='minimal')?'all':KIND;return Array.isArray(d[k])?d[k]:[];}
 function bind(es){
   es.addEventListener('tdsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
   es.addEventListener('topdon',function(e){var d=JSON.parse(e.data)||{};LIST=listOf(d);apply();});
