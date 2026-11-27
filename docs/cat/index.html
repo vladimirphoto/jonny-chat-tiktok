@@ -244,6 +244,23 @@ function connect(){
   })();
 }
 document.addEventListener('visibilitychange',function(){sc.classList.toggle('paused',document.hidden);});
+// Бесконечные CSS-анимации SVG браузер перерисовывает целиком 60 раз в секунду. Ведём их сами раз в ~42 мс (24 кадра/с): движения медленные, глазом разницы нет, а нагрузка падает вдвое и больше. Короткие (подарки, вспышки) идут как раньше.
+(function(){
+  if(!document.getAnimations)return;
+  var T0=performance.now(),last=0;
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(document.hidden||now-last<41)return;
+    last=now;
+    var an=document.getAnimations(),t=now-T0,i,a,e;
+    for(i=0;i<an.length;i++){a=an[i];e=a.effect;
+      if(!e||!e.getTiming||e.getTiming().iterations!==Infinity)continue;
+      if(a.playState==='running')a.pause();
+      a.currentTime=t;
+    }
+  }
+  requestAnimationFrame(loop);
+})();
 if(Q.has('demo')){setTimeout(function(){['🌹','🍩','❤️','🎁','🌹','🍩','⭐'].forEach(function(e,k){setTimeout(function(){addGift({emoji:e});},k*500);});},400);}
 else connect();
 </script></body></html>

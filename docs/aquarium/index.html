@@ -108,14 +108,15 @@ FISH.forEach(function(f,i){
   f.g=el('g',{},fishL);f.g.style.setProperty('--c1',f.c1);f.g.style.setProperty('--c2',f.c2);
   f.fl=el('g',{},f.g);var u=el('use',{},f.fl);u.setAttributeNS('http://www.w3.org/1999/xlink','href','#fish');u.setAttribute('href','#fish');
 });
+function sT(n,s){if(n._t!==s){n._t=s;n.setAttribute('transform',s);}} // пишем атрибут только если значение изменилось: каждая запись заставляет браузер заново пересчитать и перерисовать SVG
 function fishStep(f,dt,t){
   var sp=f.v*(f.boost>0?2.6:1);f.boost=Math.max(0,f.boost-dt);
   if(Math.abs(f.tx-f.x)<8||R()<.0015){f.tx=X0+50+R()*(X1-X0-100);}
   var want=f.tx>f.x?1:-1;if(want!==f.dir&&Math.abs(f.tx-f.x)>10)f.dir=want;
   f.x+=f.dir*sp*dt;f.fx=(f.fx===undefined?f.dir:f.fx);f.fx+=(f.dir-f.fx)*Math.min(1,dt*4);
   var y=f.y+Math.sin(t*.9+f.ph)*10;
-  f.g.setAttribute('transform','translate('+f.x.toFixed(1)+' '+y.toFixed(1)+')');
-  f.fl.setAttribute('transform','scale('+(f.fx*f.s).toFixed(3)+' '+f.s+') rotate('+(Math.sin(t*(f.boost>0?14:6)+f.ph)*(f.boost>0?4:2.5)).toFixed(2)+')');
+  // одна запись вместо двух: перенос, отражение и покачивание в одном transform
+  sT(f.g,'translate('+f.x.toFixed(1)+' '+y.toFixed(1)+') scale('+(f.fx*f.s).toFixed(3)+' '+f.s+') rotate('+(Math.sin(t*(f.boost>0?14:6)+f.ph)*(f.boost>0?4:2.5)).toFixed(2)+')');
 }
 // ---- крабики и улитки ползают по дну очень медленно ----
 var CRIT=[{t:'crab',x:210,y:409,s:.85,v:9,d:1},{t:'crab',x:360,y:410,s:.62,v:6,d:-1},{t:'snail',x:150,y:411,s:.8,v:2.6,d:1},{t:'snail',x:300,y:411,s:.6,v:2,d:-1}];
@@ -127,9 +128,8 @@ function critStep(c,dt){
   c.tm-=dt;if(c.tm<=0){c.mv=!c.mv;c.tm=c.mv?4+R()*6:2+R()*5;if(c.mv&&R()<.35)c.d=-c.d;}
   if(c.mv){c.x+=c.d*c.v*dt;if(c.x<X0+34){c.x=X0+34;c.d=1;}if(c.x>X1-34){c.x=X1-34;c.d=-1;}}
   var sx=c.t==='snail'?c.d:1;c.fx+=(sx-c.fx)*Math.min(1,dt*3);
-  c.g.setAttribute('transform','translate('+c.x.toFixed(1)+' '+c.y+')');
-  c.fl.setAttribute('transform','scale('+(c.fx*c.s).toFixed(3)+' '+c.s+')');
-  c.g.classList.toggle('mv',c.mv&&c.t==='crab');
+  sT(c.g,'translate('+c.x.toFixed(1)+' '+c.y+') scale('+(c.fx*c.s).toFixed(3)+' '+c.s+')'); // стоящий краб или улитка больше ничего не перерисовывают
+  var mvn=c.mv&&c.t==='crab';if(c.mvOn!==mvn){c.mvOn=mvn;c.g.classList.toggle('mv',mvn);}
 }
 // ---- пузырьки воздуха ----
 function bubble(x,y,r,top,dur){
@@ -201,7 +201,7 @@ function apart(){ // мягко раздвигаем подарки, чтобы 
       var dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy,m=GR*1.7;
       if(d2<m*m&&d2>.01){var d=Math.sqrt(d2),k=(m-d)*.035,ux=dx/d,uy=dy/d;a.x-=ux*k;a.y-=uy*k;b.x+=ux*k;b.y+=uy*k;}}}
 }
-var last=0,wv=$('wave'),jb=$('jbell'),wd0=$('wd0'),wd1=$('wd1'),jl=$('jelly');
+var last=0,ambT=0,wv=$('wave'),jb=$('jbell'),wd0=$('wd0'),wd1=$('wd1'),jl=$('jelly');
 function loop(now){
   requestAnimationFrame(loop);if(document.hidden){last=now;return;}
   var ms=now-last;if(ms<30)return; // не чаще ~30 кадров/с: встроенный браузер TikTok LIVE Studio слабее OBS
@@ -210,10 +210,13 @@ function loop(now){
   for(var q=0;q<CRIT.length;q++)critStep(CRIT[q],dt);
   for(var k=gifts.length-1;k>=0;k--)step(gifts[k],dt,t);
   apart();
+  // медуза, волна на поверхности и водоросли двигаются медленно и занимают большую площадь: обновляем их реже (~12 раз/с), рыбки остаются на 30
+  if(now-ambT>=80){ambT=now;
   jl.setAttribute('transform','translate('+(300+Math.sin(t*.25)*70).toFixed(1)+' '+(300+Math.sin(t*.45)*34).toFixed(1)+')');
   var pu=Math.sin(t*2.6);jb.setAttribute('transform','scale('+(1+.07*pu).toFixed(3)+' '+(1-.09*pu).toFixed(3)+')');
   wv.setAttribute('transform','translate('+(-((t*18)%60)).toFixed(1)+' 0)');
   wd0.setAttribute('transform','translate(112 410) skewX('+(Math.sin(t*.55)*2.5).toFixed(2)+')');wd1.setAttribute('transform','translate(428 410) skewX('+(Math.sin(t*.5+2)*2.5).toFixed(2)+')');
+  }
 }
 requestAnimationFrame(loop);
 // ---- топ дарителей на облаке: 1-е место по центру с короной, 2-е слева, 3-е справа ----

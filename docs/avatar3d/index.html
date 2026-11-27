@@ -22,7 +22,7 @@ var bub=document.getElementById('bub'),bubT=null,bubSw=null,bubX=0,BUB_SHIFT=5,B
 function bubFill(n,t){bub.textContent='';var a=document.createElement('div');a.className='bn';a.textContent=n;var b=document.createElement('div');b.className='bt';b.textContent=t;if(n)bub.appendChild(a);bub.appendChild(b);}
 function headTop(){ // макушка модели на экране: верх рамки модели → точка на экране
   if(!vrm||!camera)return null;
-  try{var box=new T.Box3().setFromObject(vrm.scene),v=new T.Vector3((box.min.x+box.max.x)/2,box.max.y,(box.min.z+box.max.z)/2);camera.updateMatrixWorld();v.project(camera);return (1-v.y)/2*window.innerHeight;}catch(_){return null;}}
+  try{var tp=frame.top;if(!tp)return null;var v=new T.Vector3(tp[0],tp[1],tp[2]);camera.updateMatrixWorld();v.project(camera);return (1-v.y)/2*window.innerHeight;}catch(_){return null;}}
 function bubShow(n,t){
   bub.className='';bubFill(n,t);
   var lim=Math.max(0,Math.min(BUB_SHIFT,(window.innerWidth-bub.offsetWidth)/2-6)),x=0;
@@ -41,7 +41,7 @@ function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='b
 function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
 var BASE='',S={},V={},tracking=false,lastFrame=0,STALE_MS=800;
 var T=null,VRMLIB=null,GLTFLoader=null,renderer=null,scene=null,camera=null,vrm=null,libsP=null,loadedKey='',gen=0,frame={cx:0,cy:1.2,d:2,fov:30};
-var arms=null,nextBlink=0,blinkT=-1,clockT=0;
+var arms=null,nextBlink=0,blinkT=-1,clockT=0,nextT=0,FRAME_MS=1000/30;
 function live(){return tracking&&Date.now()-lastFrame<STALE_MS;}
 function cl(v,a,b){return Math.max(a,Math.min(b,v));}
 function libs(){
@@ -75,6 +75,7 @@ function onResize(){if(!renderer)return;renderer.setSize(window.innerWidth,windo
 window.addEventListener('resize',onResize);
 function frameModel(){
   var box=new T.Box3().setFromObject(vrm.scene),h=Math.max(0.3,box.max.y-box.min.y);
+  frame.top=[(box.min.x+box.max.x)/2,box.max.y,(box.min.z+box.max.z)/2]; // макушка запоминается один раз
   var head=bone('head'),hy=h*0.85;
   if(head){var p=new T.Vector3();head.getWorldPosition(p);if(p.y>0)hy=p.y;}
   var vis=h*0.5; // сколько метров по высоте видно в кадре
@@ -154,7 +155,8 @@ function drive(dt,now){
 function tick(now){
   requestAnimationFrame(tick);
   if(document.hidden)return; // окно скрыто или свёрнуто: ничего не считаем и не рисуем
-  if(clockT&&now-clockT<30)return; // не чаще ~30 кадров/с: для стрима этого хватает, нагрузка вдвое меньше
+  if(now<nextT-2)return; // не чаще ~30 кадров/с: для стрима этого хватает, нагрузка вдвое меньше
+  nextT=Math.max(nextT+FRAME_MS,now-FRAME_MS); // ровный ритм: раньше из-за дрожания кадров между отрисовками иногда выходило 45–50 мс, и аватар «подёргивался»
   var dt=clockT?Math.min((now-clockT)/1000,0.1):0.016;clockT=now;
   if(vrm)drive(dt,now);
   if(renderer&&scene&&camera)renderer.render(scene,camera);

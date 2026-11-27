@@ -6,7 +6,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .a{position:relative;width:108px;height:108px;border-radius:25px;background:#6b7280 center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:42px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .r{position:absolute;left:7px;top:7px;min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:13px;background:rgba(0,0,0,.62);font-size:15px;font-weight:700;line-height:26px;text-align:center}
 .t:nth-of-type(1) .r{background:#f5b301;color:#2a1c00}.t:nth-of-type(2) .r{background:#cfd4dc;color:#1c2230}.t:nth-of-type(3) .r{background:#c98542;color:#2b1800}
-.l{display:flex;align-items:center;justify-content:center;gap:5px;min-width:64px;height:30px;padding:0 12px;box-sizing:border-box;border-radius:15px;background:rgba(0,0,0,.72);color:#fff;font-size:20px;font-weight:800;line-height:30px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.l{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:5px;min-width:64px;height:30px;padding:0 12px;box-sizing:border-box;border-radius:15px;background:rgba(0,0,0,.72);color:#fff;font-size:20px;font-weight:800;line-height:30px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .l i{font-style:normal;color:#ff4d6d;font-size:18px}
 .n{max-width:112px;font-size:19px;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .n{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
@@ -14,8 +14,12 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .rd .a{border-radius:50%;overflow:visible}
 .rd .r{left:0;top:0}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes lk{50%{transform:scale(1.25);background:#ff4d6d}}
+/* мигание: розовый слой под текстом меняет только прозрачность, а плашка только масштаб, оба на видеокарте; раньше менялся background, и это перерисовывалось на процессоре */
+.l::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;border-radius:inherit;background:#ff4d6d;opacity:0;z-index:-1}
+@keyframes lk{50%{transform:scale(1.25)}}
+@keyframes lkb{50%{opacity:1}}
 .t.bl .l{animation:lk .45s ease-in-out 2}
+.t.bl .l::before{animation:lkb .45s ease-in-out 2}
 /* удар рукой: слой с рукой лежит над всеми плитками, кроме бьющей (класс pz), — так рука «выходит» из её аватарки и ложится поверх соседней */
 .t.pz{z-index:3}
 #fx{position:absolute;left:0;top:0;width:0;height:0;z-index:2;pointer-events:none}
@@ -29,7 +33,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 </style></head><body class="sh">
 <div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div><div id="root"><aside id="fx"></aside></div>
 <script>
-var S={count:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true,round:false,punch:true},PK=1,LIST=[],PREV={},TOP=null,PREVN=[],FX=null;
+var RT=0,S={count:5,scale:100,align:'center',showCount:true,showRank:true,shadow:true,round:false,punch:true},PK=1,LIST=[],PREV={},TOP=null,PREVN=[],FX=null;
 var root=document.getElementById('root');
 var COLORS=['#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#a855f7','#f97316','#22c55e'];
 function colorOf(s){var h=0,i;for(i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length];}
@@ -55,6 +59,9 @@ function render(){
       root.appendChild(t);
     }
     var a=t.firstChild,nm=d.name||'Гость',av=/^https?:\/\//.test(d.avatar||'')?d.avatar:'';
+    var key=nm+'|'+av+'|'+d.likes+'|'+i+(S.showRank?'r':'')+(S.showCount?'c':'');
+    if(t._k===key){PREV[nm]=d.likes;continue;} // ничего не изменилось: DOM не трогаем
+    t._k=key;
     if(a.dataset.av!==av||a.dataset.nm!==nm){
       a.dataset.av=av;a.dataset.nm=nm;
       a.style.backgroundImage=av?'url("'+av.replace(/"/g,'%22')+'")':'none';
@@ -66,7 +73,7 @@ function render(){
     l.innerHTML='<i>♥</i>';l.appendChild(document.createTextNode(fmt(d.likes)));l.style.display=S.showCount?'':'none';
     t.querySelector('.n').textContent=nm;
     // лайки выросли — мигаем плашкой (первая отрисовка без мигания)
-    if(PREV[nm]!==undefined&&d.likes>PREV[nm]){t.classList.remove('bl');void t.offsetWidth;t.classList.add('bl');}
+    if(PREV[nm]!==undefined&&d.likes>PREV[nm]&&!(t._b&&Date.now()-t._b<900)){t._b=Date.now();t.classList.remove('bl');void t.offsetWidth;t.classList.add('bl');} // не чаще раза в 0,9 с
     PREV[nm]=d.likes;
   }
 }
@@ -104,7 +111,8 @@ function punch(w){ // w: 0 — бьёт 1 место по 2-му, 1 — бьёт
   var arm=hd.firstChild,gp=hd.lastChild;
   // этапы [мс, угол°, радиус px, плавность]: выскакивает вверх → замирает → замах назад → удар → отдача → прячется в аватарку
   var SEG=[[260,-90,92,eOB],[90,-90,92,null],[170,-124,78,eOC],[150,ha,hr,eIC],[110,ha,hr-8,eOC],[330,ha,30,eIO]];
-  var k,HIT=0,END=0,st=null,hit=false;
+  var k,HIT=0,END=0,st=null,hit=false,ARMW=Math.max(1,Math.max.apply(null,SEG.map(function(x){return x[2];}))-70);
+  arm.style.width=ARMW+'px';arm.style.transformOrigin='0 50%';
   for(k=0;k<SEG.length;k++){END+=SEG[k][0];if(k<4)HIT=END;}
   function pose(t){
     var i,a=-90,r=30,d,e;
@@ -118,7 +126,7 @@ function punch(w){ // w: 0 — бьёт 1 место по 2-му, 1 — бьёт
   function draw(t){
     var p=pose(t);
     hd.style.transform='translate('+px+'px,'+py+'px) rotate('+p[0]+'deg)';
-    arm.style.width=Math.max(0,p[1]-70)+'px';
+    arm.style.transform='scaleX('+(Math.max(0,p[1]-70)/ARMW).toFixed(4)+')'; // растягиваем через transform: ширину менять нельзя, это пересчёт раскладки каждый кадр
     gp.style.transform='translateX('+p[1]+'px)';
   }
   function step(now){
@@ -155,8 +163,9 @@ function tellReady(){if(told)return;told=true;try{if(window.parent&&window.paren
 window.addEventListener('message',function(e){var d=e.data;if(window.parent!==window&&e.source===window.parent&&d&&d.echochat==='fit'){var k=+d.k;if(k>0.1&&k<=1.5&&k!==PK){PK=k;apply();}}});
 function bind(es){
   es.addEventListener('lsettings',function(e){S=Object.assign(S,JSON.parse(e.data));apply();tellReady();});
-  es.addEventListener('likes',function(e){var d=JSON.parse(e.data);LIST=Array.isArray(d)?d:[];render();lead();});
-  es.addEventListener('clear',function(){LIST=[];TOP=null;PREVN=[];stopFx();render();});
+  es.addEventListener('likes',function(e){var d=JSON.parse(e.data);LIST=Array.isArray(d)?d:[];
+    if(!RT)RT=setTimeout(function(){RT=0;render();lead();},250);}); // лайки сыпятся пачками: отрисовываем не чаще 4 раз в секунду
+  es.addEventListener('clear',function(){clearTimeout(RT);RT=0;LIST=[];TOP=null;PREVN=[];stopFx();render();});
 }
 function connect(){
   if(!REMOTE){bind(new EventSource('/events'));return;}
