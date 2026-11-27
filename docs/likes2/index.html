@@ -7,7 +7,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 body.pv #root{justify-content:center;padding:10px}
 :where(.d-default) #ttl{align-self:flex-start;display:flex;align-items:center;gap:9px;padding:5px 18px 5px 5px;border-radius:999px;font-weight:900;font-size:14px;letter-spacing:.16em;white-space:nowrap;background:linear-gradient(90deg,var(--t1),var(--t2));border:2px solid rgba(255,255,255,.55);box-shadow:0 5px 16px rgba(0,0,0,.42),0 0 18px color-mix(in srgb,var(--t1) 45%,transparent),inset 0 2px 4px rgba(255,255,255,.35);text-shadow:0 2px 4px rgba(0,0,0,.4);margin:0 0 22px 6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1) both}
 :where(.d-default) #ttl .tc{width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3);flex:none}
-:where(.d-default) #ttl .tc svg{width:21px;height:18.5px;animation:tbob 2.6s ease-in-out infinite}
+:where(.d-default) #ttl .tc svg{width:21px;height:18.5px}
 :where(.d-default) #rows{position:relative;display:flex;flex-direction:column;gap:10px}
 :where(.d-default) .row{position:relative;display:flex;align-items:center;height:60px;padding:0 18px 0 9px;box-sizing:border-box;--g1:#6a38c8;--g2:#3c2183;--g3:#241346;--bd:rgba(214,150,255,.75);--gl:rgba(190,100,255,.35);--r1:#ff7fcb;--r2:#8b3cf0;--rt:#fff;--vc2:#ffa6d8;--ring:rgba(255,160,225,.85)}
 :where(.d-default) .row.nw{animation:rin .5s cubic-bezier(.2,1.2,.4,1) both}
@@ -42,7 +42,7 @@ body.pv #root{justify-content:center;padding:10px}
 :where(.d-default) .tn{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
 :where(.d-default) .m,:where(.d-default) .f{display:none}
 :where(.d-old) #ttl{align-self:flex-start;display:flex;align-items:center;gap:7px;padding:5px 14px 5px 10px;border-radius:999px;font-weight:800;font-size:13px;letter-spacing:.14em;background:linear-gradient(90deg,rgba(70,34,120,.95),rgba(36,18,70,.95));border:1.5px solid rgba(190,150,255,.55);box-shadow:0 4px 14px rgba(0,0,0,.35);margin-left:14px;margin-bottom:14px;animation:pop .5s cubic-bezier(.2,1.4,.4,1) both}
-:where(.d-old) #ttl .tc svg{width:22px;height:21px;animation:bob 2.6s ease-in-out infinite}
+:where(.d-old) #ttl .tc svg{width:22px;height:21px}
 body.notitle #ttl{display:none}
 body.notitle #rows{padding-top:22px}
 :where(.d-old) #rows{position:relative;display:flex;flex-direction:column;gap:9px}
@@ -179,7 +179,7 @@ to{opacity:1;transform:none}
 @keyframes bob{0%,100%{transform:rotate(-16deg) translateY(0)}
 50%{transform:rotate(-12deg) translateY(-3px)}
 }
-:where(.d-old) #ttl .tc svg{animation-name:tbob}
+
 @keyframes tbob{0%,100%{transform:translateY(0)}
 50%{transform:translateY(-2px)}
 }
