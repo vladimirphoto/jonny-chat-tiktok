@@ -1,0 +1,147 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Цели</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI",Arial,sans-serif;height:100%;color:#fff}
+#box{position:fixed;top:50%;left:50%;transform-origin:center center}
+#list{display:flex;flex-direction:column;gap:16px;width:360px;padding:12px}
+/* карточка цели: тёмное стекло с фирменной фиолетово-розовой рамкой */
+.g{position:relative;box-sizing:border-box;padding:14px 16px 16px 92px;min-height:96px;border-radius:22px;background:linear-gradient(160deg,rgba(40,32,72,.94),rgba(22,17,42,.94));border:1.5px solid rgba(167,139,250,.5);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 22px rgba(139,92,246,.22);animation:gin .5s cubic-bezier(.2,1.3,.4,1) both}
+.g::before{content:"";position:absolute;inset:-1.5px;border-radius:22px;padding:1.5px;background:linear-gradient(135deg,#8b5cf6,#ec4899);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.75;pointer-events:none}
+.im{position:absolute;left:12px;top:50%;width:70px;height:70px;margin-top:-35px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.2),rgba(139,92,246,.22) 60%,rgba(0,0,0,.2));border:1.5px solid rgba(255,255,255,.18);font-size:38px;line-height:1}
+.im img{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5))}
+.ti{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;background:linear-gradient(90deg,#c4b5fd,#f9a8d4);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti:empty{display:none}
+.rw{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:3px}
+.nm{min-width:0;font-size:22px;font-weight:800;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 2px 6px rgba(0,0,0,.45)}
+.cn{flex:none;font-size:24px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums;text-shadow:0 2px 6px rgba(0,0,0,.45)}
+.cn i{font-style:normal;font-size:.72em;font-weight:700;color:rgba(255,255,255,.62)}
+.bar{position:relative;height:12px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.5);overflow:hidden}
+.bar b{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#8b5cf6,#ec4899);box-shadow:0 0 12px rgba(236,72,153,.6);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.bar b::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);background-size:250% 100%;background-position:150% 0;animation:shine 3.6s ease-in-out infinite}
+.pc{position:absolute;right:18px;bottom:5px;font-size:10px;font-weight:800;color:rgba(255,255,255,.55);letter-spacing:.04em}
+.nobar .bar{display:none}
+.nopc .pc{display:none}
+.g.bump .cn{animation:bump .6s ease-out}
+.g.bump .im{animation:hop .6s ease-out}
+.g.done{border-color:#ffd54a;box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 28px rgba(255,200,60,.5);animation:gin .5s cubic-bezier(.2,1.3,.4,1) both,glow 2.2s ease-in-out infinite .5s}
+.g.done::before{background:linear-gradient(135deg,#ffe58a,#f59e0b);opacity:1}
+.g.done .bar b{background:linear-gradient(90deg,#fbbf24,#f59e0b);box-shadow:0 0 14px rgba(255,200,60,.75)}
+.g.done .cn{color:#ffe58a}
+.g.done .ti{background:linear-gradient(90deg,#ffe58a,#fbbf24);-webkit-background-clip:text;background-clip:text}
+@keyframes gin{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes shine{0%{background-position:150% 0}60%,100%{background-position:-50% 0}}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes hop{0%{transform:scale(1)}30%{transform:scale(1.14) rotate(-6deg)}100%{transform:none}}
+@keyframes glow{50%{box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 40px rgba(255,200,60,.8)}}
+/* дизайн «Без рамок»: крупный подарок и счёт под ним, без плашек, обводок и шкалы */
+.d-clean #list{gap:22px;align-items:center}
+.d-clean .g{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0;min-height:0;background:none;border:0;box-shadow:none;border-radius:0}
+.d-clean .g::before{display:none}
+.d-clean .im{position:static;width:132px;height:132px;margin:0;border:0;background:none;border-radius:0;font-size:96px}
+.d-clean .im img{width:132px;height:132px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+.d-clean .ti{order:3;margin-top:2px;font-size:13px;letter-spacing:.12em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:rgba(255,255,255,.85);text-shadow:0 2px 6px rgba(0,0,0,.7)}
+.d-clean .rw{display:contents}
+.d-clean .nm{display:none}
+.d-clean .cn{order:2;margin-top:4px;font-size:52px;font-weight:900;line-height:1.05;text-shadow:0 3px 10px rgba(0,0,0,.65),0 0 2px rgba(0,0,0,.8)}
+.d-clean .cn i{font-size:.6em;color:rgba(255,255,255,.7)}
+.d-clean .bar,.d-clean .pc{display:none}
+.d-clean .g.done{animation:gin .5s cubic-bezier(.2,1.3,.4,1) both;box-shadow:none}
+.d-clean .g.done .cn{color:#ffe58a;text-shadow:0 3px 10px rgba(0,0,0,.65),0 0 18px rgba(255,200,60,.7)}
+.d-clean .g.done .ti{background:none;color:#ffe58a}
+@media (prefers-reduced-motion:reduce){.bar b::after,.g.done{animation:none!important}}
+</style></head><body>
+<div id="nc" style="display:none;position:fixed;left:10px;top:10px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;font:600 13px/1.3 'Segoe UI',Arial,sans-serif;padding:7px 12px;border-radius:999px">Нет связи с приложением ЭхоЧат — запустите его на этом компьютере</div>
+<div id="box"><div id="list"></div></div>
+<script>
+var S={goals:[],design:'card',size:1,showBar:true,showPercent:true},COUNTS={},FIRST=true,PK=1;
+var IN_APP=window.parent!==window;
+var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
+// ?kind=gift — цели по подаркам, likes — по лайкам, follows — по подпискам; без вида показываются все цели
+var KINDS=['gift','likes','follows'],KIND=KINDS.indexOf(Q.get('kind'))>=0?Q.get('kind'):'';
+var ICONS={gift:'🎁',likes:'❤️',follows:'👥'};
+var DEMOS={gift:{id:'demo',type:'gift',title:'Цель по подаркам',name:'Роза',image:'',target:100},likes:{id:'demo-likes',type:'likes',title:'Цель по лайкам',name:'Лайки',image:'',target:1000},follows:{id:'demo-follows',type:'follows',title:'Цель по подпискам',name:'Подписки',image:'',target:10}};
+var box=document.getElementById('box'),list=document.getElementById('list');
+function fmt(n){return String(+n||0).replace(/\B(?=(\d{3})+(?!\d))/g,' ');}
+function typeOf(d){return KINDS.indexOf(d&&d.type)>=0?d.type:'gift';}
+function goals(){
+  var g=(Array.isArray(S.goals)?S.goals:[]).filter(function(d){return !KIND||typeOf(d)===KIND;}).slice(0,15);
+  if(g.length||!IN_APP)return g;
+  return KIND?[DEMOS[KIND]]:[DEMOS.gift]; // в предпросмотре без целей показываем пример
+}
+function card(d){
+  var e=document.createElement('div');e.className='g';e.setAttribute('data-id',d.id);
+  var im=document.createElement('div');im.className='im';
+  if(d.image&&/^(https?:|data:image\/)/.test(d.image)){
+    var i=document.createElement('img');i.referrerPolicy='no-referrer';i.alt='';
+    i.onerror=function(){i.remove();im.textContent=ICONS[typeOf(d)];};
+    i.src=d.image;im.appendChild(i);
+  }else im.textContent=d.id==='demo'?'🌹':ICONS[typeOf(d)];
+  var ti=document.createElement('div');ti.className='ti';ti.textContent=d.title||'';
+  var rw=document.createElement('div');rw.className='rw';
+  var nm=document.createElement('div');nm.className='nm';nm.textContent=d.name||'';
+  var cn=document.createElement('div');cn.className='cn';
+  rw.appendChild(nm);rw.appendChild(cn);
+  var bar=document.createElement('div');bar.className='bar';bar.appendChild(document.createElement('b'));
+  var pc=document.createElement('div');pc.className='pc';
+  e.appendChild(im);e.appendChild(ti);e.appendChild(rw);e.appendChild(bar);e.appendChild(pc);
+  return e;
+}
+function render(){
+  var L=goals();
+  document.body.className=(S.design==='clean'?'d-clean ':'')+(S.showBar===false?'nobar ':'')+(S.showPercent===false?'nopc':'');
+  list.innerHTML='';
+  L.forEach(function(d){list.appendChild(card(d));});
+  setCounts(COUNTS,true);place();
+}
+function place(){
+  var sc=Math.max(.5,Math.min(2,+S.size||1));PK=1;list.style.width=S.design==='clean'?'260px':'';
+  // предпросмотр в приложении: окно маленькое, цели вписываются в него с запасом на самый большой размер
+  if(IN_APP){var w=list.offsetWidth||360,h=list.offsetHeight||120,k=Math.min((innerWidth-16)/(w*1.5),(innerHeight-16)/(h*1.5));if(k<1)PK=Math.max(.2,k);}
+  box.style.transform='translate(-50%,-50%) scale('+(sc*PK)+')';
+}
+function setCounts(c,quiet){
+  var prev=COUNTS;COUNTS=c&&typeof c==='object'?c:{};
+  var L=goals(),i,d,e,v,t,p,demo=IN_APP&&L.length===1&&String(L[0].id).indexOf('demo')===0;
+  for(i=0;i<L.length;i++){
+    d=L[i];e=list.children[i];if(!e)continue;
+    v=+COUNTS[d.id]||0;t=Math.max(1,+d.target||1);
+    if(demo&&!(d.id in COUNTS))v=Math.round(t*.37);
+    p=Math.min(100,Math.floor(v/t*100));
+    e.querySelector('.cn').innerHTML=fmt(v)+'<i>/'+fmt(t)+'</i>';
+    e.querySelector('.bar b').style.width=Math.min(100,v/t*100)+'%';
+    e.querySelector('.pc').textContent=p+'%';
+    e.classList.toggle('done',v>=t);
+    if(!quiet&&!FIRST&&v>(+prev[d.id]||0)){e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump');}
+  }
+  FIRST=false;
+}
+var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
+var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
+var nc=document.getElementById('nc'),ncT=null;
+function offline(){if(REMOTE&&!ncT)ncT=setTimeout(function(){nc.style.display='block'},4000);}
+function online(){clearTimeout(ncT);ncT=null;nc.style.display='none';}
+var told=false;
+function tellReady(){if(told)return;told=true;try{if(window.parent&&window.parent!==window)window.parent.postMessage({echochat:'goals-ready'},'*');}catch(_){}}
+function bind(es){
+  es.addEventListener('goalsettings',function(e){S=Object.assign(S,JSON.parse(e.data));render();tellReady();});
+  es.addEventListener('goalcounts',function(e){setCounts(JSON.parse(e.data));});
+}
+function connect(){
+  if(!REMOTE){bind(new EventSource('/events'));return;}
+  var r=PORTS.length>1?Math.floor(Math.random()*Math.min(5,PORTS.length)):0,order=PORTS.slice(r).concat(PORTS.slice(0,r)),i=0;
+  (function probe(){
+    var port=order[i%order.length];i++;
+    var es=new EventSource('http://127.0.0.1:'+port+'/events'),got=false,dead=false,t,rt=null;
+    function again(){if(dead)return;dead=true;clearTimeout(t);clearTimeout(rt);es.close();offline();setTimeout(probe,order.length>1&&i%order.length?30:2500);}
+    t=setTimeout(function(){if(!got)again();},1500);
+    es.addEventListener('settings',function(){if(!got){got=true;clearTimeout(t);online();}});
+    es.onerror=function(){if(!got){again();return;}offline();if(!rt)rt=setTimeout(function(){i=0;again();},6000);};
+    es.onopen=function(){if(got){online();clearTimeout(rt);rt=null;}};
+    bind(es);
+  })();
+}
+window.addEventListener('resize',place);
+// предпросмотр в приложении: окно сообщает, какой вид целей сейчас открыт
+window.addEventListener('message',function(e){var d=e.data;if(IN_APP&&e.source===window.parent&&d&&d.echochat==='goals-kind'){KIND=KINDS.indexOf(d.kind)>=0?d.kind:'';FIRST=true;render();}});
+render();connect();
+</script></body></html>
