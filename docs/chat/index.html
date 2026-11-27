@@ -13,7 +13,7 @@ html,body{margin:0;background:transparent;overflow:hidden;font-family:"Segoe UI"
 .gift{display:flex;align-items:center;gap:6px;margin-top:2px}.right .gift{flex-direction:row-reverse}
 .gift img{width:34px;height:34px}
 .sh .n,.sh .t,.sh .gift{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9),0 2px 8px rgba(0,0,0,.8)}
-.sh .av,.sh .pi{filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
+.sh .av{box-shadow:0 1px 3px rgba(0,0,0,.8)} /* тень круглой аватарки без filter: фильтр на каждой аватарке и значке перерисовывался при каждом новом сообщении */
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #pinw{position:fixed;left:0;display:none;box-sizing:border-box;padding:10px 10px 0;transform-origin:top left;pointer-events:none;z-index:5}
 .pn{display:flex;align-items:flex-start;gap:10px;box-sizing:border-box;padding:10px 14px 10px 10px;border-radius:14px;color:#fff;font-size:20px;line-height:1.25;background:rgba(18,18,22,.82);border:1px solid rgba(167,139,250,.6);box-shadow:0 4px 18px rgba(0,0,0,.45);animation:in .25s ease-out}
