@@ -1,16 +1,26 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Аквариум</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:transparent}
-svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
+/* Слои: статичный аквариум рисуется один раз, вода двигается слоями на видеокарте, подарки и пузырьки лежат в своих лёгких слоях. Раньше всё это было одним SVG, и рыбки, крабы, медуза и водоросли заставляли браузер перерисовывать его 30 раз в секунду. */
+#sc{position:fixed;left:50%;bottom:0;width:540px;height:560px;transform-origin:50% 100%;transform:translateX(-50%)}
+.ly{position:absolute;left:0;top:0;width:540px;height:560px;display:block;overflow:visible;pointer-events:none}
+#wat{position:absolute;left:90px;top:222px;width:360px;height:202px;overflow:hidden;border-radius:10px;pointer-events:none}
+.wl{position:absolute;left:0;top:0;width:720px;height:202px;will-change:transform}
+.wl svg{display:block;width:720px;height:202px;overflow:visible}
+#w0{animation:wvl 6s linear infinite}
+#w1{animation:wvl 26s linear infinite}
+#w2{animation:wvr 38s linear infinite}
+#w3{animation:wvl 20s linear infinite}
+@keyframes wvl{to{transform:translateX(-360px)}}
+@keyframes wvr{from{transform:translateX(-360px)}to{transform:translateX(0)}}
 #nc{position:fixed;left:10px;top:10px;display:none;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,.65);color:#fbbf24;font:13px "Segoe UI",Arial,sans-serif}
 .tb{transform-box:fill-box}
 .paused *{animation-play-state:paused!important}
-.legs{transform-box:fill-box;transform-origin:50% 0}
-.mv .legs{animation:lg .9s ease-in-out infinite}
-@keyframes lg{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.9)}}
+</style></head><body>
 </style></head><body>
 <div id="nc">Нет связи с приложением ЭхоЧат</div>
-<svg id="sc" viewBox="0 0 540 560" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<div id="sc">
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <defs>
   <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fe6ea" stop-opacity=".34"/><stop offset=".5" stop-color="#2f9fd0" stop-opacity=".4"/><stop offset="1" stop-color="#173f78" stop-opacity=".55"/></linearGradient>
   <linearGradient id="gTint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46c8e8" stop-opacity=".08"/><stop offset="1" stop-color="#0c2f6a" stop-opacity=".24"/></linearGradient>
@@ -23,14 +33,10 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <linearGradient id="gRay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
   <radialGradient id="gShadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#9d8ee0" stop-opacity=".45"/><stop offset="1" stop-color="#9d8ee0" stop-opacity="0"/></radialGradient>
   <clipPath id="cW"><rect x="90" y="222" width="360" height="202" rx="10"/></clipPath>
-  <g id="fish"><path d="M-26 0 L-46 -15 Q-40 0 -46 15Z" style="fill:var(--c2)"/><path d="M-26 0 Q-6 -20 22 -4 Q30 0 22 5 Q-6 20 -26 0Z" style="fill:var(--c1)"/><path d="M-6 -12 Q2 -26 12 -11Z" style="fill:var(--c2)"/><path d="M4 -13 Q9 0 4 13" stroke="#fff" stroke-opacity=".6" stroke-width="3" fill="none"/><circle cx="16" cy="-2" r="3.4" fill="#fff"/><circle cx="17" cy="-2" r="1.7" fill="#14213d"/><path d="M-20 -4 Q-6 -12 10 -9" stroke="#fff" stroke-opacity=".35" stroke-width="2" fill="none"/></g>
-  <g id="crab"><g class="legs" stroke="#e0483f" stroke-width="2.2" stroke-linecap="round" fill="none"><path d="M-9 -2 L-17 4 L-20 9M-6 0 L-13 7 L-15 12M6 0 L13 7 L15 12M9 -2 L17 4 L20 9"/></g><ellipse cx="0" cy="-5" rx="14" ry="8.5" fill="#ff6b5e"/><ellipse cx="-3" cy="-8" rx="7" ry="3" fill="#fff" fill-opacity=".35"/><g class="claw" stroke="#ff6b5e" stroke-width="3" fill="#ff6b5e" stroke-linecap="round"><path d="M-13 -7 L-19 -15" fill="none"/><path d="M-24 -23 Q-31 -17 -22 -12 L-19 -16Z"/><path d="M13 -7 L19 -15" fill="none"/><path d="M24 -23 Q31 -17 22 -12 L19 -16Z"/></g><path d="M-5 -12 V-17M5 -12 V-17" stroke="#e0483f" stroke-width="1.6"/><circle cx="-5" cy="-18" r="2.6" fill="#fff"/><circle cx="5" cy="-18" r="2.6" fill="#fff"/><circle cx="-5" cy="-18" r="1.2" fill="#14213d"/><circle cx="5" cy="-18" r="1.2" fill="#14213d"/></g>
-  <g id="snail"><path d="M-14 0 Q-14 -5 -8 -5 H10 Q16 -5 17 -9 Q18 -13 15 -13" fill="none" stroke="#e8c8a8" stroke-width="6" stroke-linecap="round"/><path d="M15 -13 L17 -19M12 -12 L12 -18" stroke="#e8c8a8" stroke-width="1.6" stroke-linecap="round"/><circle cx="17" cy="-19.5" r="1.4" fill="#14213d"/><circle cx="12" cy="-18.5" r="1.4" fill="#14213d"/><circle cx="-3" cy="-11" r="9" fill="#f3a8c4"/><path d="M-3 -11 m0 0 a2 2 0 1 1 3 2 a5 5 0 1 1 -7 -5 a8 8 0 0 1 9 -3" fill="none" stroke="#c9729a" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="-6" cy="-15" rx="3" ry="1.8" fill="#fff" fill-opacity=".5"/></g>
   <g id="coral"><path d="M0 0 Q-6 -22 -16 -34 M0 0 Q2 -30 0 -48 M0 0 Q8 -24 20 -38" stroke="currentColor" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="-16" cy="-36" r="6" fill="currentColor"/><circle cx="0" cy="-51" r="6.5" fill="currentColor"/><circle cx="20" cy="-40" r="6" fill="currentColor"/></g>
   <g id="weed"><path d="M0 0 Q-9 -24 0 -46 Q9 -66 0 -88" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/></g>
   <g id="star"><path d="M0 -12 L3.5 -3.5 L12 -3.5 L5.5 2.5 L8 11 L0 6 L-8 11 L-5.5 2.5 L-12 -3.5 L-3.5 -3.5Z" fill="#ff8fa8" stroke="#ffc2cf" stroke-width="1.5" stroke-linejoin="round"/></g>
 </defs>
-
 <!-- облако-подставка -->
 <g id="cloud">
   <ellipse cx="270" cy="476" rx="262" ry="52" fill="url(#gShadow)"/>
@@ -38,18 +44,13 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <g fill="#fff" opacity=".7"><circle cx="70" cy="444" r="12"/><circle cx="120" cy="452" r="10"/><circle cx="420" cy="452" r="10"/><circle cx="472" cy="444" r="12"/></g>
   <g fill="#fff"><path d="M40 410l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path d="M500 400l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z"/><path d="M470 330l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g>
 </g>
-
 <!-- задняя стенка и задняя кромка -->
 <rect x="84" y="196" width="372" height="236" rx="16" fill="#cfeaff" opacity=".06"/>
 <rect x="76" y="184" width="388" height="9" rx="4.5" fill="#8d7fd0"/>
-
-<!-- вода и всё, что в ней живёт -->
 <g clip-path="url(#cW)">
   <rect x="90" y="222" width="360" height="202" fill="url(#gWater)"/>
   <g id="rays" fill="url(#gRay)"><polygon points="130,222 176,222 236,424 150,424"/><polygon points="220,222 268,222 336,424 250,424"/><polygon points="320,222 362,222 436,424 350,424"/></g>
-  <g color="#4aa98a" opacity=".5"><use id="wd0" href="#weed" transform="translate(112 410)"/><use id="wd1" href="#weed" transform="translate(428 410)"/></g>
-  <g id="fishL"></g>
-  <g id="jelly" transform="translate(300 300)"><g id="jbell"><path d="M-17 0 Q-17 -22 0 -22 Q17 -22 17 0Z" fill="#f6b8ff" fill-opacity=".75"/><path d="M-17 0 Q-8 4 0 0 Q8 4 17 0" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/></g><g stroke="#f6b8ff" stroke-opacity=".7" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M-9 3 Q-14 16 -8 28"/><path d="M0 4 Q5 18 -1 32"/><path d="M9 3 Q14 16 8 26"/></g></g>
+  <g color="#4aa98a" opacity=".5"><use id="wd0" href="#weed" transform="translate(112 410) skewX(1.2)"/><use id="wd1" href="#weed" transform="translate(428 410) skewX(-1.2)"/></g>
   <!-- дно -->
   <path d="M90 410 Q130 398 180 408 T270 406 T360 408 T450 402 V424 H90Z" fill="url(#gSand)"/>
   <g color="#ff7fb0"><use href="#coral" x="150" y="410"/></g>
@@ -58,22 +59,14 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <use href="#star" x="262" y="408" transform="rotate(-14 262 408)"/>
   <g transform="translate(300 410)"><path d="M-14 0 Q-14 -18 0 -18 Q14 -18 14 0Z" fill="#ffd9e6"/><path d="M-8 0V-16M0 0V-18M8 0V-16" stroke="#f3a8c4" stroke-width="2"/><circle cx="0" cy="-4" r="3.2" fill="#fff"/></g>
   <g fill="#fff" opacity=".6"><circle cx="226" cy="414" r="3"/><circle cx="238" cy="416" r="2"/><circle cx="330" cy="415" r="2.6"/><circle cx="104" cy="416" r="2.4"/></g>
-  <g id="critL"></g>
-  <g id="bubL"></g>
-  <g id="surf"><path id="wave" d="M60 222 q15 -7 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V236 H60Z" fill="#bff6ff" fill-opacity=".55"/></g>
 </g>
-
-<!-- подарки, уже упавшие в воду -->
-<g id="wetL"></g>
-
-<!-- толща воды перед подарками: подарки выглядят «под водой» -->
-<g clip-path="url(#cW)"><rect x="90" y="222" width="360" height="202" fill="url(#gTint)"/><g id="fishF"></g></g>
-
-<!-- подарки в воздухе, брызги -->
-<g id="airL"></g>
-<g id="fx"></g>
-
-<!-- стекло -->
+</svg>
+<div id="wat"><div id="w1" class="wl"><svg viewBox="0 0 720 202" xmlns="http://www.w3.org/2000/svg"><defs><filter id="wb2" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="2"/></filter></defs><g filter="url(#wb2)"><path d="M0 46 q30.0 -7 60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0" fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="8" stroke-linecap="round"/><path d="M-20 60 q30.0 -6 60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0 t60.0 0" fill="none" stroke="#fff" stroke-opacity="0.2" stroke-width="4" stroke-linecap="round"/></g></svg></div><div id="w2" class="wl"><svg viewBox="0 0 720 202" xmlns="http://www.w3.org/2000/svg"><defs><filter id="wb3" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="3"/></filter></defs><g filter="url(#wb3)"><path d="M0 98 q45.0 -9 90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0" fill="none" stroke="#bff6ff" stroke-opacity="0.24" stroke-width="12" stroke-linecap="round"/><path d="M-30 116 q45.0 -8 90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0 t90.0 0" fill="none" stroke="#fff" stroke-opacity="0.18" stroke-width="5" stroke-linecap="round"/></g></svg></div><div id="w3" class="wl"><svg viewBox="0 0 720 202" xmlns="http://www.w3.org/2000/svg"><defs><filter id="wb1.5" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="1.5"/></filter></defs><g filter="url(#wb1.5)"><path d="M0 150 q22.5 -6 45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0" fill="none" stroke="#fff" stroke-opacity="0.22" stroke-width="6" stroke-linecap="round"/><path d="M-15 166 q22.5 -5 45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0 t45.0 0" fill="none" stroke="#fff" stroke-opacity="0.15" stroke-width="3.5" stroke-linecap="round"/></g></svg></div><div id="w0" class="wl"><svg viewBox="0 0 720 202" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 q15 -7 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V14 H0Z" fill="#bff6ff" fill-opacity=".55"/></svg></div></div>
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="bubL"></g></svg>
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="wetL"></g></svg>
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g clip-path="url(#cW)"><rect x="90" y="222" width="360" height="202" fill="url(#gTint)"/></g></svg>
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="airL"></g><g id="fx"></g></svg>
+<svg class="ly" viewBox="0 0 540 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="glass" pointer-events="none">
   <rect x="84" y="196" width="372" height="236" rx="16" fill="none" stroke="#e8f6ff" stroke-opacity=".7" stroke-width="3"/>
   <rect x="90" y="202" width="360" height="224" rx="12" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
@@ -85,52 +78,20 @@ svg{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible
   <rect x="68" y="424" width="404" height="20" rx="10" fill="url(#gRim)"/>
   <rect x="76" y="427" width="388" height="3" rx="1.5" fill="#fff" opacity=".7"/>
 </g>
-</svg>
+<g id="topL"></g></svg>
+</div>
 <script>
 /*ASSETS*/
 var Q=new URLSearchParams(location.search),FIXED=+Q.get('port')||0;
 var REMOTE=!(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&!FIXED);
 var PORTS=[];if(FIXED)PORTS=[FIXED];else for(var pp=7878;pp<=7898;pp++)PORTS.push(pp);
 var NS='http://www.w3.org/2000/svg',$=function(i){return document.getElementById(i)};
-var sc=$('sc'),wetL=$('wetL'),airL=$('airL'),fx=$('fx'),bubL=$('bubL'),fishL=$('fishL');
+var sc=$('sc'),wetL=$('wetL'),airL=$('airL'),fx=$('fx'),bubL=$('bubL');
+function fit(){var k=Math.min(window.innerWidth/540,window.innerHeight/560);sc.style.transform='translateX(-50%) scale('+k+')';}
+fit();window.addEventListener('resize',fit);
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
 var R=Math.random,SURF=222,X0=90,X1=450,FLOOR=388,GR=27;
 var EMOJI=['🌹','🍩','❤️','🎁','⭐','🍭','🧸','💎','🌸','🍓','🫶','🍰'];
-// ---- рыбки ----
-var FISH=[
-  {c1:'#ff9f43',c2:'#ff5e62',y:290,s:1.0,v:34,z:0},
-  {c1:'#4cc9f0',c2:'#4361ee',y:340,s:1.15,v:26,z:0},
-  {c1:'#ff8fc7',c2:'#b86bff',y:262,s:.8,v:42,z:0},
-  {c1:'#ffe66d',c2:'#ff9f1c',y:370,s:.7,v:30,z:0}
-];
-FISH.forEach(function(f,i){
-  f.x=130+R()*280;f.dir=R()<.5?-1:1;f.tx=f.x;f.boost=0;f.ph=R()*6;
-  f.g=el('g',{},fishL);f.g.style.setProperty('--c1',f.c1);f.g.style.setProperty('--c2',f.c2);
-  f.fl=el('g',{},f.g);var u=el('use',{},f.fl);u.setAttributeNS('http://www.w3.org/1999/xlink','href','#fish');u.setAttribute('href','#fish');
-});
-function sT(n,s){if(n._t!==s){n._t=s;n.setAttribute('transform',s);}} // пишем атрибут только если значение изменилось: каждая запись заставляет браузер заново пересчитать и перерисовать SVG
-function fishStep(f,dt,t){
-  var sp=f.v*(f.boost>0?2.6:1);f.boost=Math.max(0,f.boost-dt);
-  if(Math.abs(f.tx-f.x)<8||R()<.0015){f.tx=X0+50+R()*(X1-X0-100);}
-  var want=f.tx>f.x?1:-1;if(want!==f.dir&&Math.abs(f.tx-f.x)>10)f.dir=want;
-  f.x+=f.dir*sp*dt;f.fx=(f.fx===undefined?f.dir:f.fx);f.fx+=(f.dir-f.fx)*Math.min(1,dt*4);
-  var y=f.y+Math.sin(t*.9+f.ph)*10;
-  // одна запись вместо двух: перенос, отражение и покачивание в одном transform
-  sT(f.g,'translate('+f.x.toFixed(1)+' '+y.toFixed(1)+') scale('+(f.fx*f.s).toFixed(3)+' '+f.s+') rotate('+(Math.sin(t*(f.boost>0?14:6)+f.ph)*(f.boost>0?4:2.5)).toFixed(2)+')');
-}
-// ---- крабики и улитки ползают по дну очень медленно ----
-var CRIT=[{t:'crab',x:210,y:409,s:.85,v:9,d:1},{t:'crab',x:360,y:410,s:.62,v:6,d:-1},{t:'snail',x:150,y:411,s:.8,v:2.6,d:1},{t:'snail',x:300,y:411,s:.6,v:2,d:-1}];
-CRIT.forEach(function(c){
-  c.g=el('g',{},$('critL'));c.fl=el('g',{},c.g);var u=el('use',{},c.fl);u.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+c.t);u.setAttribute('href','#'+c.t);
-  c.mv=R()<.5;c.tm=1+R()*5;c.fx=c.d;
-});
-function critStep(c,dt){
-  c.tm-=dt;if(c.tm<=0){c.mv=!c.mv;c.tm=c.mv?4+R()*6:2+R()*5;if(c.mv&&R()<.35)c.d=-c.d;}
-  if(c.mv){c.x+=c.d*c.v*dt;if(c.x<X0+34){c.x=X0+34;c.d=1;}if(c.x>X1-34){c.x=X1-34;c.d=-1;}}
-  var sx=c.t==='snail'?c.d:1;c.fx+=(sx-c.fx)*Math.min(1,dt*3);
-  sT(c.g,'translate('+c.x.toFixed(1)+' '+c.y+') scale('+(c.fx*c.s).toFixed(3)+' '+c.s+')'); // стоящий краб или улитка больше ничего не перерисовывают
-  var mvn=c.mv&&c.t==='crab';if(c.mvOn!==mvn){c.mvOn=mvn;c.g.classList.toggle('mv',mvn);}
-}
 // ---- пузырьки воздуха ----
 function bubble(x,y,r,top,dur){
   var b=el('circle',{cx:x,cy:y,r:r,fill:'url(#gBub)',stroke:'#fff','stroke-opacity':.5,'stroke-width':.8},bubL);
@@ -138,7 +99,8 @@ function bubble(x,y,r,top,dur){
   var a=b.animate([{transform:'translate(0,0)',opacity:.9},{transform:'translate('+dx+'px,'+(-h*.5)+'px)',opacity:.8},{transform:'translate('+(-dx)+'px,'+(-h)+'px)',opacity:0}],{duration:dur,easing:'ease-in'});
   a.onfinish=function(){b.remove();};
 }
-setInterval(function(){if(document.hidden)return;bubble(138+R()*8,404,1.8+R()*2.6,SURF+4,3200+R()*1800);},1000);
+var BSRC=[140,424],bi=0;
+setInterval(function(){if(document.hidden)return;bubble(BSRC[bi++%2]+R()*8,404,1.8+R()*2.6,SURF+4,3200+R()*1800);},1400); // пузырьки со дна из двух мест, понемногу
 // ---- брызги ----
 function splash(x){
   var r=el('ellipse',{cx:x,cy:SURF,rx:8,ry:2.2,fill:'none',stroke:'#e9fdff','stroke-width':2.4},fx);
@@ -177,12 +139,11 @@ function kill(it){
   var a=it.pop.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.35)',opacity:0}],{duration:420,easing:'ease-out'});a.onfinish=function(){it.g.remove();};
 }
 function clearAll(){gifts.slice().forEach(kill);}
-function excite(x){FISH.slice().sort(function(a,b){return Math.abs(a.x-x)-Math.abs(b.x-x);}).slice(0,2).forEach(function(f){f.tx=Math.max(X0+30,Math.min(X1-30,x+(R()-.5)*60));f.boost=2.2;});}
 function step(it,dt,t){
   if(it.ph==='air'){
     it.vy+=520*dt;it.y+=it.vy*dt;it.x+=it.vx*dt;it.rot+=it.spin*dt;
     if(it.x<X0+GR){it.x=X0+GR;it.vx=Math.abs(it.vx);}if(it.x>X1-GR){it.x=X1-GR;it.vx=-Math.abs(it.vx);}
-    if(it.y+GR>=SURF){it.ph='sink';wetL.appendChild(it.g);it.vy*=.42;it.vx*=.4;it.spin*=.2;splash(it.x);excite(it.x);}
+    if(it.y+GR>=SURF){it.ph='sink';wetL.appendChild(it.g);it.vy*=.42;it.vx*=.4;it.spin*=.2;splash(it.x);}
   }else if(it.ph==='sink'){
     it.vy+=(38-it.vy)*Math.min(1,dt*2.4);it.vx+=(0-it.vx)*Math.min(1,dt*1.8);
     it.x+=(it.vx+Math.sin(t*1.7+it.ph2)*16)*dt;it.y+=it.vy*dt;it.rot+=(Math.sin(t*1.3+it.ph2)*8-it.rot)*Math.min(1,dt*1.5);
@@ -201,26 +162,17 @@ function apart(){ // мягко раздвигаем подарки, чтобы 
       var dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy,m=GR*1.7;
       if(d2<m*m&&d2>.01){var d=Math.sqrt(d2),k=(m-d)*.035,ux=dx/d,uy=dy/d;a.x-=ux*k;a.y-=uy*k;b.x+=ux*k;b.y+=uy*k;}}}
 }
-var last=0,ambT=0,wv=$('wave'),jb=$('jbell'),wd0=$('wd0'),wd1=$('wd1'),jl=$('jelly');
+var last=0;
 function loop(now){
-  requestAnimationFrame(loop);if(document.hidden){last=now;return;}
-  var ms=now-last;if(ms<30)return; // не чаще ~30 кадров/с: встроенный браузер TikTok LIVE Studio слабее OBS
+  requestAnimationFrame(loop);if(document.hidden||!gifts.length){last=now;return;} // нет подарков: ничего не считаем
+  var ms=now-last;if(ms<30)return; // не чаще ~30 кадров/с
   var dt=Math.min(.06,ms/1000);last=now;var t=now/1000;TT=t;
-  for(var i=0;i<FISH.length;i++)fishStep(FISH[i],dt,t);
-  for(var q=0;q<CRIT.length;q++)critStep(CRIT[q],dt);
   for(var k=gifts.length-1;k>=0;k--)step(gifts[k],dt,t);
   apart();
-  // медуза, волна на поверхности и водоросли двигаются медленно и занимают большую площадь: обновляем их реже (~12 раз/с), рыбки остаются на 30
-  if(now-ambT>=80){ambT=now;
-  jl.setAttribute('transform','translate('+(300+Math.sin(t*.25)*70).toFixed(1)+' '+(300+Math.sin(t*.45)*34).toFixed(1)+')');
-  var pu=Math.sin(t*2.6);jb.setAttribute('transform','scale('+(1+.07*pu).toFixed(3)+' '+(1-.09*pu).toFixed(3)+')');
-  wv.setAttribute('transform','translate('+(-((t*18)%60)).toFixed(1)+' 0)');
-  wd0.setAttribute('transform','translate(112 410) skewX('+(Math.sin(t*.55)*2.5).toFixed(2)+')');wd1.setAttribute('transform','translate(428 410) skewX('+(Math.sin(t*.5+2)*2.5).toFixed(2)+')');
-  }
 }
 requestAnimationFrame(loop);
 // ---- топ дарителей на облаке: 1-е место по центру с короной, 2-е слева, 3-е справа ----
-var topL=el('g',{},sc),SLOTS=[{x:270,y:474,r:25,ring:'#ffd34d',crown:1},{x:202,y:480,r:20,ring:'#d9e2ff'},{x:338,y:480,r:20,ring:'#ffb48a'}];
+var topL=$('topL'),SLOTS=[{x:270,y:474,r:25,ring:'#ffd34d',crown:1},{x:202,y:480,r:20,ring:'#d9e2ff'},{x:338,y:480,r:20,ring:'#ffb48a'}];
 function drawTop(list){
   while(topL.firstChild)topL.removeChild(topL.firstChild);
   (list||[]).slice(0,3).forEach(function(u,i){
